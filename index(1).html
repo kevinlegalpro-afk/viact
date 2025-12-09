@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hello from ViACTHowspace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+      color: #1f2933;
+    }
+    h1 {
+      color: #2563eb;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      margin-bottom: 1rem;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin: 0.35rem 0;
+      word-break: break-all;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .loading {
+      color: #6b7280;
+      font-style: italic;
+    }
+    .error {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hello 👋</h1>
+  <p>Here are the GitHub Pages URLs for the files in this repository (root folder):</p>
+
+  <p id="status" class="loading">Loading URLs...</p>
+  <ul id="url-list"></ul>
+
+  <script>
+    // Your GitHub Pages base URL
+    const baseUrl = "https://guslow.github.io/ViACTHowspace/";
+    // GitHub API for repo contents (root)
+    const owner = "Guslow";
+    const repo  = "ViACTHowspace";
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/`;
+
+    const statusEl = document.getElementById("status");
+    const listEl = document.getElementById("url-list");
+
+    fetch(apiUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("GitHub API error: " + response.status);
+        }
+        return response.json();
+      })
+      .then(items => {
+        statusEl.textContent = "";
+
+        if (!Array.isArray(items) || items.length === 0) {
+          statusEl.textContent = "No items found in the repository root.";
+          return;
+        }
+
+        // Only files (ignore folders). If you want only .html, keep the endsWith(".html") filter.
+        const files = items.filter(item => item.type === "file" && item.name.endsWith(".html"));
+        // If you want ALL files, use instead:
+        // const files = items.filter(item => item.type === "file");
+
+        if (files.length === 0) {
+          statusEl.textContent = "No matching files found (e.g. .html in root).";
+          return;
+        }
+
+        files.forEach(item => {
+          const li = document.createElement("li");
+          const fullUrl = baseUrl + item.name; // -> https://guslow.github.io/ViACTHowspace/nameofthefile
+
+          const link = document.createElement("a");
+          link.href = fullUrl;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = fullUrl;
+
+          li.appendChild(link);
+          listEl.appendChild(li);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        statusEl.textContent = "Could not load URLs.";
+        statusEl.className = "error";
+      });
+  </script>
+</body>
+</html>
