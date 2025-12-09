@@ -20,7 +20,7 @@
         .wheel-container {
             position: relative;
             width: 100%;
-            max-width: 800px; 
+            max-width: 600px; /* Reduced slightly to ensure good fit side-by-side */
             aspect-ratio: 1;
             margin: 0 auto;
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.1));
@@ -50,7 +50,7 @@
         .segment-text {
             pointer-events: none;
             fill: white;
-            font-size: 3.2px; /* Slightly adjusted for better fit */
+            font-size: 3.2px;
             font-weight: 600;
             text-anchor: middle;
             dominant-baseline: middle;
@@ -77,7 +77,7 @@
 
     <!-- Header / Navigation -->
     <header class="w-full bg-white shadow-sm py-4 px-6 fixed top-0 z-50">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
             <h1 class="text-xl md:text-2xl font-bold text-slate-800 flex items-center gap-2">
                 <span class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm">Y</span>
                 YOCOMO
@@ -92,64 +92,65 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow flex flex-col items-center justify-start gap-12 pt-28 pb-20 px-4 w-full max-w-5xl mx-auto">
+    <!-- Changed padding and alignment for better side-by-side fit -->
+    <main class="flex-grow flex flex-col items-center justify-center pt-24 pb-8 px-4 w-full max-w-[90rem] mx-auto">
         
         <!-- Header Section -->
-        <div class="text-center w-full max-w-2xl">
-            <h2 id="page-title" class="text-3xl md:text-5xl font-bold text-slate-900 mb-4">Modèle d'Auto-évaluation</h2>
-            <p id="page-subtitle" class="text-slate-500 text-lg md:text-xl">Cliquez sur un secteur de la roue pour découvrir les détails de chaque compétence.</p>
+        <div class="text-center w-full max-w-2xl mb-6 md:mb-10">
+            <h2 id="page-title" class="text-2xl md:text-4xl font-bold text-slate-900 mb-2">Modèle d'Auto-évaluation</h2>
+            <p id="page-subtitle" class="text-slate-500 text-base md:text-lg">Cliquez sur un secteur de la roue pour découvrir les détails.</p>
         </div>
 
-        <!-- The Wheel (Centered and Large) -->
-        <div class="w-full flex justify-center">
-            <div class="wheel-container">
-                <svg viewBox="-5 -5 110 110" class="w-full h-full transform -rotate-90">
-                    <!-- Segments will be injected here by JS -->
-                    <g id="wheel-segments"></g>
-                    
-                    <!-- Center decorative circle - REMOVED -->
-                    <!-- <circle cx="50" cy="50" r="12" fill="white" class="drop-shadow-md"/> -->
-                    <!-- Central Icon/Logo - REMOVED -->
-                    <!-- <g class="transform rotate-90 origin-center">
-                        <path d="M50 42 L50 58 M42 50 L58 50" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="50" cy="50" r="3" fill="#cbd5e1"/>
-                    </g> -->
-                    <!-- Simple small center point for aesthetics -->
-                    <circle cx="50" cy="50" r="2" fill="white" class="drop-shadow-sm"/>
-                </svg>
+        <!-- Content Container: Flex Row on Medium Screens (md:flex-row) -->
+        <!-- This ensures side-by-side layout on tablets and desktops -->
+        <div class="flex flex-col md:flex-row items-center justify-center w-full gap-6 md:gap-12">
+            
+            <!-- Left: The Wheel -->
+            <!-- md:w-1/2 ensures it takes half width on medium screens -->
+            <div class="w-full md:w-1/2 flex justify-center md:justify-end">
+                <div class="wheel-container">
+                    <svg viewBox="-5 -5 110 110" class="w-full h-full transform -rotate-90">
+                        <!-- Segments will be injected here by JS -->
+                        <g id="wheel-segments"></g>
+                        <!-- Simple small center point for aesthetics -->
+                        <circle cx="50" cy="50" r="2" fill="white" class="drop-shadow-sm"/>
+                    </svg>
+                </div>
             </div>
-        </div>
 
-        <!-- Details Panel (Below the wheel) -->
-        <div class="w-full max-w-4xl">
-            <div id="info-card" class="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-slate-100 relative overflow-hidden">
-                <!-- Decorative background blob -->
-                <div id="card-blob" class="absolute -top-32 -right-32 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-40 transition-colors duration-500"></div>
-                
-                <div class="relative z-10 flex flex-col md:flex-row gap-8 items-start">
+            <!-- Right: Details Panel -->
+            <!-- md:w-1/2 ensures it takes half width on medium screens -->
+            <div class="w-full md:w-1/2 max-w-2xl flex justify-center md:justify-start">
+                <div id="info-card" class="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-100 relative overflow-hidden w-full">
+                    <!-- Decorative background blob -->
+                    <div id="card-blob" class="absolute -top-32 -right-32 w-80 h-80 bg-indigo-50 rounded-full blur-3xl opacity-40 transition-colors duration-500"></div>
                     
-                    <!-- Left: Number & Icon approximation -->
-                    <div class="flex-shrink-0">
-                        <span id="card-number" class="text-7xl md:text-8xl font-bold text-indigo-100 select-none block leading-none">01</span>
-                    </div>
-
-                    <!-- Right: Content -->
-                    <div class="flex-grow">
-                        <h3 id="card-title" class="text-2xl md:text-4xl font-bold text-slate-800 mb-6 leading-tight">
-                            Facilitating individual and group learning
-                        </h3>
+                    <div class="relative z-10 flex flex-col gap-4 items-start">
                         
-                        <div class="w-24 h-1.5 bg-indigo-500 rounded-full mb-8" id="card-bar"></div>
-                        
-                        <p id="card-desc" class="text-slate-600 leading-relaxed text-lg md:text-xl mb-8">
-                            This competence refers to the ability to support young people in identifying and pursuing their learning needs. It involves choosing, adapting, or creating methods to facilitate learning processes in both individual and group settings.
-                        </p>
+                        <!-- Header with Number -->
+                        <div class="flex items-center gap-4 mb-1">
+                             <span id="card-number" class="text-5xl md:text-6xl font-bold text-indigo-100 select-none leading-none">01</span>
+                             <div class="h-10 w-1 rounded-full bg-slate-100"></div> <!-- Divider -->
+                        </div>
 
-                        <div class="pt-6 border-t border-slate-100">
-                             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3" id="label-keywords">Keywords</p>
-                             <div id="card-tags" class="flex flex-wrap gap-2">
-                                <!-- Tags injected by JS -->
-                             </div>
+                        <!-- Content -->
+                        <div class="w-full">
+                            <h3 id="card-title" class="text-xl md:text-2xl lg:text-3xl font-bold text-slate-800 mb-3 leading-tight">
+                                Facilitating individual and group learning
+                            </h3>
+                            
+                            <div class="w-16 h-1.5 bg-indigo-500 rounded-full mb-4" id="card-bar"></div>
+                            
+                            <p id="card-desc" class="text-slate-600 leading-relaxed text-base md:text-lg mb-6">
+                                This competence refers to the ability to support young people in identifying and pursuing their learning needs. It involves choosing, adapting, or creating methods to facilitate learning processes in both individual and group settings.
+                            </p>
+
+                            <div class="pt-4 border-t border-slate-100">
+                                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3" id="label-keywords">Keywords</p>
+                                 <div id="card-tags" class="flex flex-wrap gap-2">
+                                    <!-- Tags injected by JS -->
+                                 </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -158,7 +159,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="text-center py-8 text-slate-400 text-sm bg-white w-full border-t border-slate-100">
+    <footer class="text-center py-4 text-slate-400 text-xs bg-white w-full border-t border-slate-100 mt-auto">
         <p id="footer-text">Basé sur le modèle de compétences ETS pour les travailleurs de jeunesse</p>
     </footer>
 
