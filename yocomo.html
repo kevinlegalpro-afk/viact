@@ -1,0 +1,558 @@
+import React, { useState } from 'react';
+import { BookOpen, Users, BarChart2, Share2, Globe, MessageCircle, Heart, Briefcase, Layers, Info, X } from 'lucide-react';
+
+const YocomoApp = () => {
+  const [activeSlice, setActiveSlice] = useState(null);
+  const [lang, setLang] = useState('en');
+
+  // Competence Data based on the ETS/YOCOMO Model
+  // Order follows the clockwise pattern observed in the screenshot starting from top
+  const competences = [
+    {
+      id: 'facilitating',
+      icon: BookOpen,
+      color: '#EAB308', // Yellow-500
+      title: {
+        en: "Facilitating Learning",
+        fr: "Faciliter l'apprentissage"
+      },
+      short: {
+        en: "Facilitating individual and group learning",
+        fr: "Faciliter l'apprentissage individuel et collectif"
+      },
+      description: {
+        en: "Competence in facilitating learning processes for individuals and groups. It involves creating safe, motivating, and inclusive learning environments where young people can develop their competences.",
+        fr: "Compétence à faciliter les processus d'apprentissage pour les individus et les groupes. Cela implique de créer des environnements d'apprentissage sûrs, motivants et inclusifs où les jeunes peuvent développer leurs compétences."
+      },
+      details: {
+        en: [
+          "Identifying learning needs and objectives.",
+          "Creating safe and open learning environments.",
+          "Selecting and adapting appropriate methods.",
+          "Supporting reflection and self-assessment."
+        ],
+        fr: [
+          "Identifier les besoins et objectifs d'apprentissage.",
+          "Créer des environnements d'apprentissage sûrs et ouverts.",
+          "Sélectionner et adapter des méthodes appropriées.",
+          "Soutenir la réflexion et l'auto-évaluation."
+        ]
+      }
+    },
+    {
+      id: 'civic',
+      icon: Users, // Using Users as a proxy for civic/citizenship
+      color: '#64748B', // Slate-500 (Civically engaged - Blue/Greyish)
+      title: {
+        en: "Being Civically Engaged",
+        fr: "Être engagé civiquement"
+      },
+      short: {
+        en: "Being civically engaged",
+        fr: "Faire preuve d'engagement civique"
+      },
+      description: {
+        en: "Supporting young people's critical civic engagement. This involves understanding the socio-political context, fostering democratic values, and encouraging active participation in society.",
+        fr: "Soutenir l'engagement civique critique des jeunes. Cela implique de comprendre le contexte socio-politique, de favoriser les valeurs démocratiques et d'encourager la participation active à la société."
+      },
+      details: {
+        en: [
+          "Understanding social and political contexts.",
+          "Promoting democratic values and human rights.",
+          "Encouraging critical thinking and participation.",
+          "Addressing power dynamics and inclusion."
+        ],
+        fr: [
+          "Comprendre les contextes sociaux et politiques.",
+          "Promouvoir les valeurs démocratiques et les droits humains.",
+          "Encourager la pensée critique et la participation.",
+          "Aborder les dynamiques de pouvoir et l'inclusion."
+        ]
+      }
+    },
+    {
+      id: 'assessing',
+      icon: BarChart2,
+      color: '#D97706', // Amber-600 (Assessing - Orange/Brown)
+      title: {
+        en: "Assessing & Evaluating",
+        fr: "Évaluer et apprécier"
+      },
+      short: {
+        en: "Developing evaluative practices",
+        fr: "Développer des pratiques d'évaluation"
+      },
+      description: {
+        en: "Competence in planning, implementing, and monitoring evaluation processes to assess the impact of youth work and ensure quality development.",
+        fr: "Compétence à planifier, mettre en œuvre et suivre les processus d'évaluation pour mesurer l'impact du travail de jeunesse et assurer le développement de la qualité."
+      },
+      details: {
+        en: [
+          "Planning evaluation strategies.",
+          "Using appropriate evaluation methods.",
+          "Analyzing and interpreting results.",
+          "Using findings for improvement and recognition."
+        ],
+        fr: [
+          "Planifier des stratégies d'évaluation.",
+          "Utiliser des méthodes d'évaluation appropriées.",
+          "Analyser et interpréter les résultats.",
+          "Utiliser les résultats pour l'amélioration et la reconnaissance."
+        ]
+      }
+    },
+    {
+      id: 'networking',
+      icon: Share2,
+      color: '#BE185D', // Pink-700 (Networking - Pink/Red)
+      title: {
+        en: "Networking & Advocating",
+        fr: "Réseautage et plaidoyer"
+      },
+      short: {
+        en: "Networking and advocating",
+        fr: "Travailler en réseau et plaider pour la cause"
+      },
+      description: {
+        en: "Building and managing partnerships and networks, and advocating for the value and recognition of youth work at different levels.",
+        fr: "Construire et gérer des partenariats et des réseaux, et plaider pour la valeur et la reconnaissance du travail de jeunesse à différents niveaux."
+      },
+      details: {
+        en: [
+          "Building partnerships and networks.",
+          "Cooperating with diverse stakeholders.",
+          "Advocating for youth work and youth policy.",
+          "Communicating the impact of youth work."
+        ],
+        fr: [
+          "Construire des partenariats et des réseaux.",
+          "Coopérer avec diverses parties prenantes.",
+          "Plaider pour le travail de jeunesse et la politique de jeunesse.",
+          "Communiquer l'impact du travail de jeunesse."
+        ]
+      }
+    },
+    {
+      id: 'intercultural',
+      icon: Globe,
+      color: '#9333EA', // Purple-600 (Intercultural - Purple)
+      title: {
+        en: "Intercultural Sensitivity",
+        fr: "Sensibilité interculturelle"
+      },
+      short: {
+        en: "Displaying intercultural competence",
+        fr: "Faire preuve de compétence interculturelle"
+      },
+      description: {
+        en: "Ability to interact effectively and appropriately with people from different cultural backgrounds. It involves reflecting on one's own culture and promoting intercultural learning.",
+        fr: "Capacité à interagir efficacement et de manière appropriée avec des personnes de différents horizons culturels. Cela implique de réfléchir à sa propre culture et de promouvoir l'apprentissage interculturel."
+      },
+      details: {
+        en: [
+          "Reflecting on own cultural identity and biases.",
+          "Respecting and valuing diversity.",
+          "Facilitating intercultural dialogue.",
+          "Handling intercultural ambiguity and conflict."
+        ],
+        fr: [
+          "Réfléchir à sa propre identité culturelle et à ses préjugés.",
+          "Respecter et valoriser la diversité.",
+          "Faciliter le dialogue interculturel.",
+          "Gérer l'ambiguïté et les conflits interculturels."
+        ]
+      }
+    },
+    {
+      id: 'communicating',
+      icon: MessageCircle,
+      color: '#0D9488', // Teal-600 (Communicating - Teal)
+      title: {
+        en: "Communicating Meaningfully",
+        fr: "Communiquer avec sens"
+      },
+      short: {
+        en: "Communicating meaningfully with others",
+        fr: "Communiquer de manière significative"
+      },
+      description: {
+        en: "Using verbal and non-verbal communication effectively to build positive relationships, ensuring clarity, empathy, and constructive feedback.",
+        fr: "Utiliser efficacement la communication verbale et non verbale pour établir des relations positives, en assurant clarté, empathie et retours constructifs."
+      },
+      details: {
+        en: [
+          "Active listening and empathy.",
+          "Clear and respectful expression.",
+          "Handling emotions constructively.",
+          "Giving and receiving feedback."
+        ],
+        fr: [
+          "Écoute active et empathie.",
+          "Expression claire et respectueuse.",
+          "Gérer les émotions de manière constructive.",
+          "Donner et recevoir des feedbacks."
+        ]
+      }
+    },
+    {
+      id: 'collaborating',
+      icon: Heart, // Heart usually represents team spirit/collaboration
+      color: '#F97316', // Orange-500 (Collaborating - Orange)
+      title: {
+        en: "Collaborating in Teams",
+        fr: "Collaborer en équipe"
+      },
+      short: {
+        en: "Collaborating successfully in teams",
+        fr: "Collaborer avec succès en équipe"
+      },
+      description: {
+        en: "Contributing actively to teamwork, sharing responsibilities, communicating openly, and dealing constructively with conflicts within the team.",
+        fr: "Contribuer activement au travail d'équipe, partager les responsabilités, communiquer ouvertement et gérer les conflits de manière constructive au sein de l'équipe."
+      },
+      details: {
+        en: [
+          "Contributing to team goals and tasks.",
+          "Supporting colleagues and cooperation.",
+          "Dealing with team dynamics and conflict.",
+          "Reflecting on team processes."
+        ],
+        fr: [
+          "Contribuer aux objectifs et tâches de l'équipe.",
+          "Soutenir les collègues et la coopération.",
+          "Gérer la dynamique d'équipe et les conflits.",
+          "Réfléchir aux processus d'équipe."
+        ]
+      }
+    },
+    {
+      id: 'managing',
+      icon: Briefcase,
+      color: '#2563EB', // Blue-600 (Managing - Blue)
+      title: {
+        en: "Managing Resources",
+        fr: "Gérer les ressources"
+      },
+      short: {
+        en: "Organising and managing resources",
+        fr: "Organiser et gérer les ressources"
+      },
+      description: {
+        en: "Managing financial, material, and human resources effectively to ensure the sustainability and smooth implementation of youth work activities.",
+        fr: "Gérer efficacement les ressources financières, matérielles et humaines pour assurer la durabilité et la bonne mise en œuvre des activités de travail de jeunesse."
+      },
+      details: {
+        en: [
+          "Planning and budgeting.",
+          "Managing projects and logistics.",
+          "Leading and managing people.",
+          "Ensuring sustainability and safety."
+        ],
+        fr: [
+          "Planification et budgétisation.",
+          "Gestion de projets et logistique.",
+          "Diriger et gérer les personnes.",
+          "Assurer la durabilité et la sécurité."
+        ]
+      }
+    },
+    {
+      id: 'designing',
+      icon: Layers,
+      color: '#DC2626', // Red-600 (Designing - Red)
+      title: {
+        en: "Designing Programmes",
+        fr: "Concevoir des programmes"
+      },
+      short: {
+        en: "Designing programmes",
+        fr: "Concevoir des programmes"
+      },
+      description: {
+        en: "Designing educational programmes based on non-formal learning principles, tailored to the needs and realities of young people.",
+        fr: "Concevoir des programmes éducatifs basés sur les principes de l'éducation non formelle, adaptés aux besoins et aux réalités des jeunes."
+      },
+      details: {
+        en: [
+          "Analysing context and needs.",
+          "Defining educational aims and objectives.",
+          "Designing the educational flow and activities.",
+          "Integrating values and principles of NFE."
+        ],
+        fr: [
+          "Analyser le contexte et les besoins.",
+          "Définir les buts et objectifs éducatifs.",
+          "Concevoir le déroulement éducatif et les activités.",
+          "Intégrer les valeurs et principes de l'ENF."
+        ]
+      }
+    }
+  ];
+
+  // Helper to generate SVG path for a slice
+  const getSlicePath = (index, total, innerRadius, outerRadius, startOffset = -90) => {
+    const anglePerSlice = 360 / total;
+    const startAngle = index * anglePerSlice + startOffset - (anglePerSlice / 2); // Center first slice at top
+    const endAngle = (index + 1) * anglePerSlice + startOffset - (anglePerSlice / 2);
+
+    const toRad = (deg) => (deg * Math.PI) / 180;
+
+    const x1 = 50 + innerRadius * Math.cos(toRad(startAngle));
+    const y1 = 50 + innerRadius * Math.sin(toRad(startAngle));
+    const x2 = 50 + outerRadius * Math.cos(toRad(startAngle));
+    const y2 = 50 + outerRadius * Math.sin(toRad(startAngle));
+    
+    const x3 = 50 + outerRadius * Math.cos(toRad(endAngle));
+    const y3 = 50 + outerRadius * Math.sin(toRad(endAngle));
+    const x4 = 50 + innerRadius * Math.cos(toRad(endAngle));
+    const y4 = 50 + innerRadius * Math.sin(toRad(endAngle));
+
+    return `M ${x1} ${y1} L ${x2} ${y2} A ${outerRadius} ${outerRadius} 0 0 1 ${x3} ${y3} L ${x4} ${y4} A ${innerRadius} ${innerRadius} 0 0 0 ${x1} ${y1} Z`;
+  };
+
+  const getSliceTextConfig = (index, total, startOffset = -90) => {
+    const anglePerSlice = 360 / total;
+    // Current center angle of the slice
+    let angle = index * anglePerSlice + startOffset;
+    
+    // Normalize angle to 0-360
+    let normalizedAngle = (angle + 360) % 360;
+    
+    // Determine rotation logic for readability
+    // If angle is on the left side (90 to 270 degrees), we flip the text 180 degrees
+    let rotation = angle;
+    if (normalizedAngle > 90 && normalizedAngle < 270) {
+      rotation += 180;
+    }
+
+    // Position: slightly closer to outer edge for better spacing
+    const radius = 32; 
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const x = 50 + radius * Math.cos(toRad(angle));
+    const y = 50 + radius * Math.sin(toRad(angle));
+
+    return { x, y, rotation, normalizedAngle };
+  };
+
+  const selectedComp = activeSlice !== null ? competences[activeSlice] : null;
+
+  // Helper to split text into lines if too long
+  const splitText = (text) => {
+    const words = text.split(' ');
+    if (words.length <= 2) return [text];
+    
+    const mid = Math.ceil(words.length / 2);
+    return [
+      words.slice(0, mid).join(' '),
+      words.slice(mid).join(' ')
+    ];
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col items-center p-4 md:p-8">
+      {/* Header */}
+      <header className="w-full max-w-6xl flex justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+            YOCOMO <span className="text-indigo-600">Model</span>
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {lang === 'en' ? 'Competence Model for Youth Workers' : 'Modèle de compétences pour les animateurs de jeunesse'}
+          </p>
+        </div>
+        
+        <button 
+          onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full font-medium transition-colors"
+        >
+          <Globe size={18} />
+          <span>{lang === 'en' ? 'FR' : 'EN'}</span>
+        </button>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+        
+        {/* Left Column: The Wheel */}
+        <div className="relative aspect-square max-w-[600px] w-full mx-auto flex items-center justify-center">
+          {/* Instructions Overlay (fades out when interactive) */}
+          {!activeSlice && activeSlice !== 0 && (
+             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 text-center animate-pulse">
+               <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg text-slate-600 text-sm font-medium border border-slate-200">
+                 {lang === 'en' ? 'Click a section to explore' : 'Cliquez sur une section pour explorer'}
+               </div>
+             </div>
+          )}
+
+          {/* SVG Wheel */}
+          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl transform transition-transform duration-700 hover:scale-[1.02]">
+            <defs>
+              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="1" stdDeviation="1" floodOpacity="0.3"/>
+              </filter>
+            </defs>
+
+            {/* Central Circle (White background behind slices) */}
+            <circle cx="50" cy="50" r="48" fill="white" className="opacity-50" />
+
+            {/* Slices */}
+            {competences.map((comp, index) => {
+              const isActive = activeSlice === index;
+              const path = getSlicePath(index, competences.length, 12, 48); // Inner 12, Outer 48
+              
+              return (
+                <g 
+                  key={comp.id}
+                  onClick={() => setActiveSlice(index === activeSlice ? null : index)}
+                  onMouseEnter={() => setActiveSlice(index)}
+                  className="cursor-pointer transition-all duration-300 group"
+                  style={{ transformOrigin: '50px 50px' }}
+                >
+                  <path
+                    d={path}
+                    fill={comp.color}
+                    fillOpacity={isActive ? 1 : 0.85}
+                    stroke="white"
+                    strokeWidth={isActive ? 0.8 : 0.5}
+                    className={`transition-all duration-300 ease-out ${isActive ? 'scale-105' : 'hover:opacity-100'}`}
+                    style={{ 
+                      filter: isActive ? 'url(#shadow)' : 'none',
+                      transform: isActive ? 'scale(1.03)' : 'scale(1)'
+                    }}
+                  />
+                </g>
+              );
+            })}
+
+            {/* Text Labels on slices */}
+            {competences.map((comp, index) => {
+              const { x, y, rotation } = getSliceTextConfig(index, competences.length);
+              const isActive = activeSlice === index;
+              const textLines = splitText(comp.title[lang]);
+              
+              return (
+                <g 
+                  key={`text-${index}`} 
+                  className="pointer-events-none"
+                  style={{ 
+                    transform: `translate(${x}px, ${y}px) rotate(${rotation}deg)`,
+                    transformOrigin: '0 0' // Handled by translate
+                  }}
+                >
+                  {textLines.map((line, i) => (
+                    <text
+                      key={i}
+                      x="0"
+                      y={i * 2.8 - ((textLines.length - 1) * 1.4)} // Center vertically
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fontSize={textLines.length > 2 ? 1.8 : 2.2}
+                      fontWeight={isActive ? "bold" : "600"}
+                      fill="white"
+                      style={{ 
+                        textShadow: '0px 0px 3px rgba(0,0,0,0.7)',
+                        transition: 'font-weight 0.3s' 
+                      }}
+                    >
+                      {line}
+                    </text>
+                  ))}
+                </g>
+              );
+            })}
+
+            {/* Center Hub */}
+            <circle cx="50" cy="50" r="11" fill="white" className="shadow-inner" />
+            <text x="50" y="50" dy="1" textAnchor="middle" fontSize="3" fontWeight="bold" fill="#475569" className="uppercase tracking-widest">
+              YOCOMO
+            </text>
+          </svg>
+        </div>
+
+        {/* Right Column: Details Panel */}
+        <div className="flex flex-col h-full justify-center min-h-[400px]">
+          {selectedComp ? (
+            <div className="animate-fadeIn bg-white rounded-2xl p-6 md:p-8 shadow-xl border-t-8 transition-all duration-500 ease-out" 
+                 style={{ borderColor: selectedComp.color }}>
+              
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl text-white shadow-md" style={{ backgroundColor: selectedComp.color }}>
+                    <selectedComp.icon size={32} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-slate-800 leading-tight">
+                      {selectedComp.title[lang]}
+                    </h2>
+                    <span className="text-sm font-medium opacity-70 uppercase tracking-wider" style={{ color: selectedComp.color }}>
+                      {lang === 'en' ? `Competence Area ${activeSlice + 1}` : `Domaine de compétence ${activeSlice + 1}`}
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setActiveSlice(null)}
+                  className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="prose prose-slate max-w-none">
+                <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <p className="text-lg text-slate-700 leading-relaxed font-medium m-0">
+                    {selectedComp.description[lang]}
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
+                    <Info size={20} className="text-indigo-500" />
+                    {lang === 'en' ? 'What it includes:' : 'Ce que cela inclut :'}
+                  </h3>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-0 list-none">
+                    {selectedComp.details[lang].map((detail, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-slate-600 bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: selectedComp.color }} />
+                        <span className="text-sm leading-snug">{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center h-full p-8 md:p-12 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
+              <div className="bg-slate-100 p-4 rounded-full mb-4">
+                <Layers size={48} className="text-slate-300" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-700 mb-2">
+                {lang === 'en' ? 'Explore the Model' : 'Explorez le modèle'}
+              </h3>
+              <p className="text-slate-500 max-w-xs mx-auto leading-relaxed">
+                {lang === 'en' 
+                  ? 'Click on any colored section of the wheel to view the detailed competence description.' 
+                  : 'Cliquez sur une section colorée de la roue pour voir la description détaillée de la compétence.'}
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
+
+      <footer className="mt-16 text-center text-slate-400 text-sm">
+        <p>Based on the ETS Competence Model for Youth Workers to Work Internationally</p>
+      </footer>
+      
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default YocomoApp;
