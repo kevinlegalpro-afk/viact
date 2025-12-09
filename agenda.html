@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda de Formation Interactif</title>
+    
+    <!-- Tailwind CSS (pour le design) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons (pour les icônes) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Configuration de la police -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@500&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Personnalisation de la barre de défilement */
+        ::-webkit-scrollbar { height: 8px; width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="flex flex-col h-screen bg-slate-50 text-slate-800 overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="flex-none bg-white z-50 border-b border-slate-200 shadow-sm px-6 py-4">
+        <div class="max-w-[1920px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <!-- Titre -->
+            <div>
+                <h1 class="text-2xl font-black text-slate-800 flex items-center gap-3 tracking-tight">
+                    <div class="p-2 bg-indigo-100 rounded-lg">
+                        <i data-lucide="calendar" class="w-6 h-6 text-indigo-700"></i>
+                    </div>
+                    <span id="app-title">AGENDA DE FORMATION</span>
+                </h1>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4">
+                
+                <!-- Légende (Desktop) -->
+                <div class="hidden xl:flex items-center gap-4 text-xs font-semibold text-slate-600 bg-slate-100/50 py-1.5 px-4 rounded-full border border-slate-200">
+                    <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></div>E-learning</div>
+                    <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm"></div>Synchrone</div>
+                    <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></div>Blended</div>
+                </div>
+
+                <div class="h-8 w-px bg-slate-200 hidden md:block"></div>
+
+                <!-- Contrôles -->
+                <div class="flex items-center gap-3">
+                    
+                    <!-- Sélecteur de Fuseau -->
+                    <div class="flex items-center gap-2 bg-white hover:bg-slate-50 transition-colors rounded-lg p-1 px-3 border border-slate-200 shadow-sm">
+                        <i data-lucide="globe" class="w-4 h-4 text-slate-400"></i>
+                        <select id="timezone-select" class="bg-transparent border-none text-sm font-semibold text-slate-700 focus:ring-0 cursor-pointer py-1 outline-none min-w-[140px]">
+                            <!-- Options générées par JS -->
+                        </select>
+                    </div>
+
+                    <!-- Sélecteur de Langue -->
+                    <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-inner">
+                        <button onclick="setLang('fr')" id="btn-fr" class="px-3 py-1 text-xs font-bold rounded-md transition-all">FR</button>
+                        <button onclick="setLang('en')" id="btn-en" class="px-3 py-1 text-xs font-bold rounded-md transition-all">EN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Légende Mobile -->
+    <div class="xl:hidden flex-none bg-white border-b border-slate-200 p-2 flex flex-wrap gap-4 text-xs justify-center font-medium text-slate-600">
+        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-emerald-200 border border-emerald-500 rounded-sm"></div>E-learning</div>
+        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-purple-200 border border-purple-500 rounded-sm"></div>Synchrone</div>
+        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-blue-200 border border-blue-500 rounded-sm"></div>Blended</div>
+    </div>
+
+    <!-- CONTENU PRINCIPAL -->
+    <main class="flex-grow overflow-x-auto overflow-y-auto bg-slate-100/50 p-6">
+        
+        <!-- GRILLE -->
+        <div id="schedule-grid" class="grid grid-cols-6 gap-4 min-w-[1200px] mx-auto max-w-[1920px]">
+            <!-- Contenu généré par JS -->
+        </div>
+
+        <!-- PIED DE PAGE INFO -->
+        <div class="max-w-[1200px] mx-auto mt-8 text-center opacity-70 hover:opacity-100 transition-opacity">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-xs text-slate-500">
+                <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <p id="footer-note">Note...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCRIPT JAVASCRIPT -->
+    <script>
+        // --- DONNÉES ---
+        const TIMEZONES = [
+            { id: 'fr', label: '🇫🇷/🇧🇪 France/Belgique', offset: 0 },
+            { id: 'ro', label: '🇷🇴/🇧🇬 Roumanie/Bulgarie', offset: 1 },
+            { id: 'mg', label: '🇲🇬 Madagascar', offset: 2 },
+            { id: 'sc', label: '🇸🇨/🇲🇺 Seychelles/Maurice', offset: 3 },
+        ];
+
+        const STYLES = {
+            elearning: {
+                base: 'bg-emerald-200/80 border-l-4 border-emerald-600 text-emerald-950',
+                icon: 'check-circle-2',
+                label: { fr: 'E-learning', en: 'E-learning' }
+            },
+            synchrone: {
+                base: 'bg-purple-200/80 border-l-4 border-purple-600 text-purple-950',
+                icon: 'users',
+                label: { fr: 'Synchrone', en: 'Synchronous' }
+            },
+            blended: {
+                base: 'bg-blue-200/80 border-l-4 border-blue-600 text-blue-950',
+                icon: 'zap',
+                label: { fr: 'Blended', en: 'Blended' }
+            },
+            break: {
+                base: 'bg-slate-200 border-l-4 border-slate-400 text-slate-600 italic font-medium',
+                icon: 'coffee',
+                label: { fr: 'Pause', en: 'Break' }
+            },
+            open: {
+                base: 'bg-amber-100 border-l-4 border-amber-500 text-amber-900',
+                icon: 'sun',
+                label: { fr: 'Ouverture/Reflexion', en: 'Open/Reflection' }
+            },
+        };
+
+        const SCHEDULE = [
+            {
+                day: 1,
+                events: [
+                    { start: '07:30', duration: 30, type: 'open', title: { fr: 'Ouverture salle virtuelle', en: 'Virtual room opening' } },
+                    { start: '08:00', duration: 120, type: 'synchrone', title: { fr: '1. Onboarding / Ouverture de la formation', en: '1. Onboarding / Opening of the training' } },
+                    { start: '10:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '10:30', duration: 120, type: 'synchrone', title: { fr: "2. Animateur/travailleur jeunesse digital, c'est quoi ?", en: 'Digital youth worker / digital youth facilitator — what is it?' } },
+                    { start: '12:30', duration: 60, type: 'break', title: { fr: 'Déjeuner', en: 'Lunch' } },
+                    { start: '13:30', duration: 210, type: 'blended', title: { fr: '3. Les réalités des jeunes dans nos contextes locaux\nPartie 1: Analyse de besoins & entretiens empathiques\nPartie 2: Recherche et récolte d\'informations', en: "Young people's realities in our local contexts\nPart 1: Needs analysis & empathetic interviews\nPart 2: Research and data collection" } },
+                    { start: '17:00', duration: 30, type: 'open', title: { fr: 'Temps de réflexion', en: 'Reflection Time' } },
+                ]
+            },
+            {
+                day: 2,
+                events: [
+                    { start: '07:30', duration: 30, type: 'open', title: { fr: 'Ouverture salle virtuelle', en: 'Virtual room opening' } },
+                    { start: '08:00', duration: 120, type: 'elearning', title: { fr: '4. Méthodologies d\'apprentissage actifs, apprentissage tout au long de la vie, andragogie.', en: 'Active learning methodologies, lifelong learning, andragogy.' } },
+                    { start: '10:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '10:30', duration: 120, type: 'synchrone', title: { fr: '5. Créer un espace participatif & interculturel', en: 'Creating a participatory & intercultural space' } },
+                    { start: '12:30', duration: 60, type: 'break', title: { fr: 'Déjeuner', en: 'Lunch' } },
+                    { start: '13:30', duration: 90, type: 'synchrone', title: { fr: '6. Accompagnement des processus créatifs des jeunes - initiation à une méthodologie', en: "Supporting young people's creative processes – introduction to a methodology" } },
+                    { start: '15:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '15:30', duration: 90, type: 'elearning', title: { fr: '7. Méthodologies d\'accompagnement d\'initiatives jeunes - bonnes pratiques et tutorat', en: 'Methodologies for supporting youth initiatives – Best practice and tutoring practices' } },
+                    { start: '17:00', duration: 30, type: 'open', title: { fr: 'Temps de réflexion', en: 'Reflection Time' } },
+                ]
+            },
+            {
+                day: 3,
+                events: [
+                    { start: '07:30', duration: 30, type: 'open', title: { fr: 'Ouverture salle virtuelle', en: 'Virtual room opening' } },
+                    { start: '08:00', duration: 120, type: 'elearning', title: { fr: '8. Budget, administratif et logistique: Une boite à outils', en: 'Budget, administration and logistics: a toolbox' } },
+                    { start: '10:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '10:30', duration: 120, type: 'synchrone', title: { fr: '9. Cartographier les partenaires & construire une coalition d\'apprentissage', en: 'Mapping partners & building a learning coalition' } },
+                    { start: '12:30', duration: 60, type: 'break', title: { fr: 'Déjeuner', en: 'Lunch' } },
+                    { start: '13:30', duration: 90, type: 'blended', title: { fr: '10. Encourager et coordonner la vie bénévole par et pour les jeunes', en: 'Encouraging and coordinating volunteer life by and for young people' } },
+                    { start: '15:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '15:30', duration: 90, type: 'elearning', title: { fr: '11. Du besoin aux objectifs d\'apprentissage et indicateurs', en: 'From needs to learning objectives and indicators' } },
+                    { start: '17:00', duration: 30, type: 'open', title: { fr: 'Temps de réflexion', en: 'Reflection Time' } },
+                ]
+            },
+            {
+                day: 4,
+                events: [
+                    { start: '07:30', duration: 30, type: 'open', title: { fr: 'Ouverture salle virtuelle', en: 'Virtual room opening' } },
+                    { start: '08:00', duration: 120, type: 'synchrone', title: { fr: '12. Concevoir une progression pédagogique pour une journée d\'animation', en: 'Designing a pedagogical progression for a day long activity' } },
+                    { start: '10:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '10:30', duration: 120, type: 'blended', title: { fr: '13. Construire le déroulé d\'une journée d\'animations', en: 'Building the activity outline' } },
+                    { start: '12:30', duration: 60, type: 'break', title: { fr: 'Déjeuner', en: 'Lunch' } },
+                    { start: '13:30', duration: 90, type: 'blended', title: { fr: '13. (Suite) Construire le déroulé d\'une journée d\'animations', en: '(Cont.) Building the activity outline' } },
+                    { start: '15:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '15:30', duration: 90, type: 'elearning', title: { fr: '14. Garantir inclusion, sécurité & aspects légaux', en: 'Ensuring inclusion, safety & legal aspects' } },
+                    { start: '17:00', duration: 30, type: 'open', title: { fr: 'Temps de réflexion', en: 'Reflection Time' } },
+                ]
+            },
+            {
+                day: 5,
+                events: [
+                    { start: '07:30', duration: 30, type: 'open', title: { fr: 'Ouverture salle virtuelle', en: 'Virtual room opening' } },
+                    { start: '08:00', duration: 120, type: 'blended', title: { fr: '15. Posture de facilitation & apprentissage actif', en: 'Facilitation posture & active learning' } },
+                    { start: '10:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '10:30', duration: 120, type: 'blended', title: { fr: '15. (Suite) Posture de facilitation & apprentissage actif', en: '(Cont.) Facilitation posture & active learning' } },
+                    { start: '12:30', duration: 60, type: 'break', title: { fr: 'Déjeuner', en: 'Lunch' } },
+                    { start: '13:30', duration: 90, type: 'blended', title: { fr: '16. Comprendre les dynamiques de groupe, gérer les situations difficiles & les conflits', en: 'Understanding group dynamics, managing difficult situations & conflicts' } },
+                    { start: '15:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '15:30', duration: 90, type: 'synchrone', title: { fr: '17. Évaluation formative, conduites de débriefings & ajustements "en temps réel"', en: 'Formative assessment, debriefing practices & "real-time" adjustments' } },
+                    { start: '17:00', duration: 30, type: 'open', title: { fr: 'Temps de réflexion', en: 'Reflection Time' } },
+                ]
+            },
+            {
+                day: 6,
+                events: [
+                    { start: '07:30', duration: 30, type: 'open', title: { fr: 'Ouverture salle virtuelle', en: 'Virtual room opening' } },
+                    { start: '08:00', duration: 120, type: 'elearning', title: { fr: '18. Préparer l\'évaluation & la capitalisation', en: 'Preparing evaluation & knowledge capitalization' } },
+                    { start: '10:00', duration: 30, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '10:30', duration: 120, type: 'blended', title: { fr: '19. Reconnaissance des apprentissages & Youthpass', en: 'Recognition of learning & Youthpass' } },
+                    { start: '12:30', duration: 60, type: 'break', title: { fr: 'Déjeuner', en: 'Lunch' } },
+                    { start: '13:30', duration: 70, type: 'blended', title: { fr: '20. Promouvoir les initiatives de jeunesse & rendre leur impact visible', en: 'Promoting youth initiatives & making their impact visible' } },
+                    { start: '14:40', duration: 20, type: 'break', title: { fr: 'Pause', en: 'Break' } },
+                    { start: '15:00', duration: 120, type: 'synchrone', title: { fr: '21. Plan de développement professionnel & clôture', en: 'Professional development plan & closing' } },
+                    { start: '17:00', duration: 30, type: 'open', title: { fr: 'Temps de réflexion', en: 'Reflection Time' } },
+                ]
+            }
+        ];
+
+        // --- ETAT DE L'APPLICATION ---
+        let currentLang = 'fr';
+        let currentTimezone = TIMEZONES[0];
+
+        // --- LOGIQUE ---
+
+        function adjustTime(baseTime, offsetHours) {
+            const [h, m] = baseTime.split(':').map(Number);
+            let newH = h + offsetHours;
+            if (newH >= 24) newH -= 24;
+            return `${newH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        }
+
+        function getEventStyle(type) {
+            return STYLES[type] || STYLES.open;
+        }
+
+        function render() {
+            // 1. Mise à jour des textes statiques (Titre, Footer)
+            document.getElementById('app-title').textContent = currentLang === 'fr' ? 'AGENDA DE FORMATION' : 'TRAINING AGENDA';
+            document.getElementById('footer-note').textContent = currentLang === 'fr' 
+                ? 'L\'ouverture de la salle est fixée à 07:30 (Heure de Paris/CET). Les horaires ci-dessus s\'ajustent à votre choix.' 
+                : 'Room opening is fixed at 07:30 (Paris Time/CET). The schedules above adapt to your selection.';
+
+            // 2. Mise à jour des boutons de langue
+            const btnFr = document.getElementById('btn-fr');
+            const btnEn = document.getElementById('btn-en');
+            
+            if (currentLang === 'fr') {
+                btnFr.className = "px-3 py-1 text-xs font-bold rounded-md transition-all bg-white text-indigo-700 shadow-sm";
+                btnEn.className = "px-3 py-1 text-xs font-bold rounded-md transition-all text-slate-400 hover:text-slate-600";
+            } else {
+                btnFr.className = "px-3 py-1 text-xs font-bold rounded-md transition-all text-slate-400 hover:text-slate-600";
+                btnEn.className = "px-3 py-1 text-xs font-bold rounded-md transition-all bg-white text-indigo-700 shadow-sm";
+            }
+
+            // 3. Génération de la grille
+            const grid = document.getElementById('schedule-grid');
+            grid.innerHTML = ''; // Nettoyage
+
+            SCHEDULE.forEach((dayData) => {
+                // Création colonne Jour
+                const col = document.createElement('div');
+                col.className = 'flex flex-col group';
+
+                const dayLabel = currentLang === 'fr' ? `JOUR ${dayData.day}` : `DAY ${dayData.day}`;
+                const agendaLabel = currentLang === 'fr' ? 'Agenda' : 'Schedule';
+
+                // Header Jour
+                let headerHtml = `
+                    <div class="bg-white border-x border-t border-slate-200 p-4 rounded-t-xl text-center shadow-sm relative overflow-hidden mb-2 group-hover:-translate-y-1 transition-transform duration-300">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                        <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold block mb-1">${agendaLabel}</span>
+                        <span class="text-xl font-black text-slate-800">${dayLabel}</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                `;
+
+                // Events
+                dayData.events.forEach(evt => {
+                    const localTime = adjustTime(evt.start, currentTimezone.offset);
+                    const style = getEventStyle(evt.type);
+                    const title = evt.title[currentLang];
+                    const minHeight = Math.max(evt.duration * 1.4, 64);
+                    
+                    // Gestion de la durée affichée
+                    let durationTag = '';
+                    if (evt.duration > 30) {
+                        const h = Math.floor(evt.duration / 60);
+                        const m = evt.duration % 60;
+                        durationTag = `<div class="mt-1 text-[9px] font-bold opacity-40 text-right uppercase tracking-wider">${h}h${m > 0 ? m : ''}</div>`;
+                    }
+
+                    // Icône (sauf break/open pour simplifier si besoin, mais ici on les a tous)
+                    let iconHtml = '';
+                    if (evt.type !== 'break' && evt.type !== 'open') {
+                        iconHtml = `<div title="${style.label[currentLang]}"><i data-lucide="${style.icon}" class="w-3.5 h-3.5 ${style.base.split(' ').find(c => c.startsWith('text-'))}"></i></div>`;
+                    }
+
+                    // Carte événement
+                    headerHtml += `
+                        <div class="${style.base} rounded-lg shadow-sm p-3 flex flex-col relative transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:z-10 bg-white" style="min-height: ${minHeight}px">
+                            <div class="flex justify-between items-start mb-2 border-b border-black/5 pb-1.5">
+                                <div class="flex items-center gap-1.5 font-mono text-xs font-bold opacity-80 mix-blend-multiply">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                    ${localTime}
+                                </div>
+                                ${iconHtml}
+                            </div>
+                            <div class="flex-grow whitespace-pre-line leading-snug font-semibold text-[11px] lg:text-xs tracking-wide drop-shadow-sm">
+                                ${title}
+                            </div>
+                            ${durationTag}
+                        </div>
+                    `;
+                });
+
+                headerHtml += `</div>`; // Fin container events
+                col.innerHTML = headerHtml;
+                grid.appendChild(col);
+            });
+
+            // 4. Réinitialisation des icônes Lucide
+            lucide.createIcons();
+        }
+
+        // --- INITIALISATION ---
+        
+        function setLang(l) {
+            currentLang = l;
+            render();
+        }
+
+        // Initialisation Selecteur Timezone
+        const select = document.getElementById('timezone-select');
+        TIMEZONES.forEach(tz => {
+            const opt = document.createElement('option');
+            opt.value = tz.id;
+            opt.textContent = `${tz.label} (+${tz.offset}h)`;
+            select.appendChild(opt);
+        });
+
+        select.addEventListener('change', (e) => {
+            const selectedId = e.target.value;
+            currentTimezone = TIMEZONES.find(t => t.id === selectedId);
+            render();
+        });
+
+        // Premier rendu
+        render();
+
+    </script>
+</body>
+</html>
