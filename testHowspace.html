@@ -1,0 +1,519 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Formation Mpanabe Tanora - Types d'Apprentissage</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    @media print {
+        .no-print { display: none !important; }
+        .page-break { page-break-before: always; }
+        body { background-color: white; }
+        .shadow-lg { box-shadow: none !important; border: 1px solid #ccc; }
+    }
+    .fade-in { animation: fadeIn 0.3s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .tab-active { border-bottom: 3px solid #2563EB; color: #2563EB; font-weight: 700; }
+    .tab-inactive { color: #64748B; }
+    .tab-inactive:hover { color: #1E293B; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-50 no-print shadow-sm">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600 text-3xl">school</span>
+<span class="font-bold text-xl tracking-tight hidden sm:block" id="nav-title">Formation Jeunesse</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative inline-block text-left">
+<select class="bg-slate-100 border-none text-sm font-medium py-2 pl-3 pr-8 rounded-lg cursor-pointer focus:ring-2 focus:ring-blue-500" id="lang-select" onchange="changeLanguage()">
+<option value="fr">Français</option>
+<option value="en">English</option>
+<option value="mg">Malagasy</option>
+</select>
+</div>
+<button class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm" onclick="exportPDF()">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span id="btn-export">PDF</span>
+</button>
+</div>
+</div>
+</nav>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12" id="printable-area">
+<header class="text-center space-y-4 pb-8 border-b border-slate-200">
+<div class="inline-flex items-center justify-center p-3 bg-blue-50 rounded-full mb-2">
+<span class="material-symbols-outlined text-blue-600 text-4xl">diversity_2</span>
+</div>
+<h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight" id="hero-title">
+Les 3 Piliers de l'Apprentissage
+</h1>
+<p class="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed" id="hero-subtitle">
+Un guide essentiel pour les travailleurs de jeunesse : comprendre les nuances entre l'éducation formelle, non formelle et informelle.
+</p>
+</header>
+<section>
+<div class="flex border-b border-slate-200 mb-6 overflow-x-auto" id="tabs-container">
+<button class="tab-active px-6 py-3 text-sm sm:text-base whitespace-nowrap transition-colors" id="tab-formal" onclick="switchTab('formal')">Formel</button>
+<button class="tab-inactive px-6 py-3 text-sm sm:text-base whitespace-nowrap transition-colors" id="tab-nonformal" onclick="switchTab('nonformal')">Non Formel</button>
+<button class="tab-inactive px-6 py-3 text-sm sm:text-base whitespace-nowrap transition-colors" id="tab-informal" onclick="switchTab('informal')">Informel</button>
+</div>
+<div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100 fade-in min-h-[300px]" id="tab-content-area">
+</div>
+</section>
+<section class="space-y-6">
+<h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2" id="table-title">
+<span class="material-symbols-outlined text-amber-500">compare_arrows</span>
+Comparaison Rapide
+</h2>
+<div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+<table class="w-full text-left text-sm text-slate-600">
+<thead class="bg-slate-50 text-slate-900 font-semibold uppercase tracking-wider">
+<tr>
+<th class="px-6 py-4" id="th-feature">Caractéristique</th>
+<th class="px-6 py-4 text-blue-700 bg-blue-50/50" id="th-formal">Formel</th>
+<th class="px-6 py-4 text-green-700 bg-green-50/50" id="th-nonformal">Non Formel</th>
+<th class="px-6 py-4 text-orange-700 bg-orange-50/50" id="th-informal">Informel</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 bg-white" id="comparison-body">
+</tbody>
+</table>
+</div>
+</section>
+<section class="bg-indigo-50 rounded-2xl p-6 md:p-8 border border-indigo-100 space-y-6 no-print-interactive">
+<div class="flex items-start justify-between">
+<div>
+<h2 class="text-2xl font-bold text-indigo-900 flex items-center gap-2" id="game-title">
+<span class="material-symbols-outlined">extension</span>
+Mise en Situation
+</h2>
+<p class="text-indigo-700 mt-1" id="game-subtitle">Testez vos connaissances : analysez la situation et choisissez le bon type.</p>
+</div>
+<div class="bg-white px-3 py-1 rounded-full text-indigo-600 font-bold text-sm shadow-sm">
+Score: <span id="game-score">0</span>
+</div>
+</div>
+<div class="bg-white rounded-xl p-6 shadow-md text-center space-y-6">
+<div class="text-xl font-medium text-slate-800 min-h-[60px] flex items-center justify-center" id="game-scenario">
+Chargement...
+</div>
+<div class="hidden p-3 rounded-lg text-sm font-semibold" id="feedback-area"></div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<button class="py-3 px-4 rounded-lg bg-blue-50 text-blue-700 font-semibold hover:bg-blue-100 transition border border-blue-200" id="btn-game-formal" onclick="checkAnswer('formal')">Formel</button>
+<button class="py-3 px-4 rounded-lg bg-green-50 text-green-700 font-semibold hover:bg-green-100 transition border border-green-200" id="btn-game-nonformal" onclick="checkAnswer('nonformal')">Non Formel</button>
+<button class="py-3 px-4 rounded-lg bg-orange-50 text-orange-700 font-semibold hover:bg-orange-100 transition border border-orange-200" id="btn-game-informal" onclick="checkAnswer('informal')">Informel</button>
+</div>
+<button class="hidden w-full py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition flex items-center justify-center gap-2" id="btn-next-scenario" onclick="nextScenario()">
+<span id="txt-next">Suivant</span> <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</section>
+<section class="space-y-6 pb-12 break-inside-avoid">
+<h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2" id="quiz-title">
+<span class="material-symbols-outlined text-purple-600">quiz</span>
+Quiz de Validation
+</h2>
+<div class="space-y-4" id="quiz-container">
+</div>
+<button class="mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all w-full sm:w-auto no-print" id="btn-check-quiz" onclick="validateQuiz()">
+Vérifier les réponses
+</button>
+<div class="hidden p-4 rounded-lg bg-slate-100 text-center font-bold text-lg" id="quiz-result"></div>
+</section>
+</div>
+<footer class="bg-slate-900 text-slate-400 py-8 no-print">
+<div class="max-w-5xl mx-auto px-4 text-center">
+<p class="text-sm" id="footer-text">Créé pour la formation des travailleurs de jeunesse.</p>
+<div class="mt-2 text-xs opacity-50">
+© 2023 - Education &amp; Youth Work Resource
+</div>
+</div>
+</footer>
+<script>
+const data = {
+    fr: {
+        navTitle: "Formation Jeunesse",
+        btnExport: "Télécharger PDF",
+        heroTitle: "Les 3 Piliers de l'Apprentissage",
+        heroSubtitle: "Un guide essentiel pour les travailleurs de jeunesse : comprendre les nuances entre l'éducation formelle, non formelle et informelle.",
+        tabs: { formal: "Formel", nonformal: "Non Formel", informal: "Informel" },
+        content: {
+            formal: {
+                title: "Apprentissage Formel",
+                icon: "account_balance",
+                color: "text-blue-600",
+                desc: "C'est l'éducation structurée, dispensée par des établissements d'enseignement (écoles, universités). Elle est séquentielle et hiérarchique.",
+                bullets: ["Diplômes reconnus", "Programmes imposés", "Enseignants qualifiés", "Obligatoire (souvent)"],
+                youthWork: "Le rôle du travailleur jeunesse ici est de soutenir la scolarité (aide aux devoirs, prévention du décrochage)."
+            },
+            nonformal: {
+                title: "Apprentissage Non Formel",
+                icon: "groups",
+                color: "text-green-600",
+                desc: "L'éducation organisée en dehors du système formel. Elle est intentionnelle mais volontaire. C'est le cœur du travail de jeunesse.",
+                bullets: ["Volontaire", "Participatif", "Pas de diplôme d'État (souvent des certificats)", "Axé sur les compétences sociales (Soft Skills)"],
+                youthWork: "C'est votre domaine principal : animer un club, organiser un projet solidaire, formation de pairs."
+            },
+            informal: {
+                title: "Apprentissage Informel",
+                icon: "coffee",
+                color: "text-orange-600",
+                desc: "L'apprentissage qui se produit dans la vie de tous les jours, souvent de manière non intentionnelle ou fortuite.",
+                bullets: ["Spontané", "Au quotidien", "Pas de prof, pas de programme", "Expérience de vie"],
+                youthWork: "Vous le facilitez en créant des espaces sûrs pour discuter, jouer et interagir librement."
+            }
+        },
+        table: {
+            title: "Comparaison Rapide",
+            headers: ["Caractéristique", "Formel", "Non Formel", "Informel"],
+            rows: [
+                { feat: "Structure", f: "Rigide, hiérarchique", n: "Flexible, adaptative", i: "Aucune" },
+                { feat: "Intention", f: "Intentionnel", n: "Intentionnel", i: "Souvent accidentel" },
+                { feat: "Certification", f: "Diplômes officiels", n: "Certificats / Badges", i: "Aucune" },
+                { feat: "Lieu", f: "École, Université", n: "Clubs, Assoc, Ateliers", i: "Maison, Rue, Loisirs" }
+            ]
+        },
+        game: {
+            title: "Mise en Situation",
+            subtitle: "Testez vos connaissances : analysez la situation et choisissez le bon type.",
+            buttons: { formal: "Formel", nonformal: "Non Formel", informal: "Informel" },
+            next: "Suivant",
+            correct: "Correct ! Bien joué.",
+            wrong: "Pas tout à fait. Essayez encore.",
+            scenarios: [
+                { text: "Un jeune obtient son Baccalauréat après 3 ans de lycée.", type: "formal" },
+                { text: "Un groupe de jeunes organise un tournoi de foot pour financer un projet.", type: "nonformal" },
+                { text: "Un ado apprend à cuisiner en regardant sa grand-mère faire.", type: "informal" },
+                { text: "Suivre un cours de mathématiques le mardi matin à 8h.", type: "formal" },
+                { text: "Participer à un atelier théâtre le mercredi après-midi au centre culturel.", type: "nonformal" },
+                { text: "Discuter politique avec des amis autour d'un café.", type: "informal" }
+            ]
+        },
+        quiz: {
+            title: "Quiz de Validation",
+            btnCheck: "Vérifier les réponses",
+            questions: [
+                {
+                    q: "Quel type d'apprentissage est principalement volontaire et structuré ?",
+                    options: ["Formel", "Non Formel", "Informel"],
+                    a: 1 
+                },
+                {
+                    q: "Lequel de ces apprentissages mène toujours à un diplôme d'État ?",
+                    options: ["Formel", "Non Formel", "Informel"],
+                    a: 0
+                },
+                {
+                    q: "Apprendre une langue en écoutant de la musique, c'est...",
+                    options: ["Formel", "Non Formel", "Informel"],
+                    a: 2
+                }
+            ],
+            resultText: "Votre score : "
+        },
+        footer: "Créé pour la formation des travailleurs de jeunesse."
+    },
+    en: {
+        navTitle: "Youth Training",
+        btnExport: "Download PDF",
+        heroTitle: "The 3 Pillars of Learning",
+        heroSubtitle: "An essential guide for youth workers: understanding the nuances between formal, non-formal, and informal education.",
+        tabs: { formal: "Formal", nonformal: "Non-formal", informal: "Informal" },
+        content: {
+            formal: {
+                title: "Formal Learning",
+                icon: "account_balance",
+                color: "text-blue-600",
+                desc: "Structured education provided by educational institutions (schools, universities). It is sequential and hierarchical.",
+                bullets: ["Recognized diplomas", "Fixed curriculum", "Qualified teachers", "Compulsory (usually)"],
+                youthWork: "The youth worker's role here is to support schooling (homework help, dropout prevention)."
+            },
+            nonformal: {
+                title: "Non-formal Learning",
+                icon: "groups",
+                color: "text-green-600",
+                desc: "Education organized outside the formal system. It is intentional but voluntary. This is the core of youth work.",
+                bullets: ["Voluntary", "Participatory", "No state diploma (often certificates)", "Focused on Soft Skills"],
+                youthWork: "This is your main domain: running a club, organizing a solidarity project, peer training."
+            },
+            informal: {
+                title: "Informal Learning",
+                icon: "coffee",
+                color: "text-orange-600",
+                desc: "Learning that occurs in everyday life, often unintentionally or haphazardly.",
+                bullets: ["Spontaneous", "Daily life", "No teacher, no curriculum", "Life experience"],
+                youthWork: "You facilitate this by creating safe spaces to discuss, play, and interact freely."
+            }
+        },
+        table: {
+            title: "Quick Comparison",
+            headers: ["Feature", "Formal", "Non-formal", "Informal"],
+            rows: [
+                { feat: "Structure", f: "Rigid, hierarchical", n: "Flexible, adaptive", i: "None" },
+                { feat: "Intention", f: "Intentional", n: "Intentional", i: "Often accidental" },
+                { feat: "Certification", f: "Official diplomas", n: "Certificates / Badges", i: "None" },
+                { feat: "Location", f: "School, University", n: "Clubs, NGOs, Workshops", i: "Home, Street, Leisure" }
+            ]
+        },
+        game: {
+            title: "Scenario Practice",
+            subtitle: "Test your knowledge: analyze the situation and choose the correct type.",
+            buttons: { formal: "Formal", nonformal: "Non-formal", informal: "Informal" },
+            next: "Next",
+            correct: "Correct! Well done.",
+            wrong: "Not quite. Try again.",
+            scenarios: [
+                { text: "A young person gets their High School Diploma.", type: "formal" },
+                { text: "A youth group organizes a soccer tournament to fund a project.", type: "nonformal" },
+                { text: "A teen learns to cook by watching their grandmother.", type: "informal" },
+                { text: "Attending a math class on Tuesday morning.", type: "formal" },
+                { text: "Participating in a drama workshop at the cultural center.", type: "nonformal" },
+                { text: "Discussing politics with friends over coffee.", type: "informal" }
+            ]
+        },
+        quiz: {
+            title: "Validation Quiz",
+            btnCheck: "Check Answers",
+            questions: [
+                {
+                    q: "Which learning type is primarily voluntary and structured?",
+                    options: ["Formal", "Non-formal", "Informal"],
+                    a: 1
+                },
+                {
+                    q: "Which of these always leads to a state diploma?",
+                    options: ["Formal", "Non-formal", "Informal"],
+                    a: 0
+                },
+                {
+                    q: "Learning a language by listening to music is...",
+                    options: ["Formal", "Non-formal", "Informal"],
+                    a: 2
+                }
+            ],
+            resultText: "Your score: "
+        },
+        footer: "Created for youth worker training."
+    },
+    mg: {
+        navTitle: "Mpanabe Tanora",
+        btnExport: "Haka PDF",
+        heroTitle: "Ireo Andry 3-n'ny Fampianarana",
+        heroSubtitle: "Torolàlana ho an'ny mpanabe tanora: fahatakarana ny fahasamihafana misy eo amin'ny fampianarana ofisialy, tsy ara-pomba, ary andavanandro.",
+        tabs: { formal: "Ofisialy (Formel)", nonformal: "Tsy ara-pomba (Non-formel)", informal: "Andavanandro (Informel)" },
+        content: {
+            formal: {
+                title: "Fampianarana Ofisialy",
+                icon: "account_balance",
+                color: "text-blue-600",
+                desc: "Fampianarana voarindra any an-tsekoly na oniversite. Misy ambaratonga sy lalàna mifehy azy.",
+                bullets: ["Diplôma eken'ny Fanjakana", " fandaharam-pianarana raikitra", "Mpampianatra voaofana", "Matetika tsy maintsy atao"],
+                youthWork: "Ny anjara asanao eto dia ny manohana ny fianarana (fanampiana amin'ny devoara, ady amin'ny fialana an-daharana)."
+            },
+            nonformal: {
+                title: "Fampianarana Tsy Ara-pomba",
+                icon: "groups",
+                color: "text-green-600",
+                desc: "Fianarana voarindra ivelan'ny sekoly. An-tsitrapo no anaovana azy. Io no fon'ny asan'ny mpanabe tanora.",
+                bullets: ["An-tsitrapo", "Mandraisa anjara mavitrika", "Tsy misy diplôma ofisialy (taratasy fanamarinana)", "Fampivoarana fahaiza-miaina"],
+                youthWork: "Io no sehatra iasanao: manao klioba, tetikasa ifarimbonana, fiofanana.",
+            },
+            informal: {
+                title: "Fianarana Andavanandro",
+                icon: "coffee",
+                color: "text-orange-600",
+                desc: "Fianarana mitranga amin'ny fiainana andavanandro, matetika tsy fanahy iniana.",
+                bullets: ["Kisendrasendra", "Isan'andro", "Tsy misy mpampianatra, tsy misy programa", "Traikefa amin'ny fiainana"],
+                youthWork: "Manamora izany ianao amin'ny famoronana toerana azo antoka hifanakalozana hevitra sy hilalaovana."
+            }
+        },
+        table: {
+            title: "Fampitahana Haingana",
+            headers: ["Toetoetra", "Ofisialy", "Tsy ara-pomba", "Andavanandro"],
+            rows: [
+                { feat: "Rafitra", f: "Hentitra, misy ambaratonga", n: "Malalaka, azo ovaina", i: "Tsy misy" },
+                { feat: "Tanjona", f: "Fanahy iniana", n: "Fanahy iniana", i: "Matetika kisendrasendra" },
+                { feat: "Fanamarinana", f: "Diplôma ofisialy", n: "Taratasy fanamarinana", i: "Tsy misy" },
+                { feat: "Toerana", f: "Sekoly, Oniversite", n: "Fikambanana, Atrikasa", i: "Trano, Lalana, Fialamboly" }
+            ]
+        },
+        game: {
+            title: "Fampiharana",
+            subtitle: "Andramo ny fahaizanao: diniho ny zava-misy ary safidio ny valiny marina.",
+            buttons: { formal: "Ofisialy", nonformal: "Tsy ara-pomba", informal: "Andavanandro" },
+            next: "Manaraka",
+            correct: "Marina! Tsara be.",
+            wrong: "Diso. Andramo indray.",
+            scenarios: [
+                { text: "Mahazo ny mari-pahaizana Bakalorea ny tanora iray.", type: "formal" },
+                { text: "Tanora mikarakara fifaninanana baolina kitra hamatsiana tetikasa.", type: "nonformal" },
+                { text: "Mianatra mahandro sakafo amin'ny renibeny ny ankizy iray.", type: "informal" },
+                { text: "Manatrika lesona matematika ny talata maraina.", type: "formal" },
+                { text: "Mandraisa anjara amin'ny atrikasa teatra ao amin'ny foibe ara-kolontsaina.", type: "nonformal" },
+                { text: "Miresaka politika miaraka amin'ny namana eo am-pisotroana kafe.", type: "informal" }
+            ]
+        },
+        quiz: {
+            title: "Fanadinana Fanamarinana",
+            btnCheck: "Jereo ny valiny",
+            questions: [
+                {
+                    q: "Inona amin'ireo no fianarana an-tsitrapo nefa voarindra?",
+                    options: ["Ofisialy", "Tsy ara-pomba", "Andavanandro"],
+                    a: 1
+                },
+                {
+                    q: "Iza amin'ireo no manome diplôma ofisialy avy amin'ny Fanjakana?",
+                    options: ["Ofisialy", "Tsy ara-pomba", "Andavanandro"],
+                    a: 0
+                },
+                {
+                    q: "Ny fianarana teny vahiny amin'ny fihainoana hira dia...",
+                    options: ["Ofisialy", "Tsy ara-pomba", "Andavanandro"],
+                    a: 2
+                }
+            ],
+            resultText: "Ny naoty azonao: "
+        },
+        footer: "Natao ho an'ny fanofanana mpanabe tanora."
+    }
+};
+let currentLang = 'fr';
+let currentTab = 'formal';
+let currentScenarioIndex = 0;
+let gameScore = 0;
+document.addEventListener('DOMContentLoaded', () => { renderPage(); });
+function changeLanguage() { const select = document.getElementById('lang-select'); currentLang = select.value; renderPage(); }
+function renderPage() {
+    const t = data[currentLang];
+    document.getElementById('nav-title').textContent = t.navTitle;
+    document.getElementById('btn-export').textContent = t.btnExport;
+    document.getElementById('hero-title').textContent = t.heroTitle;
+    document.getElementById('hero-subtitle').textContent = t.heroSubtitle;
+    document.getElementById('tab-formal').textContent = t.tabs.formal;
+    document.getElementById('tab-nonformal').textContent = t.tabs.nonformal;
+    document.getElementById('tab-informal').textContent = t.tabs.informal;
+    renderTabContent();
+    document.getElementById('table-title').innerHTML = `<span class="material-symbols-outlined text-amber-500">compare_arrows</span> ${t.table.title}`;
+    document.getElementById('th-feature').textContent = t.table.headers[0];
+    document.getElementById('th-formal').textContent = t.table.headers[1];
+    document.getElementById('th-nonformal').textContent = t.table.headers[2];
+    document.getElementById('th-informal').textContent = t.table.headers[3];
+    const tbody = document.getElementById('comparison-body');
+    tbody.innerHTML = '';
+    t.table.rows.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="px-6 py-4 font-medium text-slate-900 bg-slate-50">${row.feat}</td><td class="px-6 py-4 border-l border-slate-100">${row.f}</td><td class="px-6 py-4 border-l border-slate-100">${row.n}</td><td class="px-6 py-4 border-l border-slate-100">${row.i}</td>`;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('game-title').innerHTML = `<span class="material-symbols-outlined">extension</span> ${t.game.title}`;
+    document.getElementById('game-subtitle').textContent = t.game.subtitle;
+    document.getElementById('btn-game-formal').textContent = t.game.buttons.formal;
+    document.getElementById('btn-game-nonformal').textContent = t.game.buttons.nonformal;
+    document.getElementById('btn-game-informal').textContent = t.game.buttons.informal;
+    document.getElementById('txt-next').textContent = t.game.next;
+    if(currentScenarioIndex < t.game.scenarios.length) { document.getElementById('game-scenario').textContent = t.game.scenarios[currentScenarioIndex].text; }
+    document.getElementById('quiz-title').innerHTML = `<span class="material-symbols-outlined text-purple-600">quiz</span> ${t.quiz.title}`;
+    document.getElementById('btn-check-quiz').textContent = t.quiz.btnCheck;
+    const quizContainer = document.getElementById('quiz-container');
+    quizContainer.innerHTML = '';
+    t.quiz.questions.forEach((q, idx) => {
+        const qDiv = document.createElement('div');
+        qDiv.className = "bg-white p-6 rounded-xl shadow-sm border border-slate-200 break-inside-avoid";
+        let optionsHtml = '';
+        q.options.forEach((opt, optIdx) => {
+            optionsHtml += `<label class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-200 transition"><input type="radio" name="q${idx}" value="${optIdx}" class="form-radio text-blue-600 focus:ring-blue-500 h-5 w-5"><span class="text-slate-700 font-medium">${opt}</span></label>`;
+        });
+        qDiv.innerHTML = `<h3 class="font-bold text-lg text-slate-800 mb-4">${idx + 1}. ${q.q}</h3><div class="space-y-2">${optionsHtml}</div><div id="feedback-q${idx}" class="mt-3 text-sm font-bold hidden"></div>`;
+        quizContainer.appendChild(qDiv);
+    });
+    document.getElementById('footer-text').textContent = t.footer;
+}
+function switchTab(tab) {
+    currentTab = tab;
+    ['formal', 'nonformal', 'informal'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tab) { btn.className = "tab-active px-6 py-3 text-sm sm:text-base whitespace-nowrap transition-colors"; } else { btn.className = "tab-inactive px-6 py-3 text-sm sm:text-base whitespace-nowrap transition-colors"; }
+    });
+    renderTabContent();
+}
+function renderTabContent() {
+    const content = data[currentLang].content[currentTab];
+    const area = document.getElementById('tab-content-area');
+    area.classList.remove('fade-in');
+    void area.offsetWidth;
+    area.classList.add('fade-in');
+    area.innerHTML = `<div class="flex flex-col md:flex-row gap-6 md:gap-10"><div class="md:w-1/3 flex flex-col items-center text-center space-y-4"><div class="p-6 rounded-full bg-slate-50 shadow-inner"><span class="material-symbols-outlined ${content.color} text-6xl md:text-8xl">${content.icon}</span></div><h3 class="text-2xl font-bold ${content.color}">${content.title}</h3></div><div class="md:w-2/3 space-y-4"><p class="text-lg leading-relaxed text-slate-700">${content.desc}</p><ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">${content.bullets.map(b => `<li class="flex items-center gap-2 text-slate-600 text-sm font-medium"><span class="material-symbols-outlined text-xs ${content.color}">check_circle</span>${b}</li>`).join('')}</ul><div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg"><p class="text-sm text-blue-900"><span class="font-bold flex items-center gap-1 mb-1"><span class="material-symbols-outlined text-base">work</span> Rôle Jeunesse :</span> ${content.youthWork}</p></div></div></div>`;
+}
+function checkAnswer(selectedType) {
+    const scenarios = data[currentLang].game.scenarios;
+    if (currentScenarioIndex >= scenarios.length) return;
+    const current = scenarios[currentScenarioIndex];
+    const feedback = document.getElementById('feedback-area');
+    const nextBtn = document.getElementById('btn-next-scenario');
+    const btns = ['btn-game-formal', 'btn-game-nonformal', 'btn-game-informal'];
+    btns.forEach(id => document.getElementById(id).disabled = true);
+    feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+    if (selectedType === current.type) {
+        gameScore += 10;
+        feedback.textContent = data[currentLang].game.correct;
+        feedback.classList.add('bg-green-100', 'text-green-800');
+        document.getElementById('game-score').textContent = gameScore;
+        nextBtn.classList.remove('hidden');
+    } else {
+        feedback.textContent = data[currentLang].game.wrong;
+        feedback.classList.add('bg-red-100', 'text-red-800');
+        nextBtn.classList.remove('hidden');
+    }
+}
+function nextScenario() {
+    currentScenarioIndex++;
+    const t = data[currentLang];
+    const feedback = document.getElementById('feedback-area');
+    const nextBtn = document.getElementById('btn-next-scenario');
+    const btns = ['btn-game-formal', 'btn-game-nonformal', 'btn-game-informal'];
+    if (currentScenarioIndex < t.game.scenarios.length) {
+        document.getElementById('game-scenario').textContent = t.game.scenarios[currentScenarioIndex].text;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        btns.forEach(id => document.getElementById(id).disabled = false);
+    } else {
+        document.getElementById('game-scenario').innerHTML = `<span class="text-green-600 font-bold">Fin de la simulation! Score final: ${gameScore}</span>`;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        btns.forEach(id => document.getElementById(id).style.display = 'none');
+    }
+}
+function validateQuiz() {
+    let score = 0;
+    const t = data[currentLang].quiz;
+    t.questions.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        const feedback = document.getElementById(`feedback-q${idx}`);
+        feedback.classList.remove('hidden', 'text-green-600', 'text-red-600');
+        if (selected) {
+            if (parseInt(selected.value) === q.a) { score++; feedback.textContent = "Correct!"; feedback.classList.add('text-green-600'); }
+            else { feedback.textContent = "Incorrect."; feedback.classList.add('text-red-600'); }
+        } else { feedback.textContent = "Veuillez répondre."; feedback.classList.add('text-red-600'); }
+    });
+    const resultDiv = document.getElementById('quiz-result');
+    resultDiv.classList.remove('hidden');
+    resultDiv.textContent = `${t.resultText} ${score} / ${t.questions.length}`;
+}
+function exportPDF() {
+    const element = document.getElementById('printable-area');
+    const opt = { margin: 0.5, filename: 'formation_jeunesse_apprentissage.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
+    document.body.classList.add('printing');
+    html2pdf().set(opt).from(element).save().then(() => { document.body.classList.remove('printing'); });
+}
+</script>
+</body>
+</html>
+
