@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuckman's Stages of Group Development</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* Custom Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            position: relative;
+            z-index: 20;
+            cursor: pointer;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #4f46e5;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: -10px;
+            cursor: grab;
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+            cursor: grabbing;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(0,0,0,0.1);
+            border-radius: 2px;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            50% { opacity: 0; transform: scale(2.5); }
+            100% { opacity: 0; transform: scale(2.5); }
+        }
+
+        /* Shake Animation for Storming */
+        .shake-element {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Dynamic Theme Transitions */
+        .theme-transition {
+            transition: all 0.5s ease;
+        }
+        
+        /* Glassmorphism card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Chart glow */
+        .chart-glow {
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.1));
+        }
+
+        /* Modal Overlay */
+        #modalOverlay {
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Effect Canvas */
+        #effectCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let clicks pass through */
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+
+    <!-- Header -->
+    <header class="w-full bg-white shadow-sm z-30 flex-none py-4 px-6 flex justify-between items-center sticky top-0">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Group Dynamics Simulator</h1>
+            <p class="text-sm text-slate-500">Tuckman's Model of Group Development</p>
+        </div>
+        <div class="hidden md:block">
+            <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100">Interactive Training Module</span>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col md:flex-row relative">
+        
+        <!-- Left: Visualization (The Curve) -->
+        <div class="relative w-full md:w-1/2 lg:w-3/5 bg-slate-50 flex flex-col justify-center items-center p-4 md:p-8 border-r border-slate-200 md:sticky md:top-20 md:h-[calc(100vh-80px)] overflow-hidden">
+            
+            <!-- Effect Canvas Overlay -->
+            <canvas id="effectCanvas"></canvas>
+
+            <!-- Context Labels on Chart -->
+            <div class="absolute top-8 left-8 text-xs font-bold text-slate-400 uppercase tracking-widest z-0">Performance / Morale</div>
+            <div class="absolute bottom-24 right-8 text-xs font-bold text-slate-400 uppercase tracking-widest z-0">Time</div>
+
+            <!-- The Chart Container -->
+            <div class="w-full max-w-2xl relative aspect-video z-10">
+                <!-- SVG Chart -->
+                <svg viewBox="0 0 400 250" class="w-full h-full overflow-visible chart-glow">
+                    <!-- Grid Lines -->
+                    <line x1="20" y1="220" x2="380" y2="220" stroke="#e2e8f0" stroke-width="2" />
+                    <line x1="20" y1="20" x2="20" y2="220" stroke="#e2e8f0" stroke-width="2" />
+
+                    <!-- The Path -->
+                    <defs>
+                        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" /> <!-- Orange Forming -->
+                            <stop offset="25%" style="stop-color:#ef4444;stop-opacity:1" /> <!-- Red Storming -->
+                            <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" /> <!-- Blue Norming -->
+                            <stop offset="75%" style="stop-color:#10b981;stop-opacity:1" /> <!-- Green Performing -->
+                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" /> <!-- Purple Adjourning -->
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- The Curve Path -->
+                    <path id="tuckmanPath" 
+                          d="M 20,100 C 50,100 70,180 100,180 S 180,80 220,50 S 260,30 320,30 L 380,30" 
+                          fill="none" 
+                          stroke="url(#lineGradient)" 
+                          stroke-width="6" 
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                    
+                    <!-- The Interactive Cursor (Dot + Plus Button) -->
+                    <g id="cursorGroup">
+                        <circle id="cursorPulse" cx="0" cy="0" r="12" fill="currentColor" class="text-indigo-500 opacity-30 pulse-ring" />
+                        <circle id="cursorDot" cx="0" cy="0" r="8" fill="white" stroke="currentColor" stroke-width="3" class="text-indigo-600 shadow-lg transition-colors duration-300" />
+                        
+                        <!-- Clickable Plus Button -->
+                        <g class="cursor-pointer hover:scale-110 transition-transform duration-200" onclick="openModal()" role="button" tabindex="0">
+                            <circle cx="0" cy="-32" r="24" fill="transparent" /> <!-- Hit area -->
+                            <circle cx="0" cy="-32" r="14" fill="#4f46e5" stroke="white" stroke-width="2" class="shadow-md" />
+                            <path d="M -5,-32 L 5,-32 M 0,-37 L 0,-27" stroke="white" stroke-width="2" stroke-linecap="round" />
+                        </g>
+
+                        <!-- Floating Tooltip -->
+                        <foreignObject x="-75" y="-95" width="150" height="50" style="overflow: visible; pointer-events: none;">
+                            <div id="cursorTooltip" class="bg-slate-800 text-white text-xs py-1 px-2 rounded shadow-lg text-center opacity-0 transition-opacity duration-300 mb-1">
+                                <span id="tooltipTitle" class="font-bold block">Forming</span>
+                                <span id="tooltipTip" class="text-[10px] text-slate-300">Set clear goals</span>
+                            </div>
+                        </foreignObject>
+                    </g>
+                </svg>
+
+                <!-- Stage Labels (Static) -->
+                <div class="absolute w-full h-full top-0 left-0 pointer-events-none">
+                    <span class="absolute left-[0%] top-[35%] text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100 opacity-70">Forming</span>
+                    <span class="absolute left-[20%] top-[75%] text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100 opacity-70">Storming</span>
+                    <span class="absolute left-[45%] top-[25%] text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 opacity-70">Norming</span>
+                    <span class="absolute left-[70%] top-[2%] text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 opacity-70">Performing</span>
+                    <span class="absolute right-[0%] top-[15%] text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-1 rounded border border-purple-100 opacity-70">Adjourning</span>
+                </div>
+            </div>
+
+            <!-- Slider Control -->
+            <div class="w-full max-w-2xl mt-8 px-4 relative pb-4 md:pb-0 z-20">
+                <input type="range" id="progressSlider" min="0" max="100" value="0" step="0.5" aria-label="Development Timeline">
+                <div class="flex justify-between text-xs text-slate-400 mt-2 font-medium">
+                    <span>Start</span>
+                    <span>Team Lifecycle</span>
+                    <span>Closure</span>
+                </div>
+                <div class="text-center mt-2 text-sm text-indigo-600 font-semibold animate-pulse" id="dragHint">
+                    <i class="fas fa-arrows-left-right mr-2"></i> Drag slider or click the (+) to learn more
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Information Panel -->
+        <div id="infoPanel" class="w-full md:w-1/2 lg:w-2/5 bg-white p-6 md:p-10 theme-transition border-l-4 border-indigo-500 shadow-inner z-20">
+            
+            <div id="contentContainer" class="max-w-md mx-auto fade-in">
+                <!-- Header Icon & Title -->
+                <div class="flex items-center mb-6">
+                    <div id="stageIcon" class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg mr-5 transition-colors duration-500 bg-amber-500 relative">
+                        <i class="fas fa-handshake z-10"></i>
+                    </div>
+                    <div>
+                        <h2 id="stageTitle" class="text-3xl font-extrabold text-slate-900">Forming</h2>
+                        <span id="stageSubtitle" class="text-sm font-semibold uppercase tracking-wider text-amber-600">Stage 1: Orientation</span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-8">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">What is happening?</h3>
+                    <p id="stageDescription" class="text-lg leading-relaxed text-slate-700">
+                        The team meets and learns about the opportunities and challenges, and then agrees on goals and begins to tackle the tasks. Team members tend to behave quite independently. They may be motivated but are usually relatively uninformed of the issues and objectives of the team.
+                    </p>
+                </div>
+
+                <!-- Behaviors Grid -->
+                <div class="mb-8">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Common Behaviors</h3>
+                    <ul id="stageBehaviors" class="space-y-3">
+                        <li class="flex items-start"><i class="fas fa-check-circle mt-1 mr-3 text-slate-400"></i><span class="text-slate-600">Politeness and artificial atmosphere</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle mt-1 mr-3 text-slate-400"></i><span class="text-slate-600">Unclear roles and responsibilities</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle mt-1 mr-3 text-slate-400"></i><span class="text-slate-600">High dependence on the leader</span></li>
+                    </ul>
+                </div>
+
+                <!-- Tips Card -->
+                <div id="leadershipCard" class="bg-amber-50 border border-amber-100 rounded-xl p-5 shadow-sm transition-colors duration-500">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-lightbulb text-amber-600 mr-2"></i>
+                        <h3 class="font-bold text-slate-800">Tips & Tricks</h3>
+                    </div>
+                    <p id="stageTips" class="text-slate-700 text-sm leading-relaxed">
+                        Provide clear direction and structure. Define the mission, roles, and goals explicitly. Facilitate introductions and help members get to know each other personally.
+                    </p>
+                    <div class="mt-3 pt-3 border-t border-black/5 flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Leadership Style:</span>
+                        <span id="leadershipStyle" class="text-xs font-bold px-2 py-1 bg-white rounded shadow-sm text-slate-700">Directing</span>
+                    </div>
+                </div>
+                
+                <div class="h-10"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Popup -->
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 transition-opacity duration-300 opacity-0 overflow-y-auto">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300 overflow-hidden my-8" id="modalContent">
+            
+            <!-- Modal Header -->
+            <div id="modalHeader" class="bg-amber-500 p-6 flex justify-between items-start text-white">
+                <div>
+                    <span id="modalSubtitle" class="uppercase tracking-widest text-xs font-bold opacity-80 block mb-1">Stage 1</span>
+                    <h2 id="modalTitle" class="text-3xl font-extrabold">Forming</h2>
+                </div>
+                <button onclick="closeModal()" class="text-white/70 hover:text-white transition-colors bg-white/20 hover:bg-white/30 rounded-full w-8 h-8 flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 md:p-8">
+                <div class="mb-6">
+                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Phase Description</h4>
+                    <p id="modalDesc" class="text-slate-700 leading-relaxed text-lg">Description text goes here...</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h4 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center">
+                            <i class="fas fa-users mr-2"></i> Team Behaviors
+                        </h4>
+                        <ul id="modalBehaviors" class="space-y-2 text-sm text-slate-600">
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                        <h4 class="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-3 flex items-center">
+                            <i class="fas fa-chess-knight mr-2"></i> Leadership Strategy
+                        </h4>
+                        <p id="modalTips" class="text-sm text-slate-700 leading-relaxed">Tips go here...</p>
+                        <div class="mt-4 pt-3 border-t border-indigo-200">
+                            <span class="text-xs font-bold text-indigo-500">Key Style: <span id="modalStyle" class="text-indigo-700">Directing</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-end">
+                <button onclick="closeModal()" class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-semibold transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA MODEL ---
+        const stages = [
+            {
+                id: "forming",
+                name: "Forming",
+                subtitle: "Stage 1: Orientation & Dependency",
+                range: [0, 18], 
+                color: "text-amber-600",
+                bg: "bg-amber-500",
+                lightBg: "bg-amber-50",
+                borderColor: "border-amber-100",
+                borderLeft: "border-amber-500",
+                icon: "fa-handshake",
+                desc: "The 'Honeymoon Phase'. Team members are getting to know one another. The atmosphere is formal and polite. People are focused on being accepted and avoiding conflict.",
+                behaviors: [
+                    "Polite, guarded conversation",
+                    "Seeking role clarity and definition",
+                    "Discussion of symptoms, not problems",
+                    "High dependence on leader for guidance"
+                ],
+                tips: "Provide a strong structure. Set clear goals, define roles, and create a charter. Use icebreakers to build relationships.",
+                shortTip: "Set clear goals & roles",
+                style: "Directing",
+                hex: "#f59e0b"
+            },
+            {
+                id: "storming",
+                name: "Storming",
+                subtitle: "Stage 2: Conflict & Resistance",
+                range: [18, 40],
+                color: "text-red-600",
+                bg: "bg-red-500",
+                lightBg: "bg-red-50",
+                borderColor: "border-red-100",
+                borderLeft: "border-red-500",
+                icon: "fa-bolt",
+                desc: "The 'Dip'. Reality sets in. Different working styles clash. People may challenge authority or the mission. This is the most difficult stage but necessary for growth.",
+                behaviors: [
+                    "Forming of cliques or factions",
+                    "Power struggles and emotional outbursts",
+                    "Questioning the wisdom of the project",
+                    "Resistance to tasks and methods"
+                ],
+                tips: "Don't avoid the conflict—manage it. Reiterate the 'Why'. Facilitate open and honest communication. Focus on resolving issues, not personalities.",
+                shortTip: "Manage conflict & listen",
+                style: "Coaching",
+                hex: "#ef4444"
+            },
+            {
+                id: "norming",
+                name: "Norming",
+                subtitle: "Stage 3: Cohesion & Unity",
+                range: [40, 65],
+                color: "text-blue-600",
+                bg: "bg-blue-500",
+                lightBg: "bg-blue-50",
+                borderColor: "border-blue-100",
+                borderLeft: "border-blue-500",
+                icon: "fa-puzzle-piece",
+                desc: "The 'Climb'. The team resolves its differences and begins to appreciate each other's strengths. Rules of conduct (norms) are established and accepted.",
+                behaviors: [
+                    "Agreement on roles and processes",
+                    "Constructive feedback is shared",
+                    "Use of 'We' instead of 'I'",
+                    "Renewed commitment to the goal"
+                ],
+                tips: "Step back and let the team take responsibility. Arrange social events to deepen bonds. Encourage the team to solve its own problems.",
+                shortTip: "Step back & encourage",
+                style: "Supporting",
+                hex: "#3b82f6"
+            },
+            {
+                id: "performing",
+                name: "Performing",
+                subtitle: "Stage 4: Synergy & Flow",
+                range: [65, 90],
+                color: "text-emerald-600",
+                bg: "bg-emerald-500",
+                lightBg: "bg-emerald-50",
+                borderColor: "border-emerald-100",
+                borderLeft: "border-emerald-500",
+                icon: "fa-rocket",
+                desc: "The 'Flow'. The team is functioning at a high level. Work is done smoothly with minimal supervision. The focus is purely on achieving goals.",
+                behaviors: [
+                    "High autonomy and motivation",
+                    "Disagreements are resolved quickly",
+                    "Fluid leadership (based on expertise)",
+                    "Focus on over-achieving goals"
+                ],
+                tips: "Delegate fully. Focus on career development for members. Celebrate wins. Protect the team from outside distractions.",
+                shortTip: "Delegate & celebrate wins",
+                style: "Delegating",
+                hex: "#10b981"
+            },
+            {
+                id: "adjourning",
+                name: "Adjourning",
+                subtitle: "Stage 5: Closure & Dissolution",
+                range: [90, 101],
+                color: "text-purple-600",
+                bg: "bg-purple-500",
+                lightBg: "bg-purple-50",
+                borderColor: "border-purple-100",
+                borderLeft: "border-purple-500",
+                icon: "fa-flag-checkered",
+                desc: "The project ends. The team disbands. This can bring a sense of accomplishment but also sadness or anxiety about the future.",
+                behaviors: [
+                    "Reflection on achievements",
+                    "Decreased productivity (senioritis)",
+                    "Sadness or separation anxiety",
+                    "Networking for future roles"
+                ],
+                tips: "Celebrate the success. Conduct a retrospective (Lessons Learned). Ensure a smooth handover of deliverables. Acknowledge emotional needs.",
+                shortTip: "Reflect & say goodbye",
+                style: "Recognizing",
+                hex: "#8b5cf6"
+            }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const slider = document.getElementById('progressSlider');
+        const path = document.getElementById('tuckmanPath');
+        const cursorGroup = document.getElementById('cursorGroup');
+        const cursorDot = document.getElementById('cursorDot');
+        const dragHint = document.getElementById('dragHint');
+        const infoPanel = document.getElementById('infoPanel');
+        
+        // Tooltip Elements
+        const cursorTooltip = document.getElementById('cursorTooltip');
+        const tooltipTitle = document.getElementById('tooltipTitle');
+        const tooltipTip = document.getElementById('tooltipTip');
+        
+        // Content Elements
+        const elTitle = document.getElementById('stageTitle');
+        const elSubtitle = document.getElementById('stageSubtitle');
+        const elDesc = document.getElementById('stageDescription');
+        const elBehaviors = document.getElementById('stageBehaviors');
+        const elTips = document.getElementById('stageTips');
+        const elStyle = document.getElementById('leadershipStyle');
+        const elIcon = document.getElementById('stageIcon');
+        const elCard = document.getElementById('leadershipCard');
+
+        // Modal Elements
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalContent = document.getElementById('modalContent');
+        const modalHeader = document.getElementById('modalHeader');
+        
+        let currentStageData = stages[0]; 
+        let currentStageId = null;
+        const pathLength = path.getTotalLength();
+
+        // --- VISUAL EFFECTS ENGINE (CANVAS) ---
+        const canvas = document.getElementById('effectCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let animationFrameId;
+        
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(type, color) {
+                this.type = type;
+                this.color = color;
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = (Math.random() - 0.5) * 2;
+                this.life = 100; // opacity
+                
+                // Specific init based on type
+                if (type === 'forming') {
+                    this.speedX *= 0.2; // Slow floating
+                    this.speedY *= 0.2;
+                    this.size = Math.random() * 8 + 2; // Bubbles
+                } else if (type === 'storming') {
+                    this.speedX *= 5; // Fast chaos
+                    this.speedY *= 5;
+                    this.size = Math.random() * 4;
+                } else if (type === 'norming') {
+                    this.y = canvas.height / 2 + (Math.random() - 0.5) * 100; // Center band
+                    this.speedX = 2; // Flow right
+                    this.angle = Math.random() * Math.PI * 2;
+                } else if (type === 'performing') {
+                    this.speedX = Math.random() * 10 + 5; // High speed right
+                    this.speedY = 0;
+                    this.size = Math.random() * 2 + 0.5;
+                    this.x = -10; // Start left
+                } else if (type === 'adjourning') {
+                    this.speedY = Math.random() * 2 + 1; // Falling down
+                    this.speedX = (Math.random() - 0.5) * 1;
+                    this.y = -10; // Start top
+                }
+            }
+
+            update() {
+                if (this.type === 'forming') {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    this.life -= 0.2;
+                } else if (this.type === 'storming') {
+                    this.x += this.speedX + (Math.random() - 0.5) * 5; // Jitter
+                    this.y += this.speedY + (Math.random() - 0.5) * 5;
+                    this.life -= 1;
+                } else if (this.type === 'norming') {
+                    this.x += this.speedX;
+                    this.y += Math.sin(this.x * 0.02 + this.angle) * 1; // Wave
+                    if (this.x > canvas.width) this.x = 0;
+                    this.life = 60; // Sustain
+                } else if (this.type === 'performing') {
+                    this.x += this.speedX;
+                    if (this.x > canvas.width) this.x = 0;
+                    this.life = 80;
+                } else if (this.type === 'adjourning') {
+                    this.y += this.speedY;
+                    this.x += Math.sin(this.y * 0.05) * 0.5; // Leaf fall
+                    this.life -= 0.5;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.globalAlpha = Math.max(0, this.life / 100) * 0.5; // Max 50% opacity
+                ctx.fillStyle = this.color;
+                
+                if (this.type === 'performing') {
+                    // Draw lines for speed
+                    ctx.rect(this.x, this.y, this.size * 10, this.size);
+                } else {
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                }
+                
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function initEffects(stageId, color) {
+            particles = [];
+            let count = 60;
+            if (stageId === 'performing') count = 100;
+            if (stageId === 'adjourning') count = 50;
+
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(stageId, color));
+            }
+        }
+
+        function animateEffects() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Add new particles continuously for some stages
+            if (currentStageId === 'adjourning' && Math.random() > 0.8) {
+                 particles.push(new Particle('adjourning', '#8b5cf6'));
+            }
+            if (currentStageId === 'performing' && Math.random() > 0.8) {
+                 particles.push(new Particle('performing', '#10b981'));
+            }
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                // Remove dead particles
+                if (particles[i].life <= 0 || particles[i].y > canvas.height + 20) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            animationFrameId = requestAnimationFrame(animateEffects);
+        }
+
+        // Start animation loop
+        animateEffects();
+
+
+        // --- MAIN LOGIC ---
+
+        function updateUI(percentage) {
+            // 1. Move Cursor along SVG Path
+            const point = path.getPointAtLength(pathLength * (percentage / 100));
+            cursorGroup.setAttribute("transform", `translate(${point.x}, ${point.y})`);
+
+            // 2. Identify Current Stage
+            const activeStage = stages.find(s => percentage >= s.range[0] && percentage < s.range[1]) || stages[stages.length - 1];
+            currentStageData = activeStage; 
+
+            // Update Tooltip
+            tooltipTitle.textContent = activeStage.name;
+            tooltipTip.textContent = activeStage.shortTip;
+            
+            if(percentage > 0) cursorTooltip.style.opacity = '1';
+
+            // 3. Update Content & Trigger Effects
+            if (activeStage.id !== currentStageId) {
+                currentStageId = activeStage.id;
+                renderContent(activeStage);
+                animateTransition();
+                
+                // Trigger Visual Effects
+                initEffects(activeStage.id, activeStage.hex);
+                
+                // Special Shake Effect for Storming Icon
+                if (activeStage.id === 'storming') {
+                    elIcon.classList.add('shake-element');
+                } else {
+                    elIcon.classList.remove('shake-element');
+                }
+            }
+        }
+
+        function renderContent(stage) {
+            // Text Content
+            elTitle.textContent = stage.name;
+            elSubtitle.textContent = stage.subtitle;
+            elSubtitle.className = `text-sm font-semibold uppercase tracking-wider ${stage.color}`;
+            elDesc.textContent = stage.desc;
+            elTips.textContent = stage.tips;
+            elStyle.textContent = stage.style;
+            
+            // Icon
+            elIcon.className = `w-16 h-16 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg mr-5 transition-colors duration-500 ${stage.bg} relative`;
+            elIcon.innerHTML = `<i class="fas ${stage.icon} z-10"></i>`;
+
+            // Behaviors List
+            elBehaviors.innerHTML = stage.behaviors.map(b => 
+                `<li class="flex items-start fade-in">
+                    <i class="fas fa-check-circle mt-1 mr-3 ${stage.color} opacity-60"></i>
+                    <span class="text-slate-600">${b}</span>
+                </li>`
+            ).join('');
+
+            // Leadership Card Styling
+            elCard.className = `${stage.lightBg} ${stage.borderColor} border rounded-xl p-5 shadow-sm transition-colors duration-500`;
+            elCard.querySelector('i').className = `fas fa-lightbulb ${stage.color} mr-2`;
+
+            // Panel Border Styling
+            infoPanel.className = `w-full md:w-1/2 lg:w-2/5 bg-white p-6 md:p-10 theme-transition border-l-4 shadow-inner ${stage.borderLeft} z-20`;
+            
+            // Slider Thumb Color
+            cursorDot.setAttribute("class", `${stage.color} shadow-lg transition-colors duration-300`);
+            cursorDot.setAttribute("stroke", "currentColor");
+        }
+
+        function animateTransition() {
+            const container = document.getElementById('contentContainer');
+            container.classList.remove('fade-in');
+            void container.offsetWidth; // Trigger reflow
+            container.classList.add('fade-in');
+        }
+
+        // --- MODAL FUNCTIONS ---
+        function openModal() {
+            const s = currentStageData;
+            document.getElementById('modalTitle').textContent = s.name;
+            document.getElementById('modalSubtitle').textContent = s.subtitle;
+            document.getElementById('modalDesc').textContent = s.desc;
+            document.getElementById('modalTips').textContent = s.tips;
+            document.getElementById('modalStyle').textContent = s.style;
+            
+            modalHeader.className = `${s.bg} p-6 flex justify-between items-start text-white transition-colors duration-300`;
+
+            document.getElementById('modalBehaviors').innerHTML = s.behaviors.map(b => 
+                `<li class="flex items-start"><i class="fas fa-dot-circle mt-1.5 mr-2 text-[10px] opacity-60"></i><span>${b}</span></li>`
+            ).join('');
+
+            modalOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                modalOverlay.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            modalOverlay.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => { modalOverlay.classList.add('hidden'); }, 300);
+        }
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // --- EVENT LISTENERS ---
+        slider.addEventListener('input', (e) => {
+            updateUI(e.target.value);
+            if(dragHint) dragHint.style.opacity = '0';
+        });
+
+        // Initialize at start
+        updateUI(0);
+
+    </script>
+</body>
+</html>
