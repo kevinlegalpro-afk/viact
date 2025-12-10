@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Entretien Empathique - Youth Work Training</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0f2f1 0%, #80cbc4 100%);
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .slide-container { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
+        
+        .details-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .details-panel.open { max-height: 400px; opacity: 1; transition: max-height 0.5s ease-in-out, opacity 0.3s ease; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 77, 64, 0.15);
+        }
+
+        .btn-pulse:active { transform: scale(0.96); }
+
+        .scrollable-content::-webkit-scrollbar { width: 4px; }
+        .scrollable-content::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .key-point { position: relative; padding-left: 1rem; line-height: 1.3; }
+        .key-point::before { content: "•"; color: #0d9488; position: absolute; left: 0; font-weight: bold; font-size: 1.1em; top: -1px; }
+
+        /* ILLUSTRATION STYLES */
+        .illustration-scene {
+            position: relative;
+            height: 100px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .ill-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.2;
+        }
+        .ill-icon {
+            z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+    </style>
+</head>
+<body class="p-2 md:p-4 text-slate-800 relative">
+
+    <!-- Language Toggle -->
+    <div class="absolute top-3 right-3 z-50">
+        <button onclick="toggleLanguage()" class="bg-white px-3 py-1.5 rounded-full shadow-sm font-bold text-teal-700 text-xs hover:bg-teal-50 transition flex items-center gap-2 border border-teal-100">
+            <i class="fas fa-globe"></i> <span id="lang-label">EN</span>
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-lg flex flex-col justify-center h-full max-h-[750px]">
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-teal-900/10 rounded-full h-1.5 mb-4 opacity-0 transition-opacity duration-300" id="progress-container">
+            <div id="progress-bar" class="bg-teal-600 h-1.5 rounded-full transition-all duration-500 shadow-sm" style="width: 0%"></div>
+        </div>
+
+        <!-- Slide Content Area -->
+        <div id="slide-card" class="glass-card p-6 w-full flex flex-col relative min-h-[500px] justify-between border border-white/60">
+            
+            <!-- Floating Top Icon -->
+            <div class="flex justify-center -mt-12 mb-2 relative z-20">
+                <div class="w-14 h-14 bg-gradient-to-br from-teal-50 to-teal-100 rounded-full flex items-center justify-center text-teal-600 text-2xl shadow-md border-4 border-white" id="slide-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+            </div>
+
+            <!-- INTRO CONTENT -->
+            <div id="intro-content" class="flex flex-col flex-grow items-center justify-center text-center">
+                
+                <!-- Intro Illustration -->
+                <div class="illustration-scene mb-6">
+                    <div class="ill-circle bg-teal-300 w-32 h-32 blur-xl"></div>
+                    <i class="fas fa-graduation-cap text-6xl text-teal-700 ill-icon relative right-4"></i>
+                    <i class="fas fa-comment-dots text-4xl text-teal-500 ill-icon relative top-6 right-2"></i>
+                </div>
+
+                <h1 id="intro-title" class="text-2xl font-bold text-teal-900 mb-2 leading-tight">
+                    Formation<br>Travailleurs Jeunesse
+                </h1>
+                <p id="intro-subtitle" class="text-sm text-slate-500 mb-8 max-w-xs mx-auto">
+                    Module Interactif : La conduite d'entretiens empathiques
+                </p>
+                <button onclick="changeSlide(1)" class="bg-teal-600 text-white px-8 py-2.5 rounded-full font-semibold shadow-lg hover:bg-teal-700 transition transform hover:-translate-y-0.5 flex items-center gap-2 text-sm">
+                    <span id="btn-start">Commencer</span> <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- STANDARD CONTENT WRAPPER -->
+            <div id="standard-content" class="hidden flex-col flex-grow">
+                <!-- Titles -->
+                <div class="text-center slide-content mb-1">
+                    <h1 id="slide-title" class="text-lg font-bold text-teal-900 leading-tight mb-1">Titre</h1>
+                    <p id="slide-subtitle" class="text-xs text-teal-600 font-medium uppercase tracking-wide mb-2">Sous-titre</p>
+                </div>
+
+                <!-- DYNAMIC ILLUSTRATION AREA -->
+                <div id="visual-container" class="illustration-scene rounded-xl bg-teal-50/50 mb-4 border border-teal-100/30">
+                    <!-- Injected via JS -->
+                </div>
+                
+                <!-- Key Points -->
+                <div id="key-points-container" class="bg-white/60 rounded-lg p-3 text-left max-w-md mx-auto shadow-sm mb-3 border border-teal-50">
+                    <ul id="key-points-list" class="space-y-1.5 text-slate-700 text-xs md:text-sm font-medium"></ul>
+                </div>
+
+                <!-- Interactive Details Section -->
+                <div class="flex flex-col items-center w-full mt-auto">
+                    <button onclick="toggleDetails()" id="btn-details" class="group flex items-center gap-2 text-teal-600 bg-white px-4 py-1.5 rounded-full shadow-sm hover:shadow-md transition mb-2 btn-pulse focus:outline-none border border-teal-100 text-xs z-10">
+                        <i id="eye-icon" class="fas fa-eye text-[10px]"></i>
+                        <span id="btn-details-text" class="font-semibold uppercase tracking-wide">Approfondir</span>
+                        <i id="chevron-icon" class="fas fa-chevron-down text-[10px] transition-transform duration-300 group-hover:translate-y-1"></i>
+                    </button>
+
+                    <div id="details-panel" class="details-panel w-full bg-teal-50/80 rounded-lg p-0 border border-teal-100/50 relative -mt-4 pt-6 z-0">
+                        <div class="p-4 text-left text-slate-700 leading-relaxed scrollable-content overflow-y-auto max-h-[150px] text-xs md:text-sm">
+                            <div class="flex gap-3">
+                                <div class="w-0.5 bg-teal-400 rounded-full flex-shrink-0 h-full"></div>
+                                <div id="slide-details">Détails...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUIZ CONTENT WRAPPER -->
+            <div id="quiz-content" class="hidden flex-col flex-grow items-center justify-center w-full">
+                
+                <!-- Quiz Illustration -->
+                <div class="illustration-scene mb-2 h-20">
+                    <div class="ill-circle bg-orange-200 w-20 h-20 blur-lg top-0"></div>
+                    <i class="fas fa-puzzle-piece text-5xl text-orange-400 ill-icon"></i>
+                </div>
+
+                <h2 id="quiz-title" class="text-lg font-bold text-teal-800 mb-3">Mise en Situation</h2>
+                
+                <div id="quiz-card" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 w-full text-center mb-3 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-orange-400"></div>
+                    <p class="text-[9px] text-slate-400 uppercase tracking-widest font-bold mb-1" id="quiz-label">Analyse</p>
+                    <p id="quiz-phrase" class="text-sm md:text-base font-serif text-slate-700 italic leading-relaxed">"..."</p>
+                </div>
+
+                <div id="quiz-feedback" class="hidden mb-3 p-2 rounded-lg text-xs w-full text-center shadow-sm"></div>
+
+                <div class="flex gap-2 w-full justify-center" id="quiz-buttons">
+                    <button onclick="checkAnswer(true)" class="flex-1 bg-teal-50 text-teal-700 py-2.5 rounded-lg font-bold hover:bg-teal-100 border border-teal-200 text-xs transition-colors">
+                        <i class="fas fa-check-circle mr-1"></i> <span id="btn-empathic">Empathique</span>
+                    </button>
+                    <button onclick="checkAnswer(false)" class="flex-1 bg-orange-50 text-orange-700 py-2.5 rounded-lg font-bold hover:bg-orange-100 border border-orange-200 text-xs transition-colors">
+                        <i class="fas fa-times-circle mr-1"></i> <span id="btn-avoid">À éviter</span>
+                    </button>
+                </div>
+                
+                <button onclick="nextQuestion()" id="btn-next-q" class="hidden mt-2 bg-slate-800 text-white px-5 py-2 rounded-full hover:bg-slate-700 transition font-semibold shadow-lg text-xs flex items-center gap-2">
+                    <span id="txt-next">Suivant</span> <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div id="nav-controls" class="hidden justify-between items-center mt-2 pt-2 border-t border-slate-100 w-full">
+                <button onclick="changeSlide(-1)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-teal-600 transition" aria-label="Previous">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </button>
+                <div class="flex flex-col items-center">
+                    <span id="slide-number" class="text-[10px] font-bold text-teal-600">1 / 9</span>
+                </div>
+                <button onclick="changeSlide(1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-teal-50 text-teal-600 hover:bg-teal-100 transition shadow-sm" aria-label="Next">
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+            </div>
+
+        </div>
+        
+        <p class="text-center text-teal-800/30 mt-3 text-[9px] font-medium uppercase tracking-widest">
+            v2.0 Illustrated
+        </p>
+
+    </div>
+
+    <script>
+        // VISUAL SCENE GENERATOR
+        // This function creates HTML strings for scenes using FontAwesome and Tailwind shapes
+        function getVisualScene(id) {
+            const scenes = {
+                1: `<!-- Definition -->
+                    <div class="ill-circle bg-teal-200 w-24 h-24 right-10 blur-md opacity-40"></div>
+                    <div class="ill-circle bg-blue-200 w-16 h-16 left-10 bottom-2 blur-md opacity-40"></div>
+                    <div class="relative flex items-center gap-4">
+                        <i class="fas fa-user text-3xl text-slate-400"></i>
+                        <i class="fas fa-link text-2xl text-teal-500"></i>
+                        <i class="fas fa-user text-3xl text-teal-700"></i>
+                    </div>`,
+                2: `<!-- Empathy vs Sympathy -->
+                    <div class="ill-circle bg-red-100 w-20 h-20 left-12 blur-md"></div>
+                    <div class="relative flex items-end gap-6">
+                        <div class="text-center opacity-50 scale-75">
+                            <i class="fas fa-cloud text-3xl text-slate-400 mb-1"></i>
+                            <div class="h-1 w-8 bg-slate-300 rounded mx-auto"></div>
+                        </div>
+                        <div class="h-8 w-0.5 bg-slate-300"></div>
+                        <div class="text-center scale-110">
+                            <i class="fas fa-heart text-4xl text-teal-600 mb-1"></i>
+                            <div class="h-1 w-10 bg-teal-500 rounded mx-auto"></div>
+                        </div>
+                    </div>`,
+                3: `<!-- Blockers -->
+                    <div class="ill-circle bg-orange-100 w-28 h-28 blur-lg"></div>
+                    <i class="fas fa-hand-paper text-5xl text-orange-400 absolute mr-8 rotate-12 opacity-20"></i>
+                    <div class="relative z-10 flex gap-4">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-gavel text-2xl text-slate-600 mb-1"></i>
+                            <span class="text-[8px] uppercase font-bold text-slate-400">Jugement</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-tools text-2xl text-slate-600 mb-1"></i>
+                            <span class="text-[8px] uppercase font-bold text-slate-400">Solution</span>
+                        </div>
+                    </div>`,
+                4: `<!-- Safe Space -->
+                    <div class="ill-circle bg-green-100 w-24 h-24 top-2 blur-md"></div>
+                    <div class="relative">
+                        <i class="fas fa-shield-alt text-6xl text-teal-100 absolute -top-2 -left-6"></i>
+                        <i class="fas fa-chair text-4xl text-teal-700 relative z-10"></i>
+                    </div>`,
+                5: `<!-- Listening -->
+                    <div class="ill-circle bg-purple-100 w-20 h-20 left-4 blur-md"></div>
+                    <div class="flex items-center">
+                        <i class="fas fa-ear-listen text-4xl text-teal-700 mr-2"></i>
+                        <div class="flex flex-col gap-1">
+                            <div class="w-2 h-2 bg-teal-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                            <div class="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        </div>
+                    </div>`,
+                6: `<!-- Questions -->
+                    <div class="ill-circle bg-yellow-100 w-32 h-32 blur-xl"></div>
+                    <div class="relative flex items-center">
+                        <i class="fas fa-door-open text-4xl text-teal-600 mr-4"></i>
+                        <i class="fas fa-question text-3xl text-teal-400 rotate-12"></i>
+                    </div>`,
+                7: `<!-- Emotions -->
+                    <div class="absolute bottom-0 w-full h-8 bg-blue-100/50 rounded-b-xl"></div>
+                    <div class="absolute bottom-2 w-full h-8 bg-blue-200/50 rounded-b-xl scale-90"></div>
+                    <i class="fas fa-anchor text-5xl text-teal-800 relative z-10 drop-shadow-md"></i>`,
+                8: `<!-- Conclusion -->
+                    <div class="ill-circle bg-teal-200 w-28 h-28 blur-xl"></div>
+                    <i class="fas fa-star text-yellow-400 text-xl absolute top-4 right-10 animate-pulse"></i>
+                    <i class="fas fa-handshake text-5xl text-teal-700 relative z-10"></i>`
+            };
+            return scenes[id] || '';
+        }
+
+        const slides = [
+            {
+                id: 0,
+                type: 'intro',
+                icon: "fa-graduation-cap",
+                fr: { title: "La Conduite d'Entretiens Empathiques", subtitle: "Formation pour Travailleurs Jeunesse", btnText: "Démarrer" },
+                en: { title: "Conducting Empathetic Interviews", subtitle: "Training for Youth Workers", btnText: "Start" }
+            },
+            {
+                id: 1,
+                type: 'standard',
+                icon: "fa-hand-holding-heart",
+                fr: {
+                    title: "L'Entretien Empathique",
+                    subtitle: "Définition & Objectif",
+                    points: ["Se sentir 'vu' et 'entendu'.", "Absence de jugement.", "La relation avant la solution."],
+                    btnText: "Pourquoi c'est vital ?",
+                    details: "Si le jeune ne se sent pas connecté, il n'écoutera pas. L'entretien empathique est un investissement pour gagner le droit de guider plus tard."
+                },
+                en: {
+                    title: "The Empathetic Interview",
+                    subtitle: "Definition & Goal",
+                    points: ["Feeling 'seen' and 'heard'.", "Non-judgment is key.", "Relationship before solution."],
+                    btnText: "Why is it vital?",
+                    details: "If the youth doesn't feel connected, they won't listen. Empathetic interviewing is an investment to earn the right to guide later."
+                }
+            },
+            {
+                id: 2,
+                type: 'standard',
+                icon: "fa-balance-scale-right",
+                fr: {
+                    title: "Empathie vs Sympathie",
+                    subtitle: "La nuance importante",
+                    points: ["Sympathie : De haut ('Pauvre de toi').", "Empathie : À côté ('Je suis avec toi').", "Sympathie : Cherche le positif."],
+                    btnText: "Le piège du 'Positif'",
+                    details: "Rassurer trop vite (ex: 'Au moins...') est de la sympathie. Ça coupe la communication. L'empathie partage l'émotion sans la réparer."
+                },
+                en: {
+                    title: "Empathy vs Sympathy",
+                    subtitle: "The important nuance",
+                    points: ["Sympathy: From above ('Poor you').", "Empathy: Beside ('I'm with you').", "Sympathy: Looks for bright side."],
+                    btnText: "The 'Positive' Trap",
+                    details: "Reassuring too fast (e.g. 'At least...') is sympathy. It shuts down communication. Empathy shares the emotion without fixing it."
+                }
+            },
+            {
+                id: 3,
+                type: 'standard',
+                icon: "fa-ban",
+                fr: {
+                    title: "Les Obstacles",
+                    subtitle: "Ce qui tue l'empathie",
+                    points: ["Le Jugement ('Tu n'aurais pas dû').", "La Solution immédiate.", "L'Autobiographie ('Moi à ton âge')."],
+                    btnText: "Pourquoi on fait ça ?",
+                    details: "On se protège de la douleur de l'autre en voulant la faire disparaître. L'empathie demande le courage de rester dans l'inconfort."
+                },
+                en: {
+                    title: "The Blockers",
+                    subtitle: "What kills empathy",
+                    points: ["Judging ('You shouldn't have').", "Immediate Fixing.", "Autobiography ('When I was young')."],
+                    btnText: "Why do we do this?",
+                    details: "We protect ourselves from others' pain by wanting it gone. Empathy requires courage to stay in the discomfort."
+                }
+            },
+            {
+                id: 4,
+                type: 'standard',
+                icon: "fa-couch",
+                fr: {
+                    title: "Le Cadre Sécure",
+                    subtitle: "L'environnement parle",
+                    points: ["Confidentialité claire.", "Posture ouverte (pas de bras croisés).", "Focus total (pas de téléphone)."],
+                    btnText: "Détails pratiques",
+                    details: "Évitez le bureau 'barrière'. Asseyez-vous en biais. Si le temps est limité, dites-le au début, pas à la fin."
+                },
+                en: {
+                    title: "The Safe Space",
+                    subtitle: "The environment speaks",
+                    points: ["Clear confidentiality.", "Open posture (uncrossed arms).", "Total focus (no phone)."],
+                    btnText: "Practical details",
+                    details: "Avoid the 'barrier' desk. Sit at an angle. If time is limited, say so at the start, not the end."
+                }
+            },
+            {
+                id: 5,
+                type: 'standard',
+                icon: "fa-ear-listen",
+                fr: {
+                    title: "L'Écoute Active",
+                    subtitle: "Comprendre avant de répondre",
+                    points: ["Reformuler ('Si je comprends bien').", "Valider ('C'est normal').", "Silence (Laisser de l'espace)."],
+                    btnText: "Le pouvoir du silence",
+                    details: "Le silence est dur. Si vous parlez pour combler le vide, vous interrompez la réflexion du jeune. Comptez jusqu'à 3."
+                },
+                en: {
+                    title: "Active Listening",
+                    subtitle: "Understand before replying",
+                    points: ["Paraphrase ('If I understand').", "Validate ('It makes sense').", "Silence (Give space)."],
+                    btnText: "The Power of Silence",
+                    details: "Silence is hard. If you speak to fill the void, you interrupt their thinking. Count to 3."
+                }
+            },
+            {
+                id: 6,
+                type: 'standard',
+                icon: "fa-question-circle",
+                fr: {
+                    title: "L'Art de la Question",
+                    subtitle: "Ouvrir la porte",
+                    points: ["Évitez le 'Pourquoi' (Accusateur).", "Utilisez 'Comment', 'Quoi'.", "Une seule question à la fois."],
+                    btnText: "Exemples",
+                    details: "Mauvais : 'Pourquoi t'as séché ?' (Braquage). Bon : 'Qu'est-ce qui s'est passé ce matin ?' (Invitation à raconter)."
+                },
+                en: {
+                    title: "The Art of Questioning",
+                    subtitle: "Opening the door",
+                    points: ["Avoid 'Why' (Accusatory).", "Use 'How', 'What'.", "One question at a time."],
+                    btnText: "Examples",
+                    details: "Bad: 'Why did you skip?' (Defensive). Good: 'What happened this morning?' (Invitation to story)."
+                }
+            },
+            {
+                id: 7,
+                type: 'standard',
+                icon: "fa-anchor",
+                fr: {
+                    title: "Gérer les Émotions",
+                    subtitle: "Être l'ancre dans la tempête",
+                    points: ["Restez calme (Co-régulation).", "Nommez l'émotion.", "Ne minimisez pas."],
+                    btnText: "La Co-régulation",
+                    details: "Un ado en crise a besoin de se 'brancher' sur votre calme. Si vous paniquez, l'incendie grandit. Respirez, soyez stable."
+                },
+                en: {
+                    title: "Handling Emotions",
+                    subtitle: "Be the anchor in the storm",
+                    points: ["Stay Calm (Co-regulation).", "Name the emotion.", "Don't minimize."],
+                    btnText: "Co-regulation",
+                    details: "A teen in crisis needs to 'plug in' to your calm. If you panic, the fire grows. Breathe, be stable."
+                }
+            },
+            {
+                id: 8,
+                type: 'standard',
+                icon: "fa-flag-checkered",
+                fr: {
+                    title: "Conclusion",
+                    subtitle: "L'authenticité avant tout",
+                    points: ["Les jeunes détectent le 'faux'.", "L'intention compte plus que la technique.", "Savoir s'excuser."],
+                    btnText: "Dernier conseil",
+                    details: "Dire : 'Je crois que je t'ai mal écouté, on peut reprendre ?' est une leçon d'humanité puissante. Merci pour votre engagement."
+                },
+                en: {
+                    title: "Conclusion",
+                    subtitle: "Authenticity first",
+                    points: ["Youth spot 'fake'.", "Intention matters more than technique.", "Apologize when needed."],
+                    btnText: "Last Tip",
+                    details: "Saying: 'I think I listened poorly, can we try again?' is a powerful humanity lesson. Thank you for your work."
+                }
+            },
+            {
+                id: 9,
+                type: 'quiz',
+                icon: "fa-gamepad",
+                fr: { title: "Le Défi Empathie", subtitle: "Testez vos réflexes", btnText: "Commencer" },
+                en: { title: "The Empathy Challenge", subtitle: "Test your reflexes", btnText: "Start" }
+            }
+        ];
+
+        const quizQuestions = [
+            {
+                fr: "Je comprends, mon frère a vécu la même chose.",
+                en: "I understand, my brother went through the same thing.",
+                isEmpathetic: false,
+                explanationFr: "<strong>Piège !</strong> Projection (Vous parlez de vous).",
+                explanationEn: "<strong>Trap!</strong> Projection (Talking about yourself)."
+            },
+            {
+                fr: "On dirait que cette décision te pèse.",
+                en: "It sounds like this decision weighs on you.",
+                isEmpathetic: true,
+                explanationFr: "<strong>Excellent.</strong> Reformulation sans jugement.",
+                explanationEn: "<strong>Excellent.</strong> Paraphrasing without judgment."
+            },
+            {
+                fr: "Au moins, tu n'as pas été blessé.",
+                en: "At least you weren't hurt.",
+                isEmpathetic: false,
+                explanationFr: "<strong>Non.</strong> 'Au moins' = Sympathie (Minimisation).",
+                explanationEn: "<strong>No.</strong> 'At least' = Sympathy (Minimizing)."
+            },
+            {
+                fr: "Pourquoi tu n'as pas appelé ?",
+                en: "Why didn't you call?",
+                isEmpathetic: false,
+                explanationFr: "<strong>Non.</strong> 'Pourquoi' = Accusation.",
+                explanationEn: "<strong>No.</strong> 'Why' = Accusation."
+            },
+            {
+                fr: "Tu as l'air vraiment déçu.",
+                en: "You seem really disappointed.",
+                isEmpathetic: true,
+                explanationFr: "<strong>Oui.</strong> Vous nommez l'émotion.",
+                explanationEn: "<strong>Yes.</strong> You name the emotion."
+            },
+            {
+                fr: "T'inquiète, c'est juste une phase.",
+                en: "Don't worry, it's just a phase.",
+                isEmpathetic: false,
+                explanationFr: "<strong>Faux.</strong> Condescendant.",
+                explanationEn: "<strong>False.</strong> Patronizing."
+            },
+            {
+                fr: "Tu devrais aller voir le directeur.",
+                en: "You should go see the principal.",
+                isEmpathetic: false,
+                explanationFr: "<strong>Trop tôt !</strong> Solution avant connexion.",
+                explanationEn: "<strong>Too soon!</strong> Fixing before connecting."
+            },
+            {
+                fr: "(Silence attentif)",
+                en: "(Attentive silence)",
+                isEmpathetic: true,
+                explanationFr: "<strong>Oui !</strong> Parfois la meilleure réponse.",
+                explanationEn: "<strong>Yes!</strong> Sometimes the best answer."
+            },
+            {
+                fr: "Tu exagères, c'était une blague.",
+                en: "You're overreacting, it was a joke.",
+                isEmpathetic: false,
+                explanationFr: "<strong>Stop.</strong> Gaslighting (Déni de réalité).",
+                explanationEn: "<strong>Stop.</strong> Gaslighting."
+            }
+        ];
+
+        // State & Elements
+        let currentSlideIndex = 0;
+        let currentLang = 'fr';
+        let detailsOpen = false;
+        let quizIndex = 0;
+
+        // Element Selectors
+        const introContent = document.getElementById('intro-content');
+        const standardContent = document.getElementById('standard-content');
+        const quizContent = document.getElementById('quiz-content');
+        const navControls = document.getElementById('nav-controls');
+        
+        const introTitle = document.getElementById('intro-title');
+        const introSubtitle = document.getElementById('intro-subtitle');
+        const btnStart = document.getElementById('btn-start');
+
+        const titleEl = document.getElementById('slide-title');
+        const subtitleEl = document.getElementById('slide-subtitle');
+        const visualContainer = document.getElementById('visual-container');
+        const keyPointsListEl = document.getElementById('key-points-list');
+        const detailsTextEl = document.getElementById('slide-details');
+        const btnDetailsTextEl = document.getElementById('btn-details-text');
+        const slideNumberEl = document.getElementById('slide-number');
+        const progressBarEl = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const detailsPanelEl = document.getElementById('details-panel');
+        const chevronIcon = document.getElementById('chevron-icon');
+        const eyeIcon = document.getElementById('eye-icon');
+        const slideIcon = document.getElementById('slide-icon');
+        const langLabel = document.getElementById('lang-label');
+
+        const quizPhrase = document.getElementById('quiz-phrase');
+        const quizFeedback = document.getElementById('quiz-feedback');
+        const quizButtons = document.getElementById('quiz-buttons');
+        const btnNextQ = document.getElementById('btn-next-q');
+        const quizTitle = document.getElementById('quiz-title');
+        const quizLabel = document.getElementById('quiz-label');
+        const btnEmpathic = document.getElementById('btn-empathic');
+        const btnAvoid = document.getElementById('btn-avoid');
+        const txtNext = document.getElementById('txt-next');
+
+        renderSlide();
+
+        function renderSlide() {
+            const slide = slides[currentSlideIndex];
+            const content = slide[currentLang];
+            
+            slideIcon.innerHTML = `<i class="fas ${slide.icon}"></i>`;
+            
+            // Progress Bar Logic
+            if (currentSlideIndex === 0) {
+                progressContainer.style.opacity = '0';
+            } else {
+                progressContainer.style.opacity = '1';
+                const progress = (currentSlideIndex / (slides.length - 1)) * 100;
+                progressBarEl.style.width = `${progress}%`;
+            }
+
+            // Screen Switching
+            if (slide.type === 'intro') {
+                toggleSection('intro');
+                introTitle.innerHTML = content.title.replace(/\n/g, "<br>");
+                introSubtitle.textContent = content.subtitle;
+                btnStart.textContent = content.btnText;
+
+            } else if (slide.type === 'quiz') {
+                toggleSection('quiz');
+                quizTitle.textContent = content.title;
+                quizLabel.textContent = currentLang === 'fr' ? "Analyse" : "Analyze";
+                btnEmpathic.textContent = currentLang === 'fr' ? "Empathique" : "Empathetic";
+                btnAvoid.textContent = currentLang === 'fr' ? "À éviter" : "Avoid";
+                txtNext.textContent = currentLang === 'fr' ? "Suivant" : "Next";
+                loadQuizQuestion();
+
+            } else { // Standard
+                toggleSection('standard');
+                titleEl.textContent = content.title;
+                subtitleEl.textContent = content.subtitle;
+                btnDetailsTextEl.textContent = content.btnText;
+                detailsTextEl.innerHTML = content.details;
+                
+                // Inject Visual
+                visualContainer.innerHTML = getVisualScene(slide.id);
+
+                keyPointsListEl.innerHTML = '';
+                if(content.points) {
+                    content.points.forEach(point => {
+                        const li = document.createElement('li');
+                        li.className = 'key-point';
+                        li.textContent = point;
+                        keyPointsListEl.appendChild(li);
+                    });
+                }
+                
+                detailsOpen = false;
+                updateDetailsPanel();
+            }
+
+            slideNumberEl.textContent = currentSlideIndex > 0 ? `${currentSlideIndex} / ${slides.length - 1}` : "";
+
+            const container = document.querySelector('.glass-card');
+            container.classList.remove('fade-in');
+            void container.offsetWidth;
+            container.classList.add('fade-in');
+        }
+
+        function toggleSection(section) {
+            introContent.classList.add('hidden'); introContent.classList.remove('flex');
+            standardContent.classList.add('hidden'); standardContent.classList.remove('flex');
+            quizContent.classList.add('hidden'); quizContent.classList.remove('flex');
+            navControls.classList.add('hidden'); navControls.classList.remove('flex');
+
+            if (section === 'intro') {
+                introContent.classList.remove('hidden'); introContent.classList.add('flex');
+            } else if (section === 'quiz') {
+                quizContent.classList.remove('hidden'); quizContent.classList.add('flex');
+                navControls.classList.remove('hidden'); navControls.classList.add('flex');
+            } else {
+                standardContent.classList.remove('hidden'); standardContent.classList.add('flex');
+                navControls.classList.remove('hidden'); navControls.classList.add('flex');
+            }
+        }
+
+        function loadQuizQuestion() {
+            if (quizIndex >= quizQuestions.length) {
+                quizPhrase.innerHTML = currentLang === 'fr' 
+                    ? "<span class='text-teal-600 font-bold'>Bravo !</span><br><span class='text-xs text-slate-500'>Terminé.</span>" 
+                    : "<span class='text-teal-600 font-bold'>Well done!</span><br><span class='text-xs text-slate-500'>Finished.</span>";
+                quizButtons.classList.add('hidden');
+                quizFeedback.classList.add('hidden');
+                btnNextQ.classList.add('hidden');
+                quizLabel.classList.add('hidden');
+                return;
+            }
+            const q = quizQuestions[quizIndex];
+            quizPhrase.textContent = `"${q[currentLang]}"`;
+            quizLabel.classList.remove('hidden');
+            quizButtons.classList.remove('hidden');
+            quizFeedback.classList.add('hidden');
+            btnNextQ.classList.add('hidden');
+        }
+
+        function checkAnswer(userSaysEmpathetic) {
+            const q = quizQuestions[quizIndex];
+            const isCorrect = userSaysEmpathetic === q.isEmpathetic;
+            quizButtons.classList.add('hidden');
+            quizFeedback.classList.remove('hidden');
+            let feedbackText = "";
+            const explanation = currentLang === 'fr' ? q.explanationFr : q.explanationEn;
+            if (isCorrect) {
+                quizFeedback.className = "mb-2 p-2 rounded-lg text-xs w-full text-center bg-green-50 text-green-900 border border-green-200";
+                feedbackText = `<i class='fas fa-check-circle text-base mb-1 text-green-600 block'></i>${explanation}`;
+            } else {
+                quizFeedback.className = "mb-2 p-2 rounded-lg text-xs w-full text-center bg-orange-50 text-orange-900 border border-orange-200";
+                feedbackText = `<i class='fas fa-exclamation-circle text-base mb-1 text-orange-500 block'></i>${explanation}`;
+            }
+            quizFeedback.innerHTML = feedbackText;
+            btnNextQ.classList.remove('hidden');
+        }
+
+        function nextQuestion() { quizIndex++; loadQuizQuestion(); }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            langLabel.textContent = currentLang === 'fr' ? 'EN' : 'FR';
+            const wasDetailsOpen = detailsOpen;
+            renderSlide();
+            if(wasDetailsOpen && slides[currentSlideIndex].type === 'standard') {
+                detailsOpen = true;
+                updateDetailsPanel();
+            }
+        }
+
+        function toggleDetails() { detailsOpen = !detailsOpen; updateDetailsPanel(); }
+
+        function updateDetailsPanel() {
+            if (detailsOpen) {
+                detailsPanelEl.classList.add('open');
+                chevronIcon.classList.remove('fa-chevron-down'); chevronIcon.classList.add('fa-chevron-up');
+                btnDetailsTextEl.textContent = currentLang === 'fr' ? "Masquer" : "Hide";
+                eyeIcon.classList.remove('fa-eye'); eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                detailsPanelEl.classList.remove('open');
+                chevronIcon.classList.remove('fa-chevron-up'); chevronIcon.classList.add('fa-chevron-down');
+                eyeIcon.classList.add('fa-eye'); eyeIcon.classList.remove('fa-eye-slash');
+                const slide = slides[currentSlideIndex];
+                if (slide && slide.type === 'standard') btnDetailsTextEl.textContent = slide[currentLang].btnText;
+            }
+        }
+
+        function changeSlide(direction) {
+            const newIndex = currentSlideIndex + direction;
+            if (newIndex >= 0 && newIndex < slides.length) { currentSlideIndex = newIndex; renderSlide(); }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (slides[currentSlideIndex].type === 'quiz' && !document.getElementById('btn-next-q').classList.contains('hidden')) nextQuestion();
+                else changeSlide(1);
+            }
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const slider = document.getElementById('slide-card');
+        slider.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+        slider.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); });
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) changeSlide(1);
+            if (touchEndX > touchStartX + 50) changeSlide(-1);
+        }
+    </script>
+</body>
+</html>
