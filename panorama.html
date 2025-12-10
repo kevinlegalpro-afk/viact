@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mieux connaitre les jeunes - Interactive</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F3F4F6;
+            background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop'); 
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(10px);
+            z-index: -1;
+        }
+
+        .interactive-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .interactive-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .interactive-card:active {
+            transform: scale(0.98);
+        }
+        
+        .cursor-locked { cursor: not-allowed; }
+        .cursor-unlocked { cursor: pointer; }
+
+        /* Generic Modal Overlay */
+        .modal-overlay {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Detail Modal Content */
+        #modal-content {
+            transform: scale(0.9) translateY(20px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active #modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* Intro Modal Content */
+        #intro-content {
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        .modal-overlay.active #intro-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-700">
+
+    <!-- ÉCRAN D'ACCUEIL -->
+    <div id="welcome-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-xl transition-all duration-700">
+        <div class="text-center space-y-6 max-w-2xl px-4">
+            
+            <div class="inline-block p-6 rounded-full bg-indigo-50 shadow-lg animate-bounce-slow">
+                <i class="ph-duotone ph-microphone-stage text-6xl text-indigo-600"></i>
+            </div>
+            
+            <h1 id="welcome-title" class="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight transition-all duration-300">
+                Mieux connaitre les jeunes
+            </h1>
+            
+            <p id="welcome-subtitle" class="text-xl text-slate-500 font-medium transition-all duration-300">
+                Choisissez votre langue / Select your language
+            </p>
+
+            <div class="flex gap-4 justify-center mt-8">
+                <button onclick="updateLang('fr')" id="btn-fr" class="lang-btn px-8 py-4 bg-white border-2 border-indigo-100 rounded-2xl shadow-sm hover:border-indigo-500 hover:shadow-xl transition-all text-xl font-bold text-slate-700 group relative overflow-hidden">
+                    <span class="group-hover:text-indigo-600 transition-colors relative z-10">Français 🇫🇷</span>
+                    <div class="absolute inset-0 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </button>
+                <button onclick="updateLang('en')" id="btn-en" class="lang-btn px-8 py-4 bg-white border-2 border-indigo-100 rounded-2xl shadow-sm hover:border-indigo-500 hover:shadow-xl transition-all text-xl font-bold text-slate-700 group relative overflow-hidden">
+                    <span class="group-hover:text-indigo-600 transition-colors relative z-10">English 🇬🇧</span>
+                    <div class="absolute inset-0 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </button>
+            </div>
+
+            <div id="enter-container" class="mt-8 opacity-0 translate-y-4 transition-all duration-500 pointer-events-none">
+                <button onclick="enterApp()" class="px-10 py-4 bg-slate-900 text-white rounded-full text-lg font-bold shadow-xl hover:bg-indigo-600 hover:scale-105 transition-all flex items-center gap-3 mx-auto">
+                    <span id="enter-text">Commencer</span>
+                    <i class="ph-bold ph-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="flex-none px-6 py-4 flex justify-between items-center bg-white/60 backdrop-blur-md border-b border-white/50 z-20">
+        <div class="flex items-center gap-3">
+            <button onclick="resetToWelcome()" class="bg-white hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 p-2 rounded-lg border border-slate-200 transition-colors" title="Retour / Back">
+                <i class="ph-bold ph-globe text-xl"></i>
+            </button>
+            
+            <div class="h-8 w-px bg-slate-300 mx-1"></div>
+
+            <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-sm">
+                <i class="ph-bold ph-grid-four text-xl"></i>
+            </div>
+            <h1 id="app-title" class="text-xl font-bold text-slate-800 tracking-tight">Panorama</h1>
+        </div>
+
+        <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 transition-all focus-within:ring-2 focus-within:ring-indigo-500" id="password-container">
+            <input type="password" id="password-input" 
+                class="bg-transparent border-none outline-none text-sm w-32 font-medium"
+                placeholder="Password..." onkeyup="checkPassword(event)">
+            <button onclick="unlockContent()" id="unlock-btn" class="text-slate-400 hover:text-indigo-600 transition-colors">
+                <i class="ph-bold ph-lock-key text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- GRILLE PRINCIPALE -->
+    <main class="flex-1 p-4 md:p-6 overflow-hidden relative">
+        <div id="cards-grid" class="grid grid-cols-2 md:grid-cols-3 grid-rows-3 md:grid-rows-2 gap-4 h-full w-full max-w-7xl mx-auto">
+            <!-- Cards générées ici -->
+        </div>
+    </main>
+
+    <!-- INTRO POP-UP MODAL (NEW) -->
+    <div id="intro-overlay" class="modal-overlay fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div id="intro-content" class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-8 md:p-10 text-center relative overflow-hidden">
+            <!-- Decorative circle -->
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full z-0"></div>
+            
+            <div class="relative z-10">
+                <div class="inline-block p-4 rounded-full bg-indigo-100 text-indigo-600 mb-6">
+                    <i class="ph-fill ph-lightbulb text-4xl"></i>
+                </div>
+                
+                <h2 id="intro-title" class="text-3xl font-bold text-slate-800 mb-6">Introduction</h2>
+                
+                <p id="intro-text" class="text-lg text-slate-600 leading-relaxed mb-8">
+                    <!-- Text injected via JS -->
+                </p>
+
+                <button onclick="closeIntro()" class="px-8 py-3 bg-indigo-600 text-white rounded-xl text-lg font-bold shadow-lg hover:bg-indigo-700 hover:scale-105 transition-all">
+                    <span id="intro-btn">C'est compris !</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL POP-UP MODAL -->
+    <div id="modal-overlay" class="modal-overlay fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeModal(event)">
+        <div id="modal-content" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden relative" onclick="event.stopPropagation()">
+            
+            <div id="modal-header" class="p-6 pb-4 border-b border-slate-100 flex justify-between items-start bg-indigo-50">
+                <div class="flex gap-4 items-center">
+                    <div id="modal-icon-container" class="p-3 bg-white rounded-xl shadow-sm">
+                        <i id="modal-icon" class="ph-duotone ph-star text-2xl text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <span id="modal-category" class="text-xs font-bold tracking-wider uppercase text-slate-500 block mb-1">Catégorie</span>
+                        <h2 id="modal-title" class="text-2xl font-bold text-slate-800 leading-none">Titre</h2>
+                    </div>
+                </div>
+                <button onclick="forceClose()" class="text-slate-400 hover:text-slate-800 transition-colors bg-white/50 rounded-full p-2 hover:bg-white">
+                    <i class="ph-bold ph-x text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 bg-white">
+                <ul id="modal-list" class="space-y-4">
+                    <!-- Liste générée ici -->
+                </ul>
+            </div>
+
+            <div class="bg-slate-50 p-4 text-center border-t border-slate-100">
+                <button onclick="forceClose()" class="text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors">
+                    Fermer / Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DONNÉES ---
+        const contentData = {
+            fr: {
+                welcomeTitle: "Mieux connaitre les jeunes",
+                welcomeSubtitle: "Choisissez votre langue",
+                enterBtn: "Commencer l'exploration",
+                appTitle: "Panorama des Sources",
+                placeholder: "Mot de passe...",
+                introTitle: "Pourquoi cette démarche ?",
+                introText: "Pour comprendre réellement les réalités des jeunes, il est essentiel de s’appuyer sur un panorama varié de sources d’information. Cela vous aidera à proposer des activités et développer des projets qui correspondent vraiment à qui ils/elles sont.",
+                introBtn: "J'ai compris, c'est parti !",
+                cards: [
+                    { title: "Les Voix des Jeunes", category: "SOURCES DIRECTES", icon: "ph-microphone-stage", color: "rose", details: ["Entretiens individuels approfondis", "Discussions informelles (pause, couloir)", "Focus groups thématiques", "Micro-trottoirs spontanés", "Stories interactives (sondages Instagram)"] },
+                    { title: "Ce Qu'ils Font", category: "OBSERVATIONS", icon: "ph-sunglasses", color: "amber", details: ["Comportements dans les lieux de vie", "Habitudes et usages numériques", "Interactions sociales en groupe", "Appropriation de l'espace public", "Routines quotidiennes observables"] },
+                    { title: "L'Écosystème", category: "AUTOUR D'EUX", icon: "ph-users-three", color: "emerald", details: ["Parents et cercle familial", "Enseignants & personnel scolaire", "Coachs sportifs & culturels", "Associations de quartier", "Autres travailleurs sociaux"] },
+                    { title: "Le Numérique", category: "TRACES & SIGNAUX", icon: "ph-device-mobile-camera", color: "blue", details: ["Réseaux sociaux (tendances)", "Hashtags locaux spécifiques", "Contenus TikTok & Discord", "Espaces commentaires & Forums", "Données analytiques d'usage"] },
+                    { title: "Sources Documentaires", category: "CE QUI EXISTE DÉJÀ", icon: "ph-files", color: "violet", details: ["Statistiques locales (INSEE, Mairie)", "Diagnostics territoriaux existants", "Rapports d'ONG et associations", "Études universitaires & sociologiques", "Publications institutionnelles"] },
+                    { title: "Signaux du Quotidien", category: "INFORMEL & TERRAIN", icon: "ph-coffee", color: "cyan", details: ["Conversations captées dans le bus", "Ressenti général du quartier", "Remarques spontanées des jeunes", "Observations au Kiosque / Skatepark", "Ambiance sortie de collège"] }
+                ]
+            },
+            en: {
+                welcomeTitle: "Better Understanding Youth",
+                welcomeSubtitle: "Select your language",
+                enterBtn: "Start Exploration",
+                appTitle: "Information Panorama",
+                placeholder: "Password...",
+                introTitle: "Why this approach?",
+                introText: "To truly understand the realities of young people, it is essential to rely on a varied panorama of information sources. This will help you propose activities and develop projects that truly correspond to who they are.",
+                introBtn: "Got it, let's go!",
+                cards: [
+                    { title: "Youth Voices", category: "DIRECT SOURCES", icon: "ph-microphone-stage", color: "rose", details: ["In-depth individual interviews", "Informal discussions", "Thematic focus groups", "Street interviews", "Interactive stories"] },
+                    { title: "What They Do", category: "OBSERVATIONS", icon: "ph-sunglasses", color: "amber", details: ["Behaviors in living spaces", "Digital habits", "Social interactions", "Public spaces usage", "Daily routines"] },
+                    { title: "The Ecosystem", category: "AROUND THEM", icon: "ph-users-three", color: "emerald", details: ["Parents and family", "Teachers & staff", "Sports coaches", "Local associations", "Social workers"] },
+                    { title: "Digital World", category: "TRACES & SIGNALS", icon: "ph-device-mobile-camera", color: "blue", details: ["Social media trends", "Local hashtags", "TikTok & Discord", "Comments & Forums", "Analytical data"] },
+                    { title: "Documentary Sources", category: "EXISTING DATA", icon: "ph-files", color: "violet", details: ["Local statistics", "Territorial diagnostics", "NGO reports", "Academic studies", "Institutional publications"] },
+                    { title: "Daily Signals", category: "INFORMEL & FIELD", icon: "ph-coffee", color: "cyan", details: ["Bus conversations", "Neighborhood feeling", "Spontaneous remarks", "Kiosks / Skateparks", "After-school vibe"] }
+                ]
+            }
+        };
+
+        let currentLang = 'fr';
+        let isUnlocked = false;
+
+        function updateLang(lang) {
+            currentLang = lang;
+            const data = contentData[lang];
+
+            document.getElementById('welcome-title').innerText = data.welcomeTitle;
+            document.getElementById('welcome-subtitle').innerText = data.welcomeSubtitle;
+            document.getElementById('enter-text').innerText = data.enterBtn;
+
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50');
+                btn.classList.add('bg-white');
+            });
+            const activeBtn = document.getElementById('btn-' + lang);
+            activeBtn.classList.remove('bg-white');
+            activeBtn.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50');
+
+            const enterContainer = document.getElementById('enter-container');
+            enterContainer.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+        }
+
+        function enterApp() {
+            const screen = document.getElementById('welcome-screen');
+            screen.style.opacity = '0';
+            screen.style.transform = 'scale(1.05)';
+            
+            // Populate Intro Data before showing
+            const data = contentData[currentLang];
+            document.getElementById('intro-title').innerText = data.introTitle;
+            document.getElementById('intro-text').innerText = data.introText;
+            document.getElementById('intro-btn').innerText = data.introBtn;
+
+            setTimeout(() => {
+                screen.style.display = 'none';
+                generateCards();
+                // Show Intro Modal immediately after welcome screen leaves
+                document.getElementById('intro-overlay').classList.add('active');
+            }, 500);
+        }
+
+        function closeIntro() {
+            document.getElementById('intro-overlay').classList.remove('active');
+        }
+
+        function resetToWelcome() {
+            const screen = document.getElementById('welcome-screen');
+            screen.style.display = 'flex';
+            // Force reflow
+            void screen.offsetWidth;
+            screen.style.opacity = '1';
+            screen.style.transform = 'scale(1)';
+        }
+
+        function generateCards() {
+            const data = contentData[currentLang];
+            document.getElementById('app-title').innerText = data.appTitle;
+            document.getElementById('password-input').placeholder = data.placeholder;
+            
+            const grid = document.getElementById('cards-grid');
+            grid.innerHTML = '';
+
+            data.cards.forEach((card, index) => {
+                const colors = {
+                    rose: 'bg-rose-50 text-rose-600 border-rose-100 hover:border-rose-300',
+                    amber: 'bg-amber-50 text-amber-600 border-amber-100 hover:border-amber-300',
+                    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:border-emerald-300',
+                    blue: 'bg-blue-50 text-blue-600 border-blue-100 hover:border-blue-300',
+                    violet: 'bg-violet-50 text-violet-600 border-violet-100 hover:border-violet-300',
+                    cyan: 'bg-cyan-50 text-cyan-600 border-cyan-100 hover:border-cyan-300',
+                };
+                const theme = colors[card.color];
+                const lockedState = isUnlocked ? 'cursor-unlocked border-indigo-50' : 'cursor-locked';
+                const lockStyle = isUnlocked ? 'opacity: 0; transform: scale(0) rotate(90deg);' : '';
+
+                const cardHTML = `
+                    <div onclick="handleCardClick(${index})" 
+                        class="interactive-card ${lockedState} group relative flex flex-col justify-center items-center text-center p-4 rounded-3xl bg-white border-2 border-transparent shadow-sm hover:shadow-lg h-full w-full transition-all duration-300 overflow-hidden"
+                        id="card-${index}">
+                        
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-${card.color}-100 rounded-bl-[4rem] -mr-4 -mt-4 transition-all opacity-50 group-hover:scale-150 group-hover:opacity-30"></div>
+
+                        <div class="mb-3 p-4 rounded-2xl ${theme} text-4xl shadow-sm z-10 transition-transform group-hover:scale-110 group-hover:rotate-3">
+                            <i class="${card.icon} ph-duotone"></i>
+                        </div>
+
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 z-10 leading-tight px-2">${card.title}</h2>
+                        <span class="mt-2 text-xs font-bold uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded border border-slate-100 z-10">${card.category}</span>
+
+                        <div class="lock-icon absolute top-3 right-3 text-slate-300 transition-all duration-500" style="${lockStyle}">
+                            <i class="ph-fill ph-lock-key text-2xl"></i>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += cardHTML;
+            });
+        }
+
+        function handleCardClick(index) {
+            const cardEl = document.getElementById(`card-${index}`);
+            if (!isUnlocked) {
+                cardEl.classList.add('shake', 'border-red-200');
+                setTimeout(() => cardEl.classList.remove('shake', 'border-red-200'), 500);
+            } else {
+                openModal(index);
+            }
+        }
+
+        function checkPassword(e) {
+            if (e.key === "Enter") unlockContent();
+        }
+
+        function unlockContent() {
+            const input = document.getElementById('password-input');
+            const btn = document.getElementById('unlock-btn');
+            
+            if (input.value.toUpperCase().trim() === "SALUT") {
+                isUnlocked = true;
+                
+                input.value = "";
+                input.placeholder = "Unlocked!";
+                input.disabled = true;
+                input.classList.add("text-green-600");
+                btn.innerHTML = '<i class="ph-fill ph-lock-key-open text-green-500"></i>';
+                
+                document.querySelectorAll('.interactive-card').forEach(el => {
+                    el.classList.remove('cursor-locked');
+                    el.classList.add('cursor-unlocked', 'border-indigo-50');
+                });
+
+                document.querySelectorAll('.lock-icon').forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'scale(0) rotate(90deg)';
+                });
+
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            } else {
+                const container = document.getElementById('password-container');
+                container.classList.add('shake', 'ring-2', 'ring-red-400');
+                setTimeout(() => container.classList.remove('shake', 'ring-2', 'ring-red-400'), 500);
+            }
+        }
+
+        function openModal(index) {
+            const data = contentData[currentLang].cards[index];
+            document.getElementById('modal-title').innerText = data.title;
+            document.getElementById('modal-category').innerText = data.category;
+            document.getElementById('modal-icon').className = `${data.icon} ph-duotone text-2xl text-${data.color}-600`;
+            document.getElementById('modal-header').className = `p-6 pb-4 border-b border-slate-100 flex justify-between items-start bg-${data.color}-50`;
+            
+            const listContainer = document.getElementById('modal-list');
+            listContainer.innerHTML = data.details.map(item => `
+                <li class="flex items-start gap-3 text-slate-700 text-lg">
+                    <i class="ph-fill ph-check-circle text-${data.color}-500 mt-1 flex-shrink-0"></i>
+                    ${item}
+                </li>
+            `).join('');
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function forceClose() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+
+        function closeModal(event) {
+            if (event.target.id === 'modal-overlay') forceClose();
+        }
+    </script>
+</body>
+</html>
