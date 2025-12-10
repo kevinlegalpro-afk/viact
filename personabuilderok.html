@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VI-ACT Persona Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&family=Patrick+Hand&display=swap');
+
+        /* Color Palette */
+        :root {
+            --col-identity: #3b82f6; /* Blue */
+            --col-narrative: #ec4899; /* Pink */
+            --col-digital: #06b6d4;   /* Cyan */
+            --col-psych: #8b5cf6;     /* Violet */
+            --col-goals: #10b981;     /* Emerald */
+            --col-pain: #f97316;      /* Orange */
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+            color: #1e293b;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Card Styles */
+        .persona-card {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: white;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+        
+        @media (min-width: 1024px) {
+            .persona-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        /* Custom Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            margin-top: -6px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 2px solid white;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+
+        /* Checkbox Custom */
+        .checkbox-wrapper input:checked + div {
+            background-color: var(--col-digital);
+            border-color: var(--col-digital);
+            color: white;
+        }
+
+        .tag-pill {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #475569;
+            display: inline-block;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* Gauge Visual for Print */
+        .gauge-track {
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 99px;
+            position: relative;
+            border: 1px solid #cbd5e1; /* For print visibility */
+        }
+        .gauge-marker {
+            width: 14px;
+            height: 14px;
+            background-color: #334155;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+            nav, .left-column, #preview-header, #preview-footer, .no-print {
+                display: none !important;
+            }
+            main {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            .right-column {
+                width: 100% !important;
+                position: static !important;
+                display: block !important;
+            }
+            .persona-card {
+                box-shadow: none !important;
+                transform: none !important;
+                border: 1px solid #e2e8f0 !important;
+                width: 100% !important;
+                max-width: 100% !important; 
+                margin: 0 auto !important;
+                page-break-inside: avoid;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 0.8cm;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav class="w-full px-6 py-4 flex justify-between items-center glass-panel sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-200">V</div>
+            <div>
+                <h1 class="font-bold text-xl leading-none text-slate-800" id="nav-title">VI-ACT Persona Builder</h1>
+            </div>
+        </div>
+        <div class="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
+            <button onclick="setLang('fr')" id="btn-fr" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white shadow-sm text-indigo-600">FR</button>
+            <button onclick="setLang('en')" id="btn-en" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500 hover:text-indigo-600">EN</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- LEFT COLUMN: Editor -->
+        <div class="left-column lg:col-span-5 flex flex-col gap-6 animate-fade-in pb-20">
+            
+            <!-- Actions -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-xl font-bold mb-2 text-indigo-900" id="intro-title">Définition du Profil</h2>
+                <div class="flex gap-2 mt-4 flex-wrap">
+                    <button onclick="generateRandom()" class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:shadow-xl transition flex items-center justify-center gap-2 group">
+                        <i class="fa-solid fa-wand-magic-sparkles group-hover:rotate-12 transition"></i> <span id="btn-magic">Génération Magique</span>
+                    </button>
+                    <button onclick="resetForm()" class="px-4 py-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition" title="Reset">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-6">
+                
+                <!-- Section: Identity (BLUE) -->
+                <div>
+                    <h3 class="text-xs font-black text-blue-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-blue-100 pb-2">
+                        <i class="fa-solid fa-id-card"></i> <span id="sec-identity">Identité</span>
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="input-group">
+                            <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-name">Prénom & Nom Fictif</label>
+                            <input type="text" id="input-name" class="w-full px-3 py-2 bg-blue-50/50 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" oninput="updatePreview(); resetAvatarOffset()">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-age">Âge</label>
+                            <input type="number" id="input-age" class="w-full px-3 py-2 bg-blue-50/50 border border-blue-100 rounded-lg outline-none focus:border-blue-500 transition" oninput="updatePreview()">
+                        </div>
+                    </div>
+
+                    <!-- SPLIT STATUS SECTION -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                         <div class="input-group">
+                            <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-pro-status">Statut Actuel</label>
+                            <select id="input-pro-status" class="w-full px-3 py-2 bg-blue-50/50 border border-blue-100 rounded-lg outline-none focus:border-blue-500 transition cursor-pointer" onchange="updatePreview()">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-fam-status">Situation Familiale</label>
+                            <!-- Changed to Input Text -->
+                            <input type="text" id="input-fam-status" placeholder="..." class="w-full px-3 py-2 bg-blue-50/50 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" oninput="updatePreview()">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-job">Intitulé du poste / Études (Précision)</label>
+                        <input type="text" id="input-job" placeholder="Ex: Terminale S ou Comptable" class="w-full px-3 py-2 bg-blue-50/50 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" oninput="updatePreview()">
+                    </div>
+                </div>
+
+                <!-- Section: Narrative (PINK) -->
+                <div>
+                    <h3 class="text-xs font-black text-pink-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-pink-100 pb-2">
+                        <i class="fa-solid fa-pen-nib"></i> <span id="sec-narrative">Narratif & Contexte</span>
+                    </h3>
+                    
+                    <div class="input-group mb-4">
+                        <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-quote">La Citation (Verbatim)</label>
+                        <input type="text" id="input-quote" class="w-full px-3 py-2 bg-pink-50/50 border border-pink-100 rounded-lg italic text-slate-600 outline-none focus:border-pink-500 transition" oninput="updatePreview()">
+                    </div>
+
+                    <div class="input-group mb-4">
+                        <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-bio">Bio Courte</label>
+                        <textarea id="input-bio" rows="2" class="w-full px-3 py-2 bg-pink-50/50 border border-pink-100 rounded-lg text-sm outline-none focus:border-pink-500 transition resize-none" oninput="updatePreview()"></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-pink-600 mb-1" id="lbl-day">Une journée dans sa vie</label>
+                        <textarea id="input-day" rows="4" class="w-full px-3 py-2 bg-pink-50 border border-pink-100 rounded-lg text-sm outline-none focus:border-pink-500 transition resize-none" placeholder="8h: ..." oninput="updatePreview()"></textarea>
+                    </div>
+                </div>
+
+                <!-- Section: Habits & Digital (CYAN) -->
+                <div>
+                    <h3 class="text-xs font-black text-cyan-600 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-cyan-100 pb-2">
+                        <i class="fa-solid fa-wifi"></i> <span id="sec-digital">Habitudes Digitales</span>
+                    </h3>
+
+                    <div class="input-group mb-4">
+                        <label class="block text-xs font-bold text-slate-500 mb-2">Équipements utilisés</label>
+                        <div class="flex gap-2 flex-wrap">
+                            <label class="checkbox-wrapper cursor-pointer">
+                                <input type="checkbox" id="chk-mobile" class="hidden" onchange="updatePreview()">
+                                <div class="px-3 py-1.5 rounded-lg border border-cyan-100 bg-cyan-50/30 text-xs font-bold text-slate-500 transition hover:bg-cyan-100"><i class="fa-solid fa-mobile-screen"></i> Mobile</div>
+                            </label>
+                            <label class="checkbox-wrapper cursor-pointer">
+                                <input type="checkbox" id="chk-desktop" class="hidden" onchange="updatePreview()">
+                                <div class="px-3 py-1.5 rounded-lg border border-cyan-100 bg-cyan-50/30 text-xs font-bold text-slate-500 transition hover:bg-cyan-100"><i class="fa-solid fa-desktop"></i> PC/Mac</div>
+                            </label>
+                            <label class="checkbox-wrapper cursor-pointer">
+                                <input type="checkbox" id="chk-tablet" class="hidden" onchange="updatePreview()">
+                                <div class="px-3 py-1.5 rounded-lg border border-cyan-100 bg-cyan-50/30 text-xs font-bold text-slate-500 transition hover:bg-cyan-100"><i class="fa-solid fa-tablet-screen-button"></i> Tablette</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-4">
+                         <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-platforms">Plateformes & App favorites</label>
+                         <input type="text" id="input-platforms" class="w-full px-3 py-2 bg-cyan-50/50 border border-cyan-100 rounded-lg outline-none focus:border-cyan-500 transition text-sm" placeholder="Instagram, Slack, Excel..." oninput="updatePreview()">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-500" id="lbl-tech">Aisance Numérique</label>
+                            <span id="tech-val" class="text-xs font-bold text-cyan-600">50%</span>
+                        </div>
+                        <input type="range" id="input-tech" min="0" max="100" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-cyan-500" oninput="updatePreview()">
+                    </div>
+                </div>
+
+                <!-- Section: Psychology (VIOLET) -->
+                <div>
+                    <h3 class="text-xs font-black text-violet-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-violet-100 pb-2">
+                        <i class="fa-solid fa-brain"></i> <span id="sec-psych">Psychologie & Motivations</span>
+                    </h3>
+
+                    <div class="input-group mb-4">
+                        <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-interests">Centres d'intérêt (tags)</label>
+                        <input type="text" id="input-interests" class="w-full px-3 py-2 bg-violet-50/50 border border-violet-100 rounded-lg outline-none focus:border-violet-500 transition text-sm" placeholder="Voyage, Cuisine, Tech..." oninput="updatePreview()">
+                    </div>
+                    
+                    <div class="space-y-4 mb-4 bg-violet-50/30 p-4 rounded-xl border border-violet-100">
+                         <!-- Sliders -->
+                         <div class="flex items-center justify-between text-xs">
+                             <span class="text-slate-500 w-16 text-right" id="lbl-introvert">Introverti</span>
+                             <input type="range" id="input-intro-extra" min="0" max="100" class="mx-2 w-full accent-violet-500" oninput="updatePreview()">
+                             <span class="text-slate-500 w-16" id="lbl-extrovert">Extroverti</span>
+                         </div>
+                         <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500 w-16 text-right" id="lbl-thinking">Rationnel</span>
+                            <input type="range" id="input-think-feel" min="0" max="100" class="mx-2 w-full accent-violet-500" oninput="updatePreview()">
+                            <span class="text-slate-500 w-16" id="lbl-feeling">Émotionnel</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500 w-16 text-right" id="lbl-passive">Passif</span>
+                            <input type="range" id="input-passive-active" min="0" max="100" class="mx-2 w-full accent-violet-500" oninput="updatePreview()">
+                            <span class="text-slate-500 w-16" id="lbl-active">Actif</span>
+                        </div>
+                    </div>
+
+                    <!-- MOTIVATION SLIDER -->
+                    <div class="space-y-2 p-3 bg-white border border-violet-200 rounded-lg shadow-sm">
+                        <label class="block text-xs font-bold text-violet-700 mb-1" id="lbl-motivation">Type de Motivation</label>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500 w-16 text-right font-medium" id="lbl-fun">Plaisir (Fun)</span>
+                            <input type="range" id="input-driver-motivation" min="0" max="100" class="mx-2 w-full accent-violet-600 h-1 bg-slate-200 rounded" oninput="updatePreview()">
+                            <span class="text-slate-500 w-16 font-medium" id="lbl-useful">Utile (Apprentissage)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Goals (EMERALD) / Frustrations (ORANGE) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-emerald-600 mb-1 flex items-center gap-1" id="lbl-goals"><i class="fa-solid fa-bullseye"></i> Attentes</label>
+                        <textarea id="input-goals" rows="4" class="w-full px-3 py-2 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm focus:border-emerald-500 outline-none resize-none" oninput="updatePreview()"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-orange-600 mb-1 flex items-center gap-1" id="lbl-frustrations"><i class="fa-solid fa-bolt"></i> Peurs & Freins</label>
+                        <textarea id="input-frustrations" rows="4" class="w-full px-3 py-2 bg-orange-50/50 border border-orange-100 rounded-lg text-sm focus:border-orange-500 outline-none resize-none" oninput="updatePreview()"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Preview -->
+        <div class="right-column lg:col-span-7 flex flex-col items-center justify-start lg:sticky lg:top-8 h-fit pb-10">
+            
+            <div class="w-full flex justify-between items-center mb-4 px-1" id="preview-header">
+                <span class="text-xs font-bold tracking-widest text-slate-400 uppercase" id="preview-label">Aperçu de la fiche</span>
+                
+                <!-- Export Action -->
+                <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-file-pdf"></i> <span id="btn-print">Télécharger PDF</span>
+                </button>
+            </div>
+
+            <!-- THE CARD -->
+            <div id="capture-area" class="persona-card w-full max-w-2xl bg-white rounded-[24px] overflow-hidden relative border border-slate-200">
+                
+                <!-- Header Art -->
+                <div class="h-32 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-500 relative overflow-hidden">
+                    <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+                    <div class="absolute top-10 left-10 w-20 h-20 bg-yellow-400 opacity-20 rounded-full blur-xl"></div>
+                    <!-- Interests as floating tags in header -->
+                    <div id="header-interests" class="absolute bottom-2 right-4 flex gap-1 justify-end flex-wrap max-w-[60%]">
+                        <!-- populated by js -->
+                    </div>
+                </div>
+
+                <div class="px-8 lg:px-10 pb-10">
+                    
+                    <!-- Top Row: Avatar & Name -->
+                    <div class="flex flex-col sm:flex-row items-center sm:items-end -mt-12 mb-6 gap-6 text-center sm:text-left relative z-10">
+                        
+                        <!-- Avatar -->
+                        <div class="relative group shrink-0">
+                            <div class="w-28 h-28 rounded-2xl bg-white p-1 shadow-lg group-hover:rotate-1 transition-all duration-300">
+                                <img id="card-avatar" src="" alt="Avatar" class="w-full h-full rounded-xl object-cover bg-slate-50">
+                            </div>
+                            <!-- Avatar Controls (Hidden in Print) -->
+                            <div class="absolute top-1/2 -translate-y-1/2 -left-4 w-[130%] flex justify-between pointer-events-none no-print">
+                                <button onclick="changeAvatar(-1)" class="w-8 h-8 bg-white text-slate-700 rounded-full shadow-md flex items-center justify-center pointer-events-auto hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer border border-slate-100 transform hover:scale-110">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                                </button>
+                                <button onclick="changeAvatar(1)" class="w-8 h-8 bg-white text-slate-700 rounded-full shadow-md flex items-center justify-center pointer-events-auto hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer border border-slate-100 transform hover:scale-110">
+                                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 mb-1">
+                            <h2 id="card-name" class="text-3xl font-extrabold text-slate-900 leading-tight mb-1">Sophie Martin</h2>
+                            <div class="flex flex-wrap justify-center sm:justify-start items-center gap-2 font-medium">
+                                <span id="card-job" class="text-blue-600">Architecte</span>
+                                <span class="text-slate-300">•</span>
+                                <span id="card-age" class="text-slate-500">28 ans</span>
+                            </div>
+                            <!-- Badges -->
+                            <div class="flex justify-center sm:justify-start gap-2 mt-2">
+                                <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-blue-200" id="card-pro-status">Actif</span>
+                                <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-slate-200" id="card-fam-status">Célibataire</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quote -->
+                    <div class="mb-6 text-center px-4 relative">
+                        <div class="inline-block relative">
+                            <p id="card-quote" class="handwritten text-xl md:text-2xl text-pink-600 leading-relaxed relative z-10">
+                                "Je veux juste que ça marche sans réfléchir."
+                            </p>
+                            <div class="absolute -bottom-1 right-0 w-24 h-2 bg-pink-200/50 -rotate-2 rounded-full z-0"></div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+                        
+                        <!-- LEFT COLUMN (Context) -->
+                        <div class="md:col-span-5 space-y-5 border-r border-slate-100 md:pr-6">
+                            
+                            <!-- Bio -->
+                            <section>
+                                <h4 class="text-[10px] font-black text-pink-400 uppercase tracking-widest mb-2" id="card-lbl-bio">À propos</h4>
+                                <p id="card-bio" class="text-xs text-slate-600 leading-relaxed text-justify">...</p>
+                            </section>
+
+                            <!-- Personality -->
+                            <section class="bg-violet-50/50 p-3 rounded-lg border border-violet-100">
+                                <h4 class="text-[10px] font-black text-violet-500 uppercase tracking-widest mb-3" id="card-lbl-personality">Profil</h4>
+                                <div class="space-y-2">
+                                    <!-- Trait 1 -->
+                                    <div class="flex items-center text-[9px] gap-2">
+                                        <span class="w-10 text-right text-slate-500">Intro</span>
+                                        <div class="flex-1 h-1 bg-white rounded-full overflow-hidden border border-violet-100">
+                                            <div id="vis-trait-1" class="h-full bg-violet-500 rounded-full" style="width: 30%"></div>
+                                        </div>
+                                        <span class="w-10 text-slate-500">Extra</span>
+                                    </div>
+                                    <!-- Trait 2 -->
+                                    <div class="flex items-center text-[9px] gap-2">
+                                        <span class="w-10 text-right text-slate-500" id="card-txt-think">Rationnel</span>
+                                        <div class="flex-1 h-1 bg-white rounded-full overflow-hidden border border-violet-100">
+                                            <div id="vis-trait-2" class="h-full bg-violet-500 rounded-full" style="width: 70%"></div>
+                                        </div>
+                                        <span class="w-10 text-slate-500" id="card-txt-feel">Émotionnel</span>
+                                    </div>
+                                     <!-- Trait 3 -->
+                                     <div class="flex items-center text-[9px] gap-2">
+                                        <span class="w-10 text-right text-slate-500" id="card-txt-passive">Passif</span>
+                                        <div class="flex-1 h-1 bg-white rounded-full overflow-hidden border border-violet-100">
+                                            <div id="vis-trait-3" class="h-full bg-violet-500 rounded-full" style="width: 50%"></div>
+                                        </div>
+                                        <span class="w-10 text-slate-500" id="card-txt-active">Actif</span>
+                                    </div>
+                                </div>
+                                <!-- Motivation Driver (NEW VISUAL FOR PRINT) -->
+                                <div class="mt-4 pt-3 border-t border-violet-200/50">
+                                     <div class="flex items-center justify-between text-[9px] text-slate-500 mb-2 font-bold uppercase tracking-wide">
+                                        <span id="card-txt-fun">Plaisir</span>
+                                        <span id="card-txt-useful">Apprentissage</span>
+                                     </div>
+                                     <!-- Custom Gauge for Print -->
+                                     <div class="gauge-track">
+                                        <div id="vis-gauge-marker" class="gauge-marker" style="left: 50%"></div>
+                                     </div>
+                                </div>
+                            </section>
+
+                            <!-- Digital Habits -->
+                            <section>
+                                <h4 class="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-2" id="card-lbl-digital">Digital</h4>
+                                <!-- Devices Icons -->
+                                <div class="flex gap-3 text-slate-400 mb-2" id="card-devices">
+                                    <!-- Populated by JS -->
+                                </div>
+                                <!-- Platforms -->
+                                <div id="card-platforms" class="flex flex-wrap mb-2"></div>
+                                <!-- Tech Bar -->
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                        <div id="card-tech-bar" class="h-full bg-cyan-500 rounded-full" style="width: 50%"></div>
+                                    </div>
+                                    <span id="card-tech-text" class="text-[10px] font-bold text-cyan-600">Moyen</span>
+                                </div>
+                            </section>
+
+                        </div>
+
+                        <!-- RIGHT COLUMN (Drivers & Day) -->
+                        <div class="md:col-span-7 flex flex-col gap-4">
+                            
+                            <!-- Day in the Life -->
+                            <div class="bg-pink-50 p-4 rounded-xl border border-pink-100">
+                                <h4 class="text-[10px] font-black text-pink-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <i class="fa-regular fa-clock"></i> <span id="card-lbl-day">Une journée type</span>
+                                </h4>
+                                <p id="card-day" class="text-xs text-slate-600 italic leading-relaxed whitespace-pre-line">
+                                    8h00: Se réveille...
+                                </p>
+                            </div>
+
+                            <!-- Goals -->
+                            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i class="fa-solid fa-bullseye text-emerald-600 text-xs"></i>
+                                    <h4 class="text-[10px] font-black text-emerald-800 uppercase tracking-wide" id="card-lbl-goals">Attentes</h4>
+                                </div>
+                                <ul id="card-goals-list" class="space-y-1"></ul>
+                            </div>
+
+                            <!-- Fears & Frustrations -->
+                            <div class="bg-orange-50 p-4 rounded-xl border border-orange-100 flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i class="fa-solid fa-shield-halved text-orange-600 text-xs"></i>
+                                    <h4 class="text-[10px] font-black text-orange-800 uppercase tracking-wide" id="card-lbl-frustrations">Peurs & Freins</h4>
+                                </div>
+                                <ul id="card-frustrations-list" class="space-y-1"></ul>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-slate-50 py-2 text-center border-t border-slate-100">
+                    <p class="text-[8px] text-slate-400 font-bold uppercase tracking-[0.2em]">VI-ACT Persona Builder</p>
+                </div>
+            </div>
+
+            <p class="mt-4 text-xs text-slate-400 italic no-print w-full text-center">
+                Astuce : Cliquez sur "Télécharger PDF", puis choisissez "Enregistrer au format PDF" dans la destination.
+            </p>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- CONFIG ---
+        let currentLang = 'fr';
+        let avatarOffset = 0; 
+
+        const i18n = {
+            fr: {
+                navTitle: "VI-ACT Persona Builder",
+                introTitle: "Définition du Profil",
+                btnMagic: "Génération Magique",
+                btnPrint: "Télécharger PDF",
+                
+                labels: {
+                    sections: { id: "Identité", narrative: "Narratif & Contexte", digital: "Habitudes Digitales", psych: "Psychologie & Motivations" },
+                    fields: { 
+                        name: "Prénom & Nom Fictif", job: "Intitulé du poste / Études", age: "Âge", 
+                        famStatus: "Situation Familiale", proStatus: "Statut Actuel",
+                        quote: "La Citation (Verbatim)", bio: "Bio Courte", day: "Une journée dans sa vie",
+                        tech: "Aisance Numérique", platforms: "Plateformes & App favorites", interests: "Centres d'intérêt (tags)",
+                        introvert: "Introverti", extrovert: "Extroverti",
+                        think: "Rationnel", feel: "Émotionnel",
+                        passive: "Passif", active: "Actif",
+                        motivation: "Type de Motivation", fun: "Fun / Plaisir", useful: "Utile / Apprentissage",
+                        goals: "Attentes / Objectifs", frustrations: "Peurs & Freins"
+                    },
+                    card: {
+                        bio: "À PROPOS", day: "UNE JOURNÉE TYPE", 
+                        personality: "PROFIL", digital: "DIGITAL", 
+                        goals: "ATTENTES & MOTIVATIONS", frustrations: "PEURS & FREINS",
+                        think: "Rationnel", feel: "Émotionnel",
+                        passive: "Passif", active: "Actif",
+                        fun: "Plaisir", useful: "Apprentissage"
+                    },
+                    proOptions: {
+                        college: "Collégien", lycee: "Lycéen", student: "Étudiant", 
+                        working: "En Poste", seeking: "En Recherche", other: "Autre"
+                    },
+                    famOptions: {
+                        single: "Célibataire", couple: "En couple", 
+                        family: "Avec enfants", dependent: "Chez les parents"
+                    },
+                    levels: ["Novice", "Débutant", "Intermédiaire", "Avancé", "Expert"]
+                }
+            },
+            en: {
+                navTitle: "VI-ACT Persona Builder",
+                introTitle: "Profile Definition",
+                btnMagic: "Magic Generate",
+                btnPrint: "Download PDF",
+                
+                labels: {
+                    sections: { id: "Identity", narrative: "Narrative & Context", digital: "Digital Habits", psych: "Psychology & Motivations" },
+                    fields: { 
+                        name: "Fictional Name", job: "Job Title / Studies", age: "Age", 
+                        famStatus: "Family Status", proStatus: "Current Status",
+                        quote: "Key Quote", bio: "Short Bio", day: "A Day in the Life",
+                        tech: "Tech Savviness", platforms: "Favorite Platforms & Apps", interests: "Interests (tags)",
+                        introvert: "Introvert", extrovert: "Extrovert",
+                        think: "Rational", feel: "Emotional",
+                        passive: "Passive", active: "Active",
+                        motivation: "Motivation Type", fun: "Fun / Pleasure", useful: "Useful / Learning",
+                        goals: "Expectations / Goals", frustrations: "Fears & Barriers"
+                    },
+                    card: {
+                        bio: "ABOUT", day: "A DAY IN THE LIFE", 
+                        personality: "PROFILE", digital: "DIGITAL", 
+                        goals: "EXPECTATIONS & DRIVERS", frustrations: "FEARS & BARRIERS",
+                        think: "Rational", feel: "Emotional",
+                        passive: "Passive", active: "Active",
+                        fun: "Fun", useful: "Learning"
+                    },
+                    proOptions: {
+                        college: "Middle School", lycee: "High School", student: "University", 
+                        working: "Working", seeking: "Job Seeking", other: "Other"
+                    },
+                    famOptions: {
+                        single: "Single", couple: "In a relationship", 
+                        family: "With kids", dependent: "Living with parents"
+                    },
+                    levels: ["Novice", "Beginner", "Intermediate", "Advanced", "Expert"]
+                }
+            }
+        };
+
+        const archetypesData = {
+            fr: [
+                {
+                    name: "Léa Dubois", job: "Terminale L", age: 17, proStatus: "lycee", famStatus: "dependent",
+                    quote: "J'aimerais faire un projet, mais je ne sais pas par où commencer.",
+                    bio: "Léa est une élève sérieuse mais timide. Elle passe beaucoup de temps sur Instagram. Elle aimerait s'engager mais a peur du jugement.",
+                    day: "7h: Réveil.\n8h-17h: Lycée.\n18h: Devoirs.\n20h: Dîner famille.\n22h: TikTok.",
+                    goals: "Rencontrer de nouvelles personnes\nPrendre confiance\nFaire quelque chose d'utile",
+                    frustrations: "Peur de ne pas être à la hauteur\nNe connait personne\nCrainte que ce soit 'scolaire'",
+                    tech: 85, intro: 70, think: 40, passive: 60, driverMotivation: 20,
+                    platforms: "Instagram, TikTok", interests: "Mode, Musique", devices: ["mobile"]
+                },
+                {
+                    name: "Enzo Martin", job: "Licence Eco-Gestion", age: 20, proStatus: "student", famStatus: "single",
+                    quote: "On est là pour bouger les choses, non ?",
+                    bio: "Enzo est actif dans la vie associative. Il veut booster son CV.",
+                    day: "9h: Fac.\n12h: Déjeuner asso.\n16h: Sport.\n20h: Projet.",
+                    goals: "Acquérir des compétences\nImpact réel\nValoriser l'expérience",
+                    frustrations: "Réunions longues\nManque de budget\nLenteur",
+                    tech: 80, intro: 20, think: 70, passive: 10, driverMotivation: 80,
+                    platforms: "Discord, LinkedIn", interests: "Sport, Entrepreneuriat", devices: ["mobile", "desktop"]
+                }
+            ],
+            en: [
+                {
+                    name: "Léa Dubois", job: "High School Senior", age: 17, proStatus: "lycee", famStatus: "dependent",
+                    quote: "I'd like to start a project, but I don't know where to begin.",
+                    bio: "Léa is serious but shy. Spends time on Instagram. Wants to engage but fears judgment.",
+                    day: "7am: Wake up.\n8am-3pm: School.\n4pm: Homework.\n7pm: Dinner.\n10pm: TikTok.",
+                    goals: "Meet new people\nBuild confidence\nDo something useful",
+                    frustrations: "Fear of failure\nDoesn't know anyone\nToo academic",
+                    tech: 85, intro: 70, think: 40, passive: 60, driverMotivation: 20,
+                    platforms: "Instagram, TikTok", interests: "Fashion, Music", devices: ["mobile"]
+                }
+            ]
+        };
+
+        // --- CORE FUNCTIONS ---
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = i18n[lang];
+
+            // UI Updates
+            document.getElementById('nav-title').innerText = t.navTitle;
+            document.getElementById('intro-title').innerText = t.introTitle;
+            document.getElementById('btn-magic').innerText = t.btnMagic;
+            document.getElementById('btn-print').innerHTML = `<i class="fa-solid fa-file-pdf"></i> ${t.btnPrint}`;
+
+            // Labels
+            document.getElementById('sec-identity').innerHTML = `<i class="fa-solid fa-id-card"></i> ${t.labels.sections.id}`;
+            document.getElementById('sec-narrative').innerHTML = `<i class="fa-solid fa-pen-nib"></i> ${t.labels.sections.narrative}`;
+            document.getElementById('sec-digital').innerHTML = `<i class="fa-solid fa-wifi"></i> ${t.labels.sections.digital}`;
+            document.getElementById('sec-psych').innerHTML = `<i class="fa-solid fa-brain"></i> ${t.labels.sections.psych}`;
+            
+            document.getElementById('lbl-name').innerText = t.labels.fields.name;
+            document.getElementById('lbl-job').innerText = t.labels.fields.job;
+            document.getElementById('lbl-age').innerText = t.labels.fields.age;
+            document.getElementById('lbl-pro-status').innerText = t.labels.fields.proStatus;
+            document.getElementById('lbl-fam-status').innerText = t.labels.fields.famStatus;
+            document.getElementById('lbl-quote').innerText = t.labels.fields.quote;
+            document.getElementById('lbl-bio').innerText = t.labels.fields.bio;
+            document.getElementById('lbl-day').innerText = t.labels.fields.day;
+            document.getElementById('lbl-tech').innerText = t.labels.fields.tech;
+            document.getElementById('lbl-platforms').innerText = t.labels.fields.platforms;
+            document.getElementById('lbl-interests').innerText = t.labels.fields.interests;
+            document.getElementById('lbl-goals').innerHTML = `<i class="fa-solid fa-bullseye"></i> ${t.labels.fields.goals}`;
+            document.getElementById('lbl-frustrations').innerHTML = `<i class="fa-solid fa-bolt"></i> ${t.labels.fields.frustrations}`;
+            
+            document.getElementById('lbl-introvert').innerText = t.labels.fields.introvert;
+            document.getElementById('lbl-extrovert').innerText = t.labels.fields.extrovert;
+            document.getElementById('lbl-thinking').innerText = t.labels.fields.think;
+            document.getElementById('lbl-feeling').innerText = t.labels.fields.feel;
+            document.getElementById('lbl-passive').innerText = t.labels.fields.passive;
+            document.getElementById('lbl-active').innerText = t.labels.fields.active;
+            
+            document.getElementById('lbl-motivation').innerText = t.labels.fields.motivation;
+            document.getElementById('lbl-fun').innerText = t.labels.fields.fun;
+            document.getElementById('lbl-useful').innerText = t.labels.fields.useful;
+
+            // Labels Card
+            document.getElementById('card-lbl-bio').innerText = t.labels.card.bio;
+            document.getElementById('card-lbl-day').innerText = t.labels.card.day;
+            document.getElementById('card-lbl-personality').innerText = t.labels.card.personality;
+            document.getElementById('card-lbl-digital').innerText = t.labels.card.digital;
+            document.getElementById('card-lbl-goals').innerText = t.labels.card.goals;
+            document.getElementById('card-lbl-frustrations').innerText = t.labels.card.frustrations;
+            
+            document.getElementById('card-txt-think').innerText = t.labels.card.think;
+            document.getElementById('card-txt-feel').innerText = t.labels.card.feel;
+            document.getElementById('card-txt-passive').innerText = t.labels.card.passive;
+            document.getElementById('card-txt-active').innerText = t.labels.card.active;
+            document.getElementById('card-txt-fun').innerText = t.labels.card.fun;
+            document.getElementById('card-txt-useful').innerText = t.labels.card.useful;
+
+            // Populate Dropdowns
+            const fillSelect = (id, options, currentVal) => {
+                const select = document.getElementById(id);
+                select.innerHTML = Object.entries(options).map(([k, v]) => 
+                    `<option value="${k}">${v}</option>`
+                ).join('');
+                if (currentVal) {
+                   Array.from(select.options).forEach(opt => {
+                        if(opt.value === currentVal) opt.selected = true;
+                    }); 
+                }
+            };
+
+            const currPro = document.getElementById('input-pro-status').value;
+            // No longer populating Fam Status select since it is text
+
+            fillSelect('input-pro-status', t.labels.proOptions, currPro);
+            
+            // Styling buttons
+            const activeClass = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white shadow-sm text-indigo-600";
+            const inactiveClass = "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500 hover:text-indigo-600";
+            document.getElementById('btn-fr').className = lang === 'fr' ? activeClass : inactiveClass;
+            document.getElementById('btn-en').className = lang === 'en' ? activeClass : inactiveClass;
+
+            updatePreview();
+        }
+
+        function resetAvatarOffset() {
+            avatarOffset = 0;
+        }
+
+        function changeAvatar(direction) {
+            avatarOffset += direction;
+            updatePreview();
+        }
+
+        function updatePreview() {
+            // Inputs
+            const name = document.getElementById('input-name').value || "Nom Fictif";
+            const job = document.getElementById('input-job').value || "";
+            const age = document.getElementById('input-age').value || "--";
+            const proKey = document.getElementById('input-pro-status').value;
+            const famText = document.getElementById('input-fam-status').value || (currentLang === 'fr' ? "Non renseigné" : "Not specified");
+            const quote = document.getElementById('input-quote').value || "Une citation marquante...";
+            const bio = document.getElementById('input-bio').value || "...";
+            const day = document.getElementById('input-day').value || "8h: ...\n12h: ...";
+            const techVal = document.getElementById('input-tech').value;
+            const introVal = document.getElementById('input-intro-extra').value || 50;
+            const thinkVal = document.getElementById('input-think-feel').value || 50;
+            const passiveVal = document.getElementById('input-passive-active').value || 50;
+            const driverMotivation = document.getElementById('input-driver-motivation').value || 50;
+            const interestsRaw = document.getElementById('input-interests').value;
+            const platformsRaw = document.getElementById('input-platforms').value;
+            
+            // Labels
+            const t = i18n[currentLang];
+            const proLabel = t.labels.proOptions[proKey] || proKey;
+            
+            // Updates
+            document.getElementById('card-name').innerText = name;
+            document.getElementById('card-job').innerText = job;
+            document.getElementById('card-age').innerText = `${age} ${currentLang === 'fr' ? 'ans' : 'y/o'}`;
+            
+            document.getElementById('card-pro-status').innerText = proLabel;
+            document.getElementById('card-fam-status').innerText = famText;
+
+            document.getElementById('card-quote').innerText = `"${quote}"`;
+            document.getElementById('card-bio').innerText = bio;
+            document.getElementById('card-day').innerText = day;
+
+            // Avatar
+            const seed = (name.replace(/\s/g, '') || "default") + avatarOffset;
+            document.getElementById('card-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=eef2ff`;
+
+            // Tech Bar
+            document.getElementById('card-tech-bar').style.width = `${techVal}%`;
+            const lvlIdx = Math.min(Math.floor(techVal / 20), 4);
+            document.getElementById('card-tech-text').innerText = t.labels.levels[lvlIdx];
+
+            // Personality Bars
+            document.getElementById('vis-trait-1').style.width = `${introVal}%`;
+            document.getElementById('vis-trait-2').style.width = `${thinkVal}%`;
+            document.getElementById('vis-trait-3').style.width = `${passiveVal}%`;
+            
+            // Gauge Marker Update
+            document.getElementById('vis-gauge-marker').style.left = `${driverMotivation}%`;
+
+            // Devices Icons
+            const devicesDiv = document.getElementById('card-devices');
+            devicesDiv.innerHTML = '';
+            if(document.getElementById('chk-mobile').checked) devicesDiv.innerHTML += '<i class="fa-solid fa-mobile-screen text-cyan-500"></i>';
+            if(document.getElementById('chk-desktop').checked) devicesDiv.innerHTML += '<i class="fa-solid fa-desktop text-cyan-500"></i>';
+            if(document.getElementById('chk-tablet').checked) devicesDiv.innerHTML += '<i class="fa-solid fa-tablet-screen-button text-cyan-500"></i>';
+            if(devicesDiv.innerHTML === '') devicesDiv.innerHTML = '<span class="text-[9px] italic">Aucun</span>';
+
+            // Platforms
+            const platformsDiv = document.getElementById('card-platforms');
+            platformsDiv.innerHTML = '';
+            if(platformsRaw) {
+                platformsRaw.split(',').forEach(p => {
+                    if(p.trim()) platformsDiv.innerHTML += `<span class="tag-pill">${p.trim()}</span>`;
+                });
+            }
+
+            // Interests (Header)
+            const interestsDiv = document.getElementById('header-interests');
+            interestsDiv.innerHTML = '';
+            if(interestsRaw) {
+                interestsRaw.split(',').forEach(i => {
+                    if(i.trim()) interestsDiv.innerHTML += `<span class="bg-white/20 backdrop-blur-sm text-white px-2 py-0.5 rounded text-[9px] border border-white/30 font-semibold shadow-sm">${i.trim()}</span>`;
+                });
+            }
+
+            // Lists
+            const processList = (inputInfo, targetId, colorClass, iconClass) => {
+                const target = document.getElementById(targetId);
+                target.innerHTML = '';
+                const lines = inputInfo.split('\n').filter(l => l.trim());
+                if(lines.length === 0) target.innerHTML = `<li class="text-[10px] text-slate-400 italic">...</li>`;
+                else lines.forEach(line => {
+                    const li = document.createElement('li');
+                    li.className = "text-[10px] text-slate-600 flex gap-1.5 items-start leading-tight";
+                    li.innerHTML = `<i class="${iconClass} ${colorClass} text-[8px] mt-0.5 shrink-0"></i> <span>${line.replace(/^-/,'')}</span>`;
+                    target.appendChild(li);
+                });
+            };
+
+            processList(document.getElementById('input-goals').value, 'card-goals-list', 'text-emerald-500', 'fa-solid fa-check');
+            processList(document.getElementById('input-frustrations').value, 'card-frustrations-list', 'text-orange-500', 'fa-solid fa-bolt');
+        }
+
+        function generateRandom() {
+            const dataset = archetypesData[currentLang] || archetypesData['fr'];
+            const p = dataset[Math.floor(Math.random() * dataset.length)];
+            
+            document.getElementById('input-name').value = p.name;
+            document.getElementById('input-job').value = p.job;
+            document.getElementById('input-age').value = p.age;
+            
+            // Set Selects
+            const setSel = (id, val) => {
+                 const select = document.getElementById(id);
+                 Array.from(select.options).forEach((opt, i) => {
+                    if(opt.value === val) select.selectedIndex = i;
+                 });
+            };
+            setSel('input-pro-status', p.proStatus);
+            
+            // Manually set fam status text from i18n based on keys in data
+            const famText = i18n[currentLang].labels.famOptions[p.famStatus] || p.famStatus;
+            document.getElementById('input-fam-status').value = famText;
+
+            document.getElementById('input-quote').value = p.quote;
+            document.getElementById('input-bio').value = p.bio;
+            document.getElementById('input-day').value = p.day;
+            document.getElementById('input-goals').value = p.goals;
+            document.getElementById('input-frustrations').value = p.frustrations;
+            
+            document.getElementById('input-tech').value = p.tech;
+            document.getElementById('input-platforms').value = p.platforms;
+            document.getElementById('input-interests').value = p.interests;
+            
+            document.getElementById('input-intro-extra').value = p.intro;
+            document.getElementById('input-think-feel').value = p.think;
+            document.getElementById('input-passive-active').value = p.passive;
+            document.getElementById('input-driver-motivation').value = p.driverMotivation;
+
+            ['mobile', 'desktop', 'tablet'].forEach(d => document.getElementById('chk-'+d).checked = false);
+            if(p.devices) p.devices.forEach(d => {
+                const chk = document.getElementById('chk-'+d);
+                if(chk) chk.checked = true;
+            });
+            
+            avatarOffset = 0;
+            updatePreview();
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input, textarea').forEach(el => {
+                if(el.type !== 'range' && el.type !== 'checkbox') el.value = '';
+            });
+            document.querySelectorAll('input[type=checkbox]').forEach(el => el.checked = false);
+            document.querySelectorAll('input[type=range]').forEach(el => el.value = 50);
+            updatePreview();
+        }
+
+        window.onload = () => {
+            setLang('fr');
+            generateRandom();
+        }
+
+    </script>
+</body>
+</html>
