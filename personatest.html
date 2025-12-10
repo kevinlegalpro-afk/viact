@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Persona Creator Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&family=Patrick+Hand&display=swap');
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4338ca;
+            --bg-grad-start: #f8fafc;
+            --bg-grad-end: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
+            color: #1e293b;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Card Styles */
+        .persona-card {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: white;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+        
+        @media (min-width: 1024px) {
+            .persona-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            margin-top: -6px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        /* Utilities */
+        .tip-box {
+            border-left: 4px solid var(--primary);
+            background-color: #eef2ff;
+        }
+
+        .brand-tag {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #475569;
+            display: inline-block;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: white;
+            }
+            nav, .left-column, #preview-header, #preview-footer, .no-print {
+                display: none !important;
+            }
+            main {
+                display: block;
+                padding: 0;
+            }
+            .right-column {
+                width: 100%;
+                position: static;
+            }
+            .persona-card {
+                box-shadow: none;
+                transform: none !important;
+                border: 1px solid #eee;
+                max-width: 100%;
+                margin: 0 auto;
+                break-inside: avoid;
+            }
+            /* Force background graphics */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav class="w-full px-6 py-4 flex justify-between items-center glass-panel sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-200">P</div>
+            <div>
+                <h1 class="font-bold text-xl leading-none text-slate-800" id="nav-title">Persona Builder <span class="text-indigo-600">Pro</span></h1>
+                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Interactive Tool</span>
+            </div>
+        </div>
+        <div class="flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200">
+            <button onclick="setLang('fr')" id="btn-fr" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white shadow-sm text-indigo-600">FR</button>
+            <button onclick="setLang('en')" id="btn-en" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500 hover:text-indigo-600">EN</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- LEFT COLUMN: Editor -->
+        <div class="left-column lg:col-span-5 flex flex-col gap-6 animate-fade-in pb-20">
+            
+            <!-- Actions -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-xl font-bold mb-2 text-indigo-900" id="intro-title">Définition du Profil</h2>
+                <div class="flex gap-2 mt-4 flex-wrap">
+                    <button onclick="generateRandom()" class="flex-1 bg-indigo-600 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition flex items-center justify-center gap-2 group">
+                        <i class="fa-solid fa-wand-magic-sparkles group-hover:rotate-12 transition"></i> <span id="btn-magic">Génération Magique</span>
+                    </button>
+                    <button onclick="resetForm()" class="px-4 py-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-5">
+                
+                <!-- Dynamic Tip -->
+                <div class="tip-box p-3 rounded-r-lg text-sm text-slate-700 flex items-start gap-3">
+                    <i class="fa-regular fa-lightbulb text-indigo-600 mt-1"></i>
+                    <div>
+                        <span class="font-bold text-indigo-700" id="tip-title">Conseil :</span>
+                        <span id="tip-content">Commencez par l'identité de base.</span>
+                    </div>
+                </div>
+
+                <!-- Section: Identity -->
+                <div>
+                    <h3 class="text-xs font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span> <span id="sec-identity">Identité</span>
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="input-group">
+                            <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-name">Nom</label>
+                            <input type="text" id="input-name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition" oninput="updatePreview(); resetAvatarOffset()">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-job">Métier</label>
+                            <input type="text" id="input-job" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition" oninput="updatePreview()">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="input-group col-span-1">
+                            <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-age">Âge</label>
+                            <input type="number" id="input-age" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 transition" oninput="updatePreview()">
+                        </div>
+                        <div class="input-group col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-status">Situation</label>
+                            <select id="input-status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 transition cursor-pointer" onchange="updatePreview()">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Section: Narrative -->
+                <div>
+                    <h3 class="text-xs font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-pink-500"></span> <span id="sec-narrative">Narratif</span>
+                    </h3>
+                    <div class="input-group mb-4">
+                        <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-quote">La Citation (Verbatim)</label>
+                        <input type="text" id="input-quote" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg italic text-slate-600 outline-none focus:border-pink-500 transition" onfocus="showTip('quote')" oninput="updatePreview()">
+                    </div>
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-bio">Bio Courte</label>
+                        <textarea id="input-bio" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-pink-500 transition resize-none" onfocus="showTip('bio')" oninput="updatePreview()"></textarea>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Section: Psychology (New) -->
+                <div>
+                    <h3 class="text-xs font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-teal-500"></span> <span id="sec-psych">Psychologie & Comportement</span>
+                    </h3>
+                    
+                    <div class="space-y-4 mb-4">
+                         <!-- Slider 1 -->
+                         <div class="flex items-center justify-between text-xs">
+                             <span class="text-slate-500 w-16 text-right" id="lbl-introvert">Introverti</span>
+                             <input type="range" id="input-intro-extra" min="0" max="100" class="mx-2 w-full accent-teal-500" oninput="updatePreview()">
+                             <span class="text-slate-500 w-16" id="lbl-extrovert">Extroverti</span>
+                         </div>
+                         <!-- Slider 2 -->
+                         <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500 w-16 text-right" id="lbl-thinking">Réflexion</span>
+                            <input type="range" id="input-think-feel" min="0" max="100" class="mx-2 w-full accent-teal-500" oninput="updatePreview()">
+                            <span class="text-slate-500 w-16" id="lbl-feeling">Emotion</span>
+                        </div>
+                    </div>
+
+                    <!-- Tech Level -->
+                    <div class="input-group mb-4">
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-500" id="lbl-tech">Aisance Tech</label>
+                            <span id="tech-val" class="text-xs font-bold text-teal-600">50%</span>
+                        </div>
+                        <input type="range" id="input-tech" min="0" max="100" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-500" oninput="updatePreview()">
+                    </div>
+
+                    <!-- Brands -->
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-slate-500 mb-1" id="lbl-brands">Marques préférées (séparées par des virgules)</label>
+                        <input type="text" id="input-brands" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-teal-500 transition text-sm" placeholder="Apple, Nike, Spotify..." oninput="updatePreview()">
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Section: Goals/Frustrations -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-green-600 mb-1" id="lbl-goals">Objectifs</label>
+                        <textarea id="input-goals" rows="4" class="w-full px-3 py-2 bg-green-50 border border-green-100 rounded-lg text-sm focus:border-green-400 outline-none resize-none" onfocus="showTip('goals')" oninput="updatePreview()"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-red-500 mb-1" id="lbl-frustrations">Frustrations</label>
+                        <textarea id="input-frustrations" rows="4" class="w-full px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-sm focus:border-red-400 outline-none resize-none" onfocus="showTip('frustrations')" oninput="updatePreview()"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Preview -->
+        <div class="right-column lg:col-span-7 flex flex-col items-center justify-start lg:sticky lg:top-24 h-fit pb-10">
+            
+            <div class="w-full flex justify-between items-center mb-4 px-1" id="preview-header">
+                <span class="text-xs font-bold tracking-widest text-slate-400 uppercase" id="preview-label">Aperçu</span>
+                
+                <!-- Export Action -->
+                <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-print"></i> <span id="btn-print">Télécharger PDF / Imprimer</span>
+                </button>
+            </div>
+
+            <!-- THE CARD -->
+            <div id="capture-area" class="persona-card w-full max-w-2xl bg-white rounded-[32px] overflow-hidden relative border border-slate-200">
+                
+                <!-- Header Art -->
+                <div class="h-40 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 relative overflow-hidden">
+                    <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+                    <div class="absolute top-10 left-10 w-20 h-20 bg-yellow-400 opacity-20 rounded-full blur-xl"></div>
+                    <div class="absolute top-6 right-8 text-white/20 text-7xl font-serif">"</div>
+                </div>
+
+                <div class="px-8 lg:px-10 pb-10">
+                    
+                    <!-- Top Row: Avatar & Name -->
+                    <div class="flex flex-col sm:flex-row items-center sm:items-end -mt-16 mb-8 gap-6 text-center sm:text-left relative z-10">
+                        
+                        <!-- Avatar Container with Controls -->
+                        <div class="relative group">
+                            <div class="w-32 h-32 rounded-3xl bg-white p-1.5 shadow-xl rotate-3 group-hover:rotate-0 transition-all duration-300">
+                                <img id="card-avatar" src="" alt="Avatar" class="w-full h-full rounded-2xl object-cover bg-slate-100">
+                            </div>
+                            <!-- Avatar Controls (Hidden in Print) -->
+                            <div class="absolute top-1/2 -translate-y-1/2 -left-4 w-[125%] flex justify-between pointer-events-none no-print">
+                                <button onclick="changeAvatar(-1)" class="w-8 h-8 bg-white text-slate-700 rounded-full shadow-md flex items-center justify-center pointer-events-auto hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer border border-slate-100 transform hover:scale-110">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                                </button>
+                                <button onclick="changeAvatar(1)" class="w-8 h-8 bg-white text-slate-700 rounded-full shadow-md flex items-center justify-center pointer-events-auto hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer border border-slate-100 transform hover:scale-110">
+                                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 mb-1">
+                            <h2 id="card-name" class="text-3xl font-extrabold text-slate-900 leading-tight mb-1">Sophie Martin</h2>
+                            <div class="flex flex-wrap justify-center sm:justify-start items-center gap-2 text-indigo-600 font-medium">
+                                <span id="card-job">Architecte</span>
+                                <span class="text-slate-300">•</span>
+                                <span id="card-age">28 ans</span>
+                                <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ml-1 border border-indigo-100" id="card-status">Célibataire</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quote -->
+                    <div class="mb-8 text-center px-4 relative">
+                        <div class="inline-block relative">
+                            <p id="card-quote" class="handwritten text-2xl md:text-3xl text-slate-700 leading-relaxed relative z-10">
+                                "Je veux juste que ça marche sans réfléchir."
+                            </p>
+                            <div class="absolute -bottom-2 right-0 w-24 h-2 bg-pink-200/50 -rotate-2 rounded-full z-0"></div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+                        
+                        <!-- LEFT COLUMN (Info) -->
+                        <div class="md:col-span-5 space-y-6 border-r border-slate-100 md:pr-6">
+                            
+                            <!-- Bio -->
+                            <section>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2" id="card-lbl-bio">Bio</h4>
+                                <p id="card-bio" class="text-sm text-slate-600 leading-relaxed">...</p>
+                            </section>
+
+                            <!-- Traits (Sliders visualized) -->
+                            <section>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3" id="card-lbl-personality">Personnalité</h4>
+                                
+                                <div class="space-y-3">
+                                    <!-- Trait 1 -->
+                                    <div class="flex items-center text-[10px] gap-2">
+                                        <span class="w-8 text-right text-slate-400">Intro</span>
+                                        <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div id="vis-trait-1" class="h-full bg-slate-400 rounded-full" style="width: 30%"></div>
+                                        </div>
+                                        <span class="w-8 text-slate-400">Extra</span>
+                                    </div>
+                                    <!-- Trait 2 -->
+                                    <div class="flex items-center text-[10px] gap-2">
+                                        <span class="w-8 text-right text-slate-400" id="card-txt-think">Penser</span>
+                                        <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div id="vis-trait-2" class="h-full bg-slate-400 rounded-full" style="width: 70%"></div>
+                                        </div>
+                                        <span class="w-8 text-slate-400" id="card-txt-feel">Sentir</span>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Tech Level -->
+                            <section>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2" id="card-lbl-tech">Tech</h4>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div id="card-tech-bar" class="h-full bg-indigo-500 rounded-full" style="width: 50%"></div>
+                                    </div>
+                                    <span id="card-tech-text" class="text-xs font-bold text-indigo-600">Moyen</span>
+                                </div>
+                            </section>
+
+                             <!-- Channels (Hardcoded viz for demo) -->
+                             <section>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2" id="card-lbl-channels">Canaux Préférés</h4>
+                                <div class="flex gap-3 text-lg text-slate-400">
+                                    <i class="fa-solid fa-envelope text-indigo-500" title="Email"></i>
+                                    <i class="fa-brands fa-instagram" title="Social"></i>
+                                    <i class="fa-solid fa-mobile-screen" title="Mobile"></i>
+                                </div>
+                            </section>
+
+                            <!-- Brands -->
+                            <section>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2" id="card-lbl-brands">Marques</h4>
+                                <div id="card-brands-container" class="flex flex-wrap">
+                                    <!-- Tags go here -->
+                                </div>
+                            </section>
+
+                        </div>
+
+                        <!-- RIGHT COLUMN (Drivers) -->
+                        <div class="md:col-span-7 flex flex-col gap-4">
+                            
+                            <!-- Goals -->
+                            <div class="bg-green-50 p-5 rounded-2xl border border-green-100/50 h-full">
+                                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-green-100">
+                                    <i class="fa-solid fa-bullseye text-green-600"></i>
+                                    <h4 class="text-xs font-bold text-green-800 uppercase tracking-wide" id="card-lbl-goals">Objectifs & Besoins</h4>
+                                </div>
+                                <ul id="card-goals-list" class="space-y-2"></ul>
+                            </div>
+
+                            <!-- Frustrations -->
+                            <div class="bg-red-50 p-5 rounded-2xl border border-red-100/50 h-full">
+                                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-red-100">
+                                    <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+                                    <h4 class="text-xs font-bold text-red-800 uppercase tracking-wide" id="card-lbl-frustrations">Frustrations</h4>
+                                </div>
+                                <ul id="card-frustrations-list" class="space-y-2"></ul>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-slate-50 py-3 text-center border-t border-slate-100">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em]">Generated by Persona Builder Pro</p>
+                </div>
+            </div>
+
+            <p class="mt-4 text-xs text-slate-400 italic no-print" id="preview-footer">Le PDF sera généré sans les barres latérales.</p>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- DATA & CONFIG ---
+        let currentLang = 'fr';
+        let avatarOffset = 0; // Allows changing avatar while keeping name
+
+        const i18n = {
+            fr: {
+                navTitle: "Persona Builder",
+                introTitle: "Définition du Profil",
+                btnMagic: "Génération Magique",
+                btnPrint: "Télécharger PDF / Imprimer",
+                
+                tips: {
+                    default: "Passez votre souris sur un champ pour voir des conseils.",
+                    quote: "Utilisez le 'Verbatim'. Une phrase réelle entendue lors d'interviews.",
+                    bio: "Décrivez une journée type, son environnement et ses habitudes.",
+                    goals: "Quels sont ses motivations positives ? Que veut-il gagner ?",
+                    frustrations: "Quels sont les obstacles, peurs ou douleurs actuelles ?"
+                },
+                labels: {
+                    sections: { id: "Identité", narrative: "Narratif", psych: "Psychologie", goals: "Moteurs" },
+                    fields: { 
+                        name: "Nom", job: "Métier", age: "Âge", status: "Situation", 
+                        quote: "La Citation (Verbatim)", bio: "Bio Courte", 
+                        tech: "Aisance Tech", brands: "Marques préférées",
+                        introvert: "Introverti", extrovert: "Extroverti",
+                        think: "Réflexion", feel: "Emotion"
+                    },
+                    card: {
+                        bio: "À PROPOS", psych: "PROFIL", tech: "DIGITAL", 
+                        brands: "MARQUES", channels: "CANAUX", 
+                        goals: "OBJECTIFS", pain: "FRUSTRATIONS",
+                        think: "Pensée", feel: "Cœur"
+                    },
+                    options: {
+                        single: "Célibataire", married: "Marié(e)", parents: "Parent", 
+                        student: "Étudiant", retired: "Retraité", freelance: "Indépendant"
+                    },
+                    levels: ["Novice", "Débutant", "Intermédiaire", "Avancé", "Expert"]
+                }
+            },
+            en: {
+                navTitle: "Persona Builder",
+                introTitle: "Profile Definition",
+                btnMagic: "Magic Generate",
+                btnPrint: "Download PDF / Print",
+                
+                tips: {
+                    default: "Hover inputs to see pro-tips.",
+                    quote: "Use 'Verbatim'. A real sentence heard during user interviews.",
+                    bio: "Describe a typical day, environment, and habits.",
+                    goals: "What are their positive drivers? What do they want to gain?",
+                    frustrations: "What are the current obstacles, fears, or pains?"
+                },
+                labels: {
+                    sections: { id: "Identity", narrative: "Narrative", psych: "Psychology", goals: "Drivers" },
+                    fields: { 
+                        name: "Name", job: "Job Title", age: "Age", status: "Status", 
+                        quote: "Key Quote", bio: "Short Bio", 
+                        tech: "Tech Savviness", brands: "Favorite Brands",
+                        introvert: "Introvert", extrovert: "Extrovert",
+                        think: "Thinking", feel: "Feeling"
+                    },
+                    card: {
+                        bio: "ABOUT", psych: "PROFILE", tech: "DIGITAL", 
+                        brands: "BRANDS", channels: "CHANNELS", 
+                        goals: "GOALS & NEEDS", pain: "FRUSTRATIONS",
+                        think: "Think", feel: "Feel"
+                    },
+                    options: {
+                        single: "Single", married: "Married", parents: "Parent", 
+                        student: "Student", retired: "Retired", freelance: "Freelance"
+                    },
+                    levels: ["Novice", "Beginner", "Intermediate", "Advanced", "Expert"]
+                }
+            }
+        };
+
+        const archetypes = [
+            {
+                name: "Thomas Bernard", job: "Directeur Marketing", age: 42, status: "Married",
+                quote: "Je dois prouver le ROI avant la fin du trimestre.",
+                bio: "Thomas est sous pression constante. Il jongle entre 5 outils différents et passe ses soirées à faire du reporting. Il déteste perdre du temps sur des détails techniques.",
+                goals: "Automatiser le reporting\nUnifier les données clients\nGagner 2h par jour",
+                frustrations: "Outils non connectés\nDonnées pas fiables\nInterface trop complexe pour son équipe",
+                tech: 70, intro: 20, think: 80, brands: "LinkedIn, HubSpot, Apple"
+            },
+            {
+                name: "Léa Duris", job: "Étudiante en Art", age: 21, status: "Student",
+                quote: "L'esthétique compte autant que la fonction.",
+                bio: "Toujours sur son iPad, elle cherche l'inspiration partout. Elle a un budget serré mais craque facilement pour les belles choses.",
+                goals: "Trouver de l'inspiration\nCollaborer avec d'autres artistes\nOutils gratuits ou pas chers",
+                frustrations: "Logiciels trop chers\nRestrictions de formats\nManque de personnalisation",
+                tech: 90, intro: 70, think: 10, brands: "Adobe, Pinterest, Vans"
+            },
+            {
+                name: "Karim Benali", job: "Artisan Plombier", age: 55, status: "Parents",
+                quote: "Moi, il faut que ça sonne et que je réponde. C'est tout.",
+                bio: "Toujours en déplacement, il a de gros doigts et un petit écran. Il gère tout depuis son camion. Il n'a pas de patience pour les menus cachés.",
+                goals: "Gérer ses rendez-vous facilement\nEnvoyer des factures rapidement\nÊtre visible localement",
+                frustrations: "Écrans trop petits\nBoutons impossibles à cliquer\nMots de passe oubliés",
+                tech: 20, intro: 40, think: 60, brands: "Renault, Bosch, Android"
+            }
+        ];
+
+        // --- CORE FUNCTIONS ---
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = i18n[lang];
+
+            // UI Updates
+            document.getElementById('nav-title').innerHTML = `${t.navTitle} <span class="text-indigo-600">Pro</span>`;
+            document.getElementById('intro-title').innerText = t.introTitle;
+            document.getElementById('btn-magic').innerText = t.btnMagic;
+            document.getElementById('btn-print').innerHTML = `<i class="fa-solid fa-print"></i> ${t.btnPrint}`;
+            document.getElementById('tip-title').innerText = lang === 'fr' ? 'Conseil :' : 'Pro Tip:';
+            document.getElementById('tip-content').innerText = t.tips.default;
+
+            // Labels form
+            document.getElementById('sec-identity').innerText = t.labels.sections.id;
+            document.getElementById('sec-narrative').innerText = t.labels.sections.narrative;
+            document.getElementById('sec-psych').innerText = t.labels.sections.psych;
+            
+            document.getElementById('lbl-name').innerText = t.labels.fields.name;
+            document.getElementById('lbl-job').innerText = t.labels.fields.job;
+            document.getElementById('lbl-age').innerText = t.labels.fields.age;
+            document.getElementById('lbl-status').innerText = t.labels.fields.status;
+            document.getElementById('lbl-quote').innerText = t.labels.fields.quote;
+            document.getElementById('lbl-bio').innerText = t.labels.fields.bio;
+            document.getElementById('lbl-goals').innerText = t.labels.card.goals;
+            document.getElementById('lbl-frustrations').innerText = t.labels.card.pain;
+            document.getElementById('lbl-tech').innerText = t.labels.fields.tech;
+            document.getElementById('lbl-brands').innerText = t.labels.fields.brands;
+            
+            document.getElementById('lbl-introvert').innerText = t.labels.fields.introvert;
+            document.getElementById('lbl-extrovert').innerText = t.labels.fields.extrovert;
+            document.getElementById('lbl-thinking').innerText = t.labels.fields.think;
+            document.getElementById('lbl-feeling').innerText = t.labels.fields.feel;
+
+            // Labels Card
+            document.getElementById('card-lbl-bio').innerText = t.labels.card.bio;
+            document.getElementById('card-lbl-personality').innerText = t.labels.card.psych;
+            document.getElementById('card-lbl-tech').innerText = t.labels.card.tech;
+            document.getElementById('card-lbl-channels').innerText = t.labels.card.channels;
+            document.getElementById('card-lbl-brands').innerText = t.labels.card.brands;
+            document.getElementById('card-lbl-goals').innerText = t.labels.card.goals;
+            document.getElementById('card-lbl-frustrations').innerText = t.labels.card.pain;
+            
+            document.getElementById('card-txt-think').innerText = t.labels.card.think;
+            document.getElementById('card-txt-feel').innerText = t.labels.card.feel;
+
+            // Select Options
+            const select = document.getElementById('input-status');
+            const val = select.value;
+            select.innerHTML = Object.entries(t.labels.options).map(([k, v]) => 
+                `<option value="${k}">${v}</option>`
+            ).join('');
+            // try to restore value
+            Array.from(select.options).forEach(opt => {
+                if(opt.value === val) opt.selected = true;
+            });
+
+            // Styling buttons
+            document.getElementById('btn-fr').className = lang === 'fr' 
+                ? "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white shadow-sm text-indigo-600"
+                : "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500 hover:text-indigo-600";
+            document.getElementById('btn-en').className = lang === 'en' 
+                ? "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white shadow-sm text-indigo-600"
+                : "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500 hover:text-indigo-600";
+
+            updatePreview();
+        }
+
+        function showTip(field) {
+            const tip = i18n[currentLang].tips[field] || i18n[currentLang].tips.default;
+            document.getElementById('tip-content').innerText = tip;
+        }
+
+        function resetAvatarOffset() {
+            avatarOffset = 0;
+            // updatePreview called by oninput
+        }
+
+        function changeAvatar(direction) {
+            avatarOffset += direction;
+            updatePreview();
+        }
+
+        function updatePreview() {
+            // -- Inputs --
+            const name = document.getElementById('input-name').value || "Nom";
+            const job = document.getElementById('input-job').value || "Métier";
+            const age = document.getElementById('input-age').value || "--";
+            const statusKey = document.getElementById('input-status').value;
+            const quote = document.getElementById('input-quote').value || "Citation ici...";
+            const bio = document.getElementById('input-bio').value || "...";
+            const techVal = document.getElementById('input-tech').value;
+            const introVal = document.getElementById('input-intro-extra').value || 50;
+            const thinkVal = document.getElementById('input-think-feel').value || 50;
+            const brandsRaw = document.getElementById('input-brands').value;
+            
+            // -- Translation Lookups --
+            const statusLabel = i18n[currentLang].labels.options[statusKey] || statusKey;
+            
+            // -- DOM Updates --
+            document.getElementById('card-name').innerText = name;
+            document.getElementById('card-job').innerText = job;
+            document.getElementById('card-age').innerText = `${age} ${currentLang === 'fr' ? 'ans' : 'y/o'}`;
+            document.getElementById('card-status').innerText = statusLabel;
+            document.getElementById('card-quote').innerText = `"${quote}"`;
+            document.getElementById('card-bio').innerText = bio;
+
+            // -- Visuals --
+            // Avatar Logic: Seed = Name + Offset
+            const seed = (name.replace(/\s/g, '') || "default") + avatarOffset;
+            document.getElementById('card-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=eef2ff`;
+
+            // Tech Bar
+            document.getElementById('card-tech-bar').style.width = `${techVal}%`;
+            const levels = i18n[currentLang].labels.levels;
+            const lvlIdx = Math.min(Math.floor(techVal / 20), 4);
+            document.getElementById('card-tech-text').innerText = levels[lvlIdx];
+
+            // Personality Bars
+            document.getElementById('vis-trait-1').style.width = `${introVal}%`;
+            document.getElementById('vis-trait-2').style.width = `${thinkVal}%`;
+
+            // Brands Tags
+            const brandsContainer = document.getElementById('card-brands-container');
+            brandsContainer.innerHTML = '';
+            if(!brandsRaw) {
+                brandsContainer.innerHTML = `<span class="text-xs text-slate-300 italic">None</span>`;
+            } else {
+                brandsRaw.split(',').forEach(b => {
+                    if(b.trim()) {
+                        const tag = document.createElement('span');
+                        tag.className = 'brand-tag';
+                        tag.innerText = b.trim();
+                        brandsContainer.appendChild(tag);
+                    }
+                });
+            }
+
+            // -- Lists --
+            const processList = (inputInfo, targetId, colorClass, iconClass) => {
+                const target = document.getElementById(targetId);
+                target.innerHTML = '';
+                const lines = inputInfo.split('\n').filter(l => l.trim());
+                
+                if(lines.length === 0) {
+                     target.innerHTML = `<li class="text-xs text-slate-400 italic">...</li>`;
+                } else {
+                    lines.forEach(line => {
+                        const li = document.createElement('li');
+                        li.className = "text-sm text-slate-600 flex gap-2 items-start";
+                        li.innerHTML = `<i class="${iconClass} ${colorClass} text-[8px] mt-1.5"></i> <span>${line.replace(/^-/,'')}</span>`;
+                        target.appendChild(li);
+                    });
+                }
+            };
+
+            processList(document.getElementById('input-goals').value, 'card-goals-list', 'text-green-500', 'fa-solid fa-check');
+            processList(document.getElementById('input-frustrations').value, 'card-frustrations-list', 'text-red-500', 'fa-solid fa-xmark');
+        }
+
+        function generateRandom() {
+            const p = archetypes[Math.floor(Math.random() * archetypes.length)];
+            
+            document.getElementById('input-name').value = p.name;
+            document.getElementById('input-job').value = p.job;
+            document.getElementById('input-age').value = p.age;
+            
+            // Map status for select
+            const statusOpts = document.getElementById('input-status').options;
+            for(let i=0; i<statusOpts.length; i++) {
+                if(statusOpts[i].value === p.status || (p.status === 'Single' && i===0)) {
+                    document.getElementById('input-status').selectedIndex = i;
+                }
+            }
+
+            document.getElementById('input-quote').value = p.quote;
+            document.getElementById('input-bio').value = p.bio;
+            document.getElementById('input-goals').value = p.goals;
+            document.getElementById('input-frustrations').value = p.frustrations;
+            document.getElementById('input-tech').value = p.tech;
+            document.getElementById('input-intro-extra').value = p.intro;
+            document.getElementById('input-think-feel').value = p.think;
+            document.getElementById('input-brands').value = p.brands;
+            
+            avatarOffset = 0; // Reset avatar variation
+            updatePreview();
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+            document.querySelectorAll('input[type=range]').forEach(el => el.value = 50);
+            updatePreview();
+        }
+
+        // Init
+        window.onload = () => {
+            setLang('fr');
+            generateRandom();
+        }
+
+    </script>
+</body>
+</html>
