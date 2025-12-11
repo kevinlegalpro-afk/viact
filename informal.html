@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vi-Act - Types d'Apprentissage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+        
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-game {
+            transition: all 0.2s;
+        }
+        .btn-game:active {
+            transform: scale(0.95);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .hidden-section {
+            display: none;
+        }
+
+        /* Modal Animation */
+        .modal-enter {
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Box Pulse */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8); }
+        }
+        .pulse-box {
+            animation: pulse-glow 3s infinite;
+        }
+
+        /* Accordion Style for Table */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm p-3 sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight">
+                🚀 Vi-Act
+            </h1>
+            <div class="flex items-center space-x-2">
+                <!-- Lang Switcher -->
+                <button onclick="toggleLanguage()" class="mr-2 text-xl hover:scale-110 transition" id="lang-btn" title="Switch Language">
+                    🇬🇧
+                </button>
+                
+                <button onclick="showSection('learn')" class="px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg hover:bg-slate-100 transition text-slate-600" data-i18n="nav_learn">Apprendre</button>
+                <button onclick="showSection('quiz')" class="px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-md" data-i18n="nav_play">Jouer</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-6 max-w-4xl">
+
+        <!-- SECTION: LEARN -->
+        <div id="learn-section" class="fade-in space-y-8">
+            
+            <!-- Hero Compact -->
+            <div class="text-center space-y-2 mb-8">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight" data-i18n="hero_title">Comment apprenons-nous ?</h2>
+                <p class="text-sm md:text-base text-slate-600 max-w-xl mx-auto" data-i18n="hero_desc">L'éducation ne se limite pas aux bancs de l'école. Découvrez les trois piliers de l'acquisition des connaissances.</p>
+            </div>
+
+            <!-- COMPACT CARDS GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Formel Card -->
+                <div onclick="openContentModal('formel')" class="cursor-pointer bg-white rounded-xl p-6 shadow-md border-b-4 border-blue-500 card-hover transition duration-300 flex flex-col items-center text-center group h-full">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3 text-3xl group-hover:scale-110 transition">🏛️</div>
+                    <h3 class="text-xl font-bold text-slate-800" data-i18n="card_formal_title">Formel</h3>
+                    <p class="text-xs font-semibold text-blue-600 uppercase tracking-wide mt-1" data-i18n="card_formal_subtitle">Structuré & Certifiant</p>
+                    <div class="mt-4 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-bold group-hover:bg-blue-600 group-hover:text-white transition">
+                        <span data-i18n="btn_details">Voir détails</span> +
+                    </div>
+                </div>
+
+                <!-- Non-Formel Card -->
+                <div onclick="openContentModal('non-formel')" class="cursor-pointer bg-white rounded-xl p-6 shadow-md border-b-4 border-orange-500 card-hover transition duration-300 flex flex-col items-center text-center group h-full">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-3 text-3xl group-hover:scale-110 transition">⚽</div>
+                    <h3 class="text-xl font-bold text-slate-800" data-i18n="card_nonformal_title">Non-Formel</h3>
+                    <p class="text-xs font-semibold text-orange-600 uppercase tracking-wide mt-1" data-i18n="card_nonformal_subtitle">Structuré mais flexible</p>
+                    <div class="mt-4 px-4 py-1.5 rounded-full bg-orange-50 text-orange-600 text-xs font-bold group-hover:bg-orange-600 group-hover:text-white transition">
+                        <span data-i18n="btn_details">Voir détails</span> +
+                    </div>
+                </div>
+
+                <!-- Informel Card -->
+                <div onclick="openContentModal('informel')" class="cursor-pointer bg-white rounded-xl p-6 shadow-md border-b-4 border-green-500 card-hover transition duration-300 flex flex-col items-center text-center group h-full">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3 text-3xl group-hover:scale-110 transition">🌱</div>
+                    <h3 class="text-xl font-bold text-slate-800" data-i18n="card_informal_title">Informel</h3>
+                    <p class="text-xs font-semibold text-green-600 uppercase tracking-wide mt-1" data-i18n="card_informal_subtitle">Spontané & Quotidien</p>
+                    <div class="mt-4 px-4 py-1.5 rounded-full bg-green-50 text-green-600 text-xs font-bold group-hover:bg-green-600 group-hover:text-white transition">
+                        <span data-i18n="btn_details">Voir détails</span> +
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLLAPSIBLE COMPARISON TABLE -->
+            <details class="bg-white rounded-xl shadow-sm overflow-hidden group">
+                <summary class="p-4 bg-slate-100 cursor-pointer flex justify-between items-center font-bold text-slate-700 hover:bg-slate-200 transition select-none">
+                    <span class="flex items-center gap-2">📊 <span data-i18n="table_toggle">Voir le tableau comparatif complet</span></span>
+                    <span class="transform group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div class="overflow-x-auto p-4 animate-fade-in">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="text-slate-500 uppercase text-xs tracking-wider border-b border-slate-200">
+                                <th class="p-3" data-i18n="table_crit">Critère</th>
+                                <th class="p-3 text-blue-600" data-i18n="card_formal_title">Formel</th>
+                                <th class="p-3 text-orange-600" data-i18n="card_nonformal_title">Non-Formel</th>
+                                <th class="p-3 text-green-600" data-i18n="card_informal_title">Informel</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="hover:bg-slate-50 border-b border-slate-100">
+                                <td class="p-3 font-medium" data-i18n="table_row1_h">Structure</td>
+                                <td class="p-3" data-i18n="table_row1_c1">Très structuré</td>
+                                <td class="p-3" data-i18n="table_row1_c2">Structuré</td>
+                                <td class="p-3" data-i18n="table_row1_c3">Aucune structure</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 border-b border-slate-100">
+                                <td class="p-3 font-medium" data-i18n="table_row2_h">Lieu</td>
+                                <td class="p-3" data-i18n="table_row2_c1">École, Univ.</td>
+                                <td class="p-3" data-i18n="table_row2_c2">Clubs, Travail</td>
+                                <td class="p-3" data-i18n="table_row2_c3">Maison, Web</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-medium" data-i18n="table_row3_h">Validation</td>
+                                <td class="p-3" data-i18n="table_row3_c1">Diplôme</td>
+                                <td class="p-3" data-i18n="table_row3_c2">Certificat</td>
+                                <td class="p-3" data-i18n="table_row3_c3">Aucune</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+            <!-- ACTION AREA: Box + Button (Compact) -->
+            <div class="grid grid-cols-2 gap-4 items-stretch">
+                
+                <!-- Curiosity Box Trigger -->
+                <div onclick="openRandomCuriosity()" class="pulse-box cursor-pointer bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg transform transition hover:scale-105 active:scale-95 flex flex-col justify-center items-center text-center group">
+                    <div class="text-3xl mb-2 group-hover:rotate-12 transition duration-300">📦✨</div>
+                    <h3 class="text-sm md:text-lg font-bold leading-tight" data-i18n="faq_title">Boîte à Curiosités</h3>
+                    <p class="text-xs opacity-90 mt-1 hidden md:block" data-i18n="faq_subtitle">Cliquez pour un fait aléatoire</p>
+                </div>
+
+                <!-- Start Quiz Button Container -->
+                <div onclick="showSection('quiz')" class="cursor-pointer bg-white rounded-2xl shadow-md border border-slate-100 p-4 text-center flex flex-col justify-center items-center hover:bg-slate-50 transition hover:shadow-lg group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition">🚀</div>
+                    <h3 class="text-sm md:text-lg font-bold text-slate-800 leading-tight" data-i18n="btn_start_quiz">Lancer le Quiz</h3>
+                    <p class="text-xs text-slate-500 mt-1 hidden md:block" data-i18n="quiz_cta_desc">Testez vos connaissances !</p>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SECTION: QUIZ -->
+        <div id="quiz-section" class="hidden-section w-full max-w-xl mx-auto fade-in mt-4">
+            
+            <!-- Quiz Card -->
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden relative">
+                <!-- Header Quiz -->
+                <div class="bg-slate-800 p-4 text-white flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-bold" data-i18n="quiz_title">Le Trieur de Savoir</h2>
+                    </div>
+                    <div class="bg-slate-700 px-3 py-1 rounded-lg font-mono text-lg">
+                        <span id="score">0</span> / <span id="total">0</span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-200 h-1.5">
+                    <div id="progress-bar" class="bg-indigo-500 h-1.5 transition-all duration-300" style="width: 0%"></div>
+                </div>
+
+                <!-- Question Area -->
+                <div class="p-6 text-center">
+                    <div id="quiz-content">
+                        <div class="mb-6 min-h-[5rem] flex items-center justify-center">
+                            <p id="scenario-text" class="text-xl md:text-2xl font-bold text-slate-800 leading-tight">
+                                ...
+                            </p>
+                        </div>
+                        
+                        <!-- Feedback Area -->
+                        <div id="feedback" class="h-8 mb-4 flex items-center justify-center font-bold text-sm md:text-base opacity-0 transition-opacity">
+                            ...
+                        </div>
+
+                        <!-- Buttons Grid -->
+                        <div class="grid grid-cols-1 gap-3">
+                            <button onclick="checkAnswer('formel')" class="btn-game py-3 px-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 font-bold hover:bg-blue-100 hover:border-blue-300 flex items-center justify-center gap-2">
+                                🏛️ <span data-i18n="card_formal_title">Formel</span>
+                            </button>
+                            <button onclick="checkAnswer('non-formel')" class="btn-game py-3 px-4 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 font-bold hover:bg-orange-100 hover:border-orange-300 flex items-center justify-center gap-2">
+                                ⚽ <span data-i18n="card_nonformal_title">Non-Formel</span>
+                            </button>
+                            <button onclick="checkAnswer('informel')" class="btn-game py-3 px-4 rounded-xl bg-green-50 border border-green-200 text-green-700 font-bold hover:bg-green-100 hover:border-green-300 flex items-center justify-center gap-2">
+                                🌱 <span data-i18n="card_informal_title">Informel</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Screen -->
+                    <div id="result-screen" class="hidden text-center py-4">
+                        <div class="text-5xl mb-2">🎉</div>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-1" data-i18n="quiz_end">Quiz Terminé !</h3>
+                        <p id="final-score-text" class="text-lg text-slate-600 mb-6">...</p>
+                        
+                        <div class="flex flex-col gap-3">
+                            <button onclick="resetQuiz()" class="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-md" data-i18n="btn_replay">
+                                Rejouer
+                            </button>
+                            <button onclick="showSection('learn')" class="w-full py-3 bg-white border border-slate-300 text-slate-600 rounded-lg font-bold hover:bg-slate-50" data-i18n="btn_review">
+                                Revoir le cours
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-400 py-4 text-center mt-auto text-xs md:text-sm">
+        <p>Créé par Kévin Le Gal , 2025</p>
+    </footer>
+
+    <!-- UNIVERSAL MODAL POPUP -->
+    <div id="info-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div onclick="closeInfoModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity opacity-0" id="info-modal-overlay"></div>
+        
+        <div class="bg-white rounded-2xl p-6 md:p-8 max-w-lg w-full relative shadow-2xl modal-enter z-10 text-center max-h-[90vh] overflow-y-auto">
+            <button onclick="closeInfoModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition">✕</button>
+            
+            <!-- Content Container -->
+            <div id="modal-body-content">
+                <!-- Content injected here via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- TRANSLATIONS ---
+        const i18n = {
+            fr: {
+                nav_learn: "Apprendre",
+                nav_play: "Jouer",
+                hero_title: "Comment apprenons-nous ?",
+                hero_desc: "L'éducation ne se limite pas aux bancs de l'école. Découvrez les trois piliers de l'acquisition des connaissances.",
+                btn_details: "Voir détails",
+                card_formal_title: "Formel",
+                card_formal_subtitle: "Structuré & Certifiant",
+                card_formal_desc: "C'est l'apprentissage 'officiel'. Il est dispensé par des institutions d'enseignement et mène à des diplômes reconnus.",
+                card_formal_list: "<li>Université / Lycée</li><li>Formation professionnelle</li><li>Permis de conduire</li>",
+                card_nonformal_title: "Non-Formel",
+                card_nonformal_subtitle: "Structuré mais flexible",
+                card_nonformal_desc: "Organisé et planifié, mais en dehors du système scolaire 'classique'. Souvent volontaire, sans diplôme d'État obligatoire.",
+                card_nonformal_list: "<li>Scoutisme</li><li>Club de sport ou théâtre</li><li>Ateliers du week-end</li>",
+                card_informal_title: "Informel",
+                card_informal_subtitle: "Spontané & Quotidien",
+                card_informal_desc: "C'est l'apprentissage par la vie. Non structuré, sans objectifs explicites au départ, arrive souvent par hasard.",
+                card_informal_list: "<li>Tuto YouTube</li><li>Discussions entre amis</li><li>Essais et erreurs</li>",
+                examples_label: "EXEMPLES :",
+                table_toggle: "Voir le tableau comparatif",
+                table_crit: "Critère",
+                table_row1_h: "Structure",
+                table_row1_c1: "Très structuré",
+                table_row1_c2: "Structuré",
+                table_row1_c3: "Non",
+                table_row2_h: "Lieu",
+                table_row2_c1: "École, Univ.",
+                table_row2_c2: "Clubs, Travail",
+                table_row2_c3: "Maison, Web",
+                table_row3_h: "Validation",
+                table_row3_c1: "Diplôme",
+                table_row3_c2: "Certificat",
+                table_row3_c3: "Aucune",
+                faq_title: "Boîte à Curiosités",
+                faq_subtitle: "Cliquez pour un fait aléatoire !",
+                btn_start_quiz: "Lancer le Quiz",
+                quiz_title: "Le Trieur de Savoir",
+                quiz_subtitle: "Où classer cette situation ?",
+                quiz_end: "Quiz Terminé !",
+                btn_replay: "Rejouer",
+                btn_review: "Revoir le cours",
+                quiz_excellent: "✅ Excellent !",
+                quiz_oups: "❌ Oups. C'était : ",
+                quiz_msg_perfect: "Un sans faute ! Expert.",
+                quiz_msg_good: "Bien joué ! L'essentiel est là.",
+                quiz_msg_meh: "Continuez vos efforts !",
+                quiz_score: "Score :",
+                quiz_cta_desc: "Testez vos connaissances !",
+                btn_another_fact: "Une autre ! 🎲"
+            },
+            en: {
+                nav_learn: "Learn",
+                nav_play: "Play",
+                hero_title: "How do we learn?",
+                hero_desc: "Education isn't limited to the classroom. Discover the three pillars of knowledge acquisition.",
+                btn_details: "See Details",
+                card_formal_title: "Formal",
+                card_formal_subtitle: "Structured & Certified",
+                card_formal_desc: "This is 'official' learning. Delivered by educational institutions and leading to recognized degrees.",
+                card_formal_list: "<li>University / High School</li><li>Professional Training</li><li>Driving License</li>",
+                card_nonformal_title: "Non-Formal",
+                card_nonformal_subtitle: "Structured but Flexible",
+                card_nonformal_desc: "Organized and planned, but outside the 'classic' school system. Often voluntary, usually without a state degree.",
+                card_nonformal_list: "<li>Scouts</li><li>Sports Club or Drama</li><li>Weekend Workshops</li>",
+                card_informal_title: "Informal",
+                card_informal_subtitle: "Spontaneous & Daily",
+                card_informal_desc: "Learning by living. Unstructured, no explicit goals initially, often happens by chance.",
+                card_informal_list: "<li>YouTube Tutorials</li><li>Talking with friends</li><li>Trial and Error</li>",
+                examples_label: "EXAMPLES:",
+                table_toggle: "See Comparison Table",
+                table_crit: "Criteria",
+                table_row1_h: "Structure",
+                table_row1_c1: "High",
+                table_row1_c2: "Medium",
+                table_row1_c3: "None",
+                table_row2_h: "Location",
+                table_row2_c1: "School, Univ.",
+                table_row2_c2: "Clubs, Work",
+                table_row2_c3: "Home, Web",
+                table_row3_h: "Validation",
+                table_row3_c1: "Degree",
+                table_row3_c2: "Certificate",
+                table_row3_c3: "None",
+                faq_title: "Curiosity Box",
+                faq_subtitle: "Click for a random fact!",
+                btn_start_quiz: "Start Quiz",
+                quiz_title: "Knowledge Sorter",
+                quiz_subtitle: "Classify this situation!",
+                quiz_end: "Quiz Finished!",
+                btn_replay: "Play Again",
+                btn_review: "Review Course",
+                quiz_excellent: "✅ Excellent!",
+                quiz_oups: "❌ Oops. It was: ",
+                quiz_msg_perfect: "Perfect score!",
+                quiz_msg_good: "Well done!",
+                quiz_msg_meh: "Keep trying!",
+                quiz_score: "Score:",
+                quiz_cta_desc: "Test your knowledge!",
+                btn_another_fact: "Another one! 🎲"
+            }
+        };
+
+        // --- DATA ---
+        let currentLang = 'fr';
+
+        // FAQ DATA
+        const faqData = [
+            {
+                q_fr: "Comment prouver ce qu'on a appris de manière informelle ?",
+                a_fr: "C'est difficile car il n'y a pas de diplôme ! La meilleure méthode est de créer un <strong>Portfolio</strong>, un blog, ou de passer des tests de compétences spécifiques.",
+                q_en: "How do you prove what you learned informally?",
+                a_en: "It's hard without a diploma! The best way is to create a <strong>Portfolio</strong>, a blog, or take specific skill tests."
+            },
+            {
+                q_fr: "Les jeux vidéo : apprentissage formel ou informel ?",
+                a_fr: "C'est de l'informel pur ! On y apprend la stratégie, la gestion de ressources, parfois l'histoire ou l'anglais, sans même s'en rendre compte.",
+                q_en: "Video games: formal or informal learning?",
+                a_en: "Purely informal! You learn strategy, resource management, sometimes history or English, often without even realizing it."
+            },
+            {
+                q_fr: "Peut-on 'désapprendre' quelque chose ?",
+                a_fr: "Oui ! Cela s'appelle l'apprentissage correctif. C'est souvent nécessaire quand on a appris une mauvaise technique de sport ou une information fausse.",
+                q_en: "Can you 'unlearn' something?",
+                a_en: "Yes! It's called corrective learning. It's often necessary when you've informally learned a bad sports technique or false information."
+            },
+            {
+                q_fr: "L'école a-t-elle toujours été 'formelle' ?",
+                a_fr: "Non ! Au Moyen Âge, l'apprentissage se faisait beaucoup par compagnonnage (non-formel). Le système scolaire standardisé est assez récent (XIXe siècle).",
+                q_en: "Has school always been 'formal'?",
+                a_en: "No! In the Middle Ages, much learning was done through apprenticeship (non-formal). The standardized school system is fairly recent."
+            },
+            {
+                q_fr: "Quel type d'apprentissage est le plus efficace ?",
+                a_fr: "Le mélange des trois ! La théorie (formel) + la pratique en club (non-formel) + la curiosité personnelle (informel) créent l'expert ultime.",
+                q_en: "Which type of learning is most effective?",
+                a_en: "A mix of all three! Theory (formal) + club practice (non-formal) + personal curiosity (informal) create the ultimate expert."
+            }
+        ];
+
+        // QUIZ DATA
+        const questionsData = [
+            {
+                type: "formel",
+                fr: { text: "Obtenir son Baccalauréat.", explanation: "Diplôme officiel." },
+                en: { text: "Getting your HS Diploma.", explanation: "Official degree." }
+            },
+            {
+                type: "informel",
+                fr: { text: "Tuto YouTube pour changer une roue.", explanation: "Spontané, auto-dirigé." },
+                en: { text: "YouTube tutorial for a tire.", explanation: "Spontaneous." }
+            },
+            {
+                type: "non-formel",
+                fr: { text: "Cours de piano en association.", explanation: "Structuré mais hors école." },
+                en: { text: "Piano lessons at club.", explanation: "Structured, outside school." }
+            },
+            {
+                type: "informel",
+                fr: { text: "Enfant apprend à parler.", explanation: "Naturel, sans cours." },
+                en: { text: "Child learning to speak.", explanation: "Natural, no classes." }
+            },
+            {
+                type: "non-formel",
+                fr: { text: "Formation sécurité au travail.", explanation: "Organisé par l'entreprise." },
+                en: { text: "Workplace safety training.", explanation: "Organized by company." }
+            },
+            {
+                type: "formel",
+                fr: { text: "Soutenir sa thèse.", explanation: "Sommet académique." },
+                en: { text: "Defending PhD.", explanation: "Academic peak." }
+            },
+            {
+                type: "informel",
+                fr: { text: "Demander de l'aide à un collègue.", explanation: "Social, rapide." },
+                en: { text: "Asking colleague for help.", explanation: "Social, quick." }
+            },
+            {
+                type: "non-formel",
+                fr: { text: "Séminaire de secourisme.", explanation: "Structuré, court." },
+                en: { text: "First-aid seminar.", explanation: "Structured, short." }
+            }
+        ];
+
+        // --- STATE ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswering = false;
+
+        // --- DOM ELEMENTS ---
+        const learnSection = document.getElementById('learn-section');
+        const quizSection = document.getElementById('quiz-section');
+        const scenarioText = document.getElementById('scenario-text');
+        const feedbackEl = document.getElementById('feedback');
+        const scoreEl = document.getElementById('score');
+        const totalEl = document.getElementById('total');
+        const progressBar = document.getElementById('progress-bar');
+        const quizContent = document.getElementById('quiz-content');
+        const resultScreen = document.getElementById('result-screen');
+        const finalScoreText = document.getElementById('final-score-text');
+        const langBtn = document.getElementById('lang-btn');
+        const modal = document.getElementById('info-modal');
+        const modalOverlay = document.getElementById('info-modal-overlay');
+        const modalBody = document.getElementById('modal-body-content');
+
+        // --- INITIALIZATION ---
+        
+        function init() {
+            updateText();
+            totalEl.innerText = questionsData.length;
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            langBtn.innerText = currentLang === 'fr' ? '🇬🇧' : '🇫🇷';
+            updateText();
+            
+            if(!quizSection.classList.contains('hidden-section') && currentQuestionIndex < questionsData.length) {
+                scenarioText.innerText = `"${questionsData[currentQuestionIndex][currentLang].text}"`;
+            }
+        }
+
+        function updateText() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.innerHTML = i18n[currentLang][key];
+                }
+            });
+        }
+
+        // --- MODAL LOGIC (GENERIC) ---
+        
+        // Open Modal with content for Learning Types
+        function openContentModal(type) {
+            const txt = i18n[currentLang];
+            let icon, title, subtitle, desc, list, colorClass, bgClass;
+
+            if (type === 'formel') {
+                icon = "🏛️"; title = txt.card_formal_title; subtitle = txt.card_formal_subtitle;
+                desc = txt.card_formal_desc; list = txt.card_formal_list;
+                colorClass = "text-blue-600"; bgClass = "bg-blue-50";
+            } else if (type === 'non-formel') {
+                icon = "⚽"; title = txt.card_nonformal_title; subtitle = txt.card_nonformal_subtitle;
+                desc = txt.card_nonformal_desc; list = txt.card_nonformal_list;
+                colorClass = "text-orange-600"; bgClass = "bg-orange-50";
+            } else {
+                icon = "🌱"; title = txt.card_informal_title; subtitle = txt.card_informal_subtitle;
+                desc = txt.card_informal_desc; list = txt.card_informal_list;
+                colorClass = "text-green-600"; bgClass = "bg-green-50";
+            }
+
+            const html = `
+                <div class="w-20 h-20 ${bgClass} rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">
+                    ${icon}
+                </div>
+                <h3 class="text-3xl font-bold text-slate-800 mb-1">${title}</h3>
+                <p class="text-sm font-bold ${colorClass} uppercase tracking-wide mb-6">${subtitle}</p>
+                <p class="text-slate-600 mb-6 text-lg leading-relaxed">${desc}</p>
+                <div class="${bgClass} p-4 rounded-xl text-left">
+                    <p class="text-xs font-bold ${colorClass} mb-2">${txt.examples_label}</p>
+                    <ul class="text-sm ${colorClass} space-y-2 list-disc list-inside">
+                        ${list}
+                    </ul>
+                </div>
+            `;
+            
+            modalBody.innerHTML = html;
+            showModal();
+        }
+
+        // Open Modal for Curiosity Box
+        function openRandomCuriosity() {
+            const randomIndex = Math.floor(Math.random() * faqData.length);
+            const item = faqData[randomIndex];
+            const q = currentLang === 'fr' ? item.q_fr : item.q_en;
+            const a = currentLang === 'fr' ? item.a_fr : item.a_en;
+            const btnTxt = i18n[currentLang].btn_another_fact;
+
+            const html = `
+                <div class="text-5xl mb-4">💡</div>
+                <h3 class="text-2xl font-bold text-slate-800 mb-4 leading-tight">${q}</h3>
+                <div class="w-16 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 mx-auto mb-6 rounded-full"></div>
+                <p class="text-slate-600 text-lg leading-relaxed mb-8">${a}</p>
+                <button onclick="openRandomCuriosity()" class="px-6 py-2 border border-indigo-200 text-indigo-600 rounded-full text-sm font-bold hover:bg-indigo-50 transition">
+                    ${btnTxt}
+                </button>
+            `;
+            
+            modalBody.innerHTML = html;
+            showModal();
+        }
+
+        function showModal() {
+            modal.classList.remove('hidden');
+            setTimeout(() => { modalOverlay.classList.remove('opacity-0'); }, 10);
+        }
+
+        function closeInfoModal() {
+            modalOverlay.classList.add('opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        // --- QUIZ LOGIC ---
+
+        function showSection(sectionId) {
+            if (sectionId === 'learn') {
+                learnSection.classList.remove('hidden-section');
+                quizSection.classList.add('hidden-section');
+                window.scrollTo(0,0);
+            } else {
+                learnSection.classList.add('hidden-section');
+                quizSection.classList.remove('hidden-section');
+                if(currentQuestionIndex === 0 && score === 0) resetQuiz();
+            }
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            scoreEl.innerText = '0';
+            totalEl.innerText = questionsData.length;
+            progressBar.style.width = '0%';
+            quizContent.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            isAnswering = false;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questionsData.length) {
+                showResults();
+                return;
+            }
+            const q = questionsData[currentQuestionIndex];
+            scenarioText.style.opacity = 0;
+            setTimeout(() => {
+                scenarioText.innerText = `"${q[currentLang].text}"`;
+                scenarioText.style.opacity = 1;
+                scenarioText.classList.add('fade-in');
+            }, 200);
+            feedbackEl.style.opacity = 0;
+            
+            const progress = (currentQuestionIndex / questionsData.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function checkAnswer(userChoice) {
+            if (isAnswering) return;
+            isAnswering = true;
+            const currentQ = questionsData[currentQuestionIndex];
+            const isCorrect = userChoice === currentQ.type;
+            const txt = i18n[currentLang];
+            
+            feedbackEl.style.opacity = 1;
+            if (isCorrect) {
+                score++;
+                scoreEl.innerText = score;
+                feedbackEl.innerHTML = `<span class="text-green-600">${txt.quiz_excellent} ${currentQ[currentLang].explanation}</span>`;
+            } else {
+                let typeName = "";
+                if(currentQ.type === 'formel') typeName = txt.card_formal_title;
+                if(currentQ.type === 'non-formel') typeName = txt.card_nonformal_title;
+                if(currentQ.type === 'informel') typeName = txt.card_informal_title;
+                feedbackEl.innerHTML = `<span class="text-red-500">${txt.quiz_oups} ${typeName.toUpperCase()}.</span>`;
+            }
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+                isAnswering = false;
+            }, 2000); 
+        }
+
+        function showResults() {
+            quizContent.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            resultScreen.classList.add('fade-in');
+            progressBar.style.width = '100%';
+            const txt = i18n[currentLang];
+            let message = score > questionsData.length / 2 ? txt.quiz_msg_good : txt.quiz_msg_meh;
+            if(score === questionsData.length) message = txt.quiz_msg_perfect;
+            finalScoreText.innerText = `${txt.quiz_score} ${score} / ${questionsData.length} - ${message}`;
+        }
+
+        init();
+    </script>
+</body>
+</html>
