@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posture Pro - Travail Social</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Phone Simulator Styles */
+        .phone-screen {
+            background-image: linear-gradient(to bottom, #ffffff, #f8fafc);
+            /* height removed to allow flex-grow */
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .bubble-npc {
+            background-color: #e2e8f0;
+            color: #1e293b;
+            border-bottom-left-radius: 0;
+        }
+
+        .bubble-user {
+            background-color: #3b82f6;
+            color: white;
+            border-bottom-right-radius: 0;
+            margin-left: auto;
+        }
+
+        .feedback-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-user-shield text-blue-400 text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wide">Posture<span class="text-blue-400">Pro</span></h1>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="switchTab('theory')" id="btn-theory" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition font-medium">Théorie</button>
+                <button onclick="switchTab('practice')" id="btn-practice" class="px-4 py-2 rounded-lg hover:bg-slate-700 transition font-medium text-slate-300">Pratique</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 md:p-6 mb-20">
+
+        <!-- SECTION THEORIE -->
+        <div id="theory-section" class="fade-in">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-slate-800 mb-3">La Posture Professionnelle</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">Être travailleur jeunesse, c'est trouver l'équilibre subtil entre proximité et distance, empathie et cadre. Voici les 4 piliers fondamentaux.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <!-- Card 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500 hover:shadow-xl transition transform hover:-translate-y-1">
+                    <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-blue-600 text-xl">
+                        <i class="fa-solid fa-ruler-horizontal"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">La Juste Distance</h3>
+                    <p class="text-sm text-slate-600">Ni copain, ni policier. Tu es un référent. La distance n'est pas de la froideur, c'est un espace de sécurité pour le jeune et pour toi.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-emerald-500 hover:shadow-xl transition transform hover:-translate-y-1">
+                    <div class="bg-emerald-100 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-emerald-600 text-xl">
+                        <i class="fa-solid fa-hands-holding-circle"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Le Cadre & L'Éthique</h3>
+                    <p class="text-sm text-slate-600">Respecter la confidentialité (sauf danger), tenir ses promesses, et ne pas projeter ses propres solutions sur le jeune.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-orange-500 hover:shadow-xl transition transform hover:-translate-y-1">
+                    <div class="bg-orange-100 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-orange-600 text-xl">
+                        <i class="fa-solid fa-ear-listen"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Écoute Active</h3>
+                    <p class="text-sm text-slate-600">Écouter pour comprendre, pas pour répondre. Valider les émotions du jeune sans nécessairement valider ses actes.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-purple-500 hover:shadow-xl transition transform hover:-translate-y-1">
+                    <div class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-purple-600 text-xl">
+                        <i class="fa-solid fa-shield-heart"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Gestion Émotionnelle</h3>
+                    <p class="text-sm text-slate-600">Savoir accueillir la colère ou la tristesse de l'autre sans se laisser submerger. Tu es le "conteneur" de l'émotion.</p>
+                </div>
+            </div>
+
+            <!-- Do's and Don'ts -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2">
+                    <div class="p-8 bg-emerald-50/50">
+                        <h3 class="text-emerald-700 font-bold text-xl mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i> À FAIRE
+                        </h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-2 text-sm text-slate-700"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Vouvoyer si le cadre l'exige, ou tutoyer avec respect.</li>
+                            <li class="flex items-start gap-2 text-sm text-slate-700"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Poser ses limites clairement dès le début.</li>
+                            <li class="flex items-start gap-2 text-sm text-slate-700"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Renvoyer vers des spécialistes quand ça dépasse tes compétences.</li>
+                        </ul>
+                    </div>
+                    <div class="p-8 bg-red-50/50">
+                        <h3 class="text-red-700 font-bold text-xl mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-times-circle"></i> À ÉVITER
+                        </h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-2 text-sm text-slate-700"><i class="fa-solid fa-xmark text-red-500 mt-1"></i> Donner son numéro perso ou ses réseaux sociaux privés.</li>
+                            <li class="flex items-start gap-2 text-sm text-slate-700"><i class="fa-solid fa-xmark text-red-500 mt-1"></i> Faire des promesses qu'on ne peut pas tenir ("Je te promets que tu auras ce logement").</li>
+                            <li class="flex items-start gap-2 text-sm text-slate-700"><i class="fa-solid fa-xmark text-red-500 mt-1"></i> Juger les choix de vie ou la famille du jeune.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <button onclick="switchTab('practice')" class="bg-slate-900 text-white px-8 py-4 rounded-full font-bold shadow-lg hover:bg-slate-800 hover:scale-105 transition transform">
+                    Passer à la Simulation <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SECTION PRATIQUE (SIMULATION) -->
+        <div id="practice-section" class="hidden fade-in">
+            
+            <div class="flex flex-col lg:flex-row gap-6 items-start justify-center">
+                
+                <!-- Sidebar Info -->
+                <div class="lg:w-1/3 w-full">
+                    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+                        <h3 class="font-bold text-xl mb-2 text-slate-800">Mission : L'appel de 22h</h3>
+                        <p class="text-sm text-slate-600 mb-4">
+                            Tu es éducateur/trice. Il est 22h00, tu es d'astreinte téléphonique mais chez toi.
+                            <strong>Kevin, 19 ans</strong>, t'appelle. Il est suivi par le service pour instabilité au logement et impulsivité.
+                        </p>
+                        <div class="flex items-center justify-between bg-slate-100 p-3 rounded-lg">
+                            <span class="font-bold text-slate-600">Score de Posture :</span>
+                            <span id="score-display" class="font-bold text-2xl text-blue-600">100/100</span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-slate-200 rounded-full h-2.5">
+                                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <p class="text-xs text-right mt-1 text-slate-500">Progression <span id="step-count">0</span>/10</p>
+                        </div>
+                    </div>
+
+                    <div id="feedback-panel" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded shadow-sm slide-up">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fa-solid fa-lightbulb text-yellow-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700 font-bold">Analyse</p>
+                                <p class="text-sm text-yellow-800 mt-1" id="feedback-text">...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phone Interface -->
+                <div class="lg:w-1/2 w-full max-w-md mx-auto relative bg-slate-900 rounded-[3rem] p-4 shadow-2xl border-4 border-slate-800">
+                    <!-- Notch -->
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 h-6 w-32 bg-slate-800 rounded-b-xl z-10"></div>
+                    
+                    <!-- Screen -->
+                    <div class="bg-white rounded-[2rem] overflow-hidden h-[600px] flex flex-col relative">
+                        
+                        <!-- Header App -->
+                        <div class="bg-slate-100 p-4 pt-8 border-b flex items-center justify-between shadow-sm z-10 flex-shrink-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">K</div>
+                                <div>
+                                    <h3 class="font-bold text-sm leading-tight">Kevin (Jeune)</h3>
+                                    <p class="text-xs text-green-600 flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> En appel...</p>
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-400">00:00</div>
+                        </div>
+
+                        <!-- Chat Area -->
+                        <!-- pb-64 adds huge padding at bottom so text is never hidden by buttons -->
+                        <div id="chat-container" class="phone-screen p-4 flex flex-col gap-4 pb-64 flex-grow">
+                            <!-- Messages will be injected here -->
+                        </div>
+
+                        <!-- User Choices Area (Fixed bottom) -->
+                        <div class="absolute bottom-0 left-0 w-full bg-white/95 backdrop-blur border-t p-4 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.1)]">
+                            <div id="choices-container" class="grid gap-2 max-h-48 overflow-y-auto">
+                                <!-- Buttons will be injected here -->
+                                <button onclick="startGame()" class="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 w-full">
+                                    Décrocher le téléphone
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <!-- Phone Home Bar -->
+                    <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-slate-600 rounded-full z-30"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <p>&copy; 2025 Module de Formation Jeunesse. Créé pour l'apprentissage.</p>
+    </footer>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[100] fade-in">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center m-4">
+            <div id="final-icon" class="text-6xl mb-4"></div>
+            <h2 id="final-title" class="text-2xl font-bold mb-2 text-slate-800"></h2>
+            <p id="final-score" class="text-xl font-bold text-blue-600 mb-4"></p>
+            <p id="final-message" class="text-slate-600 mb-6 text-sm"></p>
+            <button onclick="resetGame()" class="bg-slate-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-slate-700 w-full">
+                Recommencer la simulation
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIQUE DE NAVIGATION ---
+        function switchTab(tab) {
+            const theoryBtn = document.getElementById('btn-theory');
+            const practiceBtn = document.getElementById('btn-practice');
+            const theorySection = document.getElementById('theory-section');
+            const practiceSection = document.getElementById('practice-section');
+
+            if (tab === 'theory') {
+                theorySection.classList.remove('hidden');
+                practiceSection.classList.add('hidden');
+                
+                theoryBtn.classList.add('bg-blue-600', 'text-white');
+                theoryBtn.classList.remove('text-slate-300');
+                
+                practiceBtn.classList.remove('bg-blue-600', 'text-white');
+                practiceBtn.classList.add('text-slate-300');
+            } else {
+                theorySection.classList.add('hidden');
+                practiceSection.classList.remove('hidden');
+
+                practiceBtn.classList.add('bg-blue-600', 'text-white');
+                practiceBtn.classList.remove('text-slate-300');
+                
+                theoryBtn.classList.remove('bg-blue-600', 'text-white');
+                theoryBtn.classList.add('text-slate-300');
+                
+                // Si on passe à l'onglet pratique, on scroll bien en bas si une partie est en cours
+                const chatContainer = document.getElementById('chat-container');
+                if(chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        // --- SCENARIO DATA ---
+        // Structure: ID -> NPC Text -> Options (Text, Score Impact, Feedback, Next ID)
+        
+        const scenario = [
+            {
+                id: 1,
+                npc: "Kevin",
+                text: "Allo ? C'est Kevin. C'est la merde là, faut que je te parle, j'en peux plus.",
+                options: [
+                    { 
+                        text: "Salut Kevin, calme-toi. Rappelle-moi demain au bureau, il est tard.", 
+                        score: -10, 
+                        feedback: "Trop froid. En situation de crise potentielle, on ne rejette pas l'appel sans évaluer l'urgence.",
+                        next: 2 
+                    },
+                    { 
+                        text: "Bonsoir Kevin. Je t'écoute, qu'est-ce qui se passe ?", 
+                        score: 10, 
+                        feedback: "Parfait. Accueillant, professionnel, disponible.",
+                        next: 2 
+                    },
+                    { 
+                        text: "Wesh Kevin ! Ça va pas mon pote ? Raconte tout à tonton.", 
+                        score: -20, 
+                        feedback: "Trop familier. Tu es son éducateur, pas son pote. 'Tonton' est inapproprié.",
+                        next: 2 
+                    }
+                ]
+            },
+            {
+                id: 2,
+                npc: "Kevin",
+                text: "Mon proprio m'a pris la tête, j'ai failli le frapper. J'suis dehors là, j'sais pas où aller. J'ai froid.",
+                options: [
+                    { 
+                        text: "T'es sérieux ? Tu vas encore tout gâcher ! Pourquoi t'as fait ça ?", 
+                        score: -10, 
+                        feedback: "Jugement immédiat. Cela va braquer le jeune et couper la communication.",
+                        next: 3 
+                    },
+                    { 
+                        text: "Ok, tu es dehors. Est-ce que tu es en sécurité là tout de suite ? Tu es où exactement ?", 
+                        score: 10, 
+                        feedback: "Bon réflexe : évaluer la sécurité immédiate et le contexte factuel.",
+                        next: 3 
+                    },
+                    { 
+                        text: "Viens chez moi si tu veux, j'habite pas loin, tu dormiras sur le canapé.", 
+                        score: -50, 
+                        feedback: "LIGNE ROUGE FRANCHIE. Jamais de jeune chez soi. C'est une faute professionnelle grave.",
+                        next: 3 
+                    }
+                ]
+            },
+            {
+                id: 3,
+                npc: "Kevin",
+                text: "J'suis au parc à côté de la gare. J'ai nulle part où aller. T'es le seul qui me comprend. Les autres éducs, c'est des cons.",
+                options: [
+                    { 
+                        text: "C'est vrai que mes collègues sont pas toujours sympas avec toi. Je suis le seul cool.", 
+                        score: -15, 
+                        feedback: "Disqualifier l'équipe est toxique. Tu dois maintenir la cohérence de l'équipe éducative.",
+                        next: 4 
+                    },
+                    { 
+                        text: "Je comprends que tu sois en colère, mais on ne parle pas de l'équipe comme ça. On se concentre sur toi.", 
+                        score: 10, 
+                        feedback: "Bon recadrage. Empathie sur l'émotion, mais limite sur le respect de l'équipe.",
+                        next: 4 
+                    },
+                    { 
+                        text: "Arrête de te plaindre tout le temps.", 
+                        score: -10, 
+                        feedback: "Manque d'empathie flagrant.",
+                        next: 4 
+                    }
+                ]
+            },
+            {
+                id: 4,
+                npc: "Kevin",
+                text: "S'il te plaît, viens me chercher en voiture. Juste pour me déposer chez mon cousin à l'autre bout de la ville. Y'a plus de bus.",
+                options: [
+                    { 
+                        text: "D'accord, j'arrive dans 15 minutes avec ma voiture perso.", 
+                        score: -20, 
+                        feedback: "Risqué. Transporter un jeune dans son véhicule personnel hors service/assurance pro est très déconseillé.",
+                        next: 5 
+                    },
+                    { 
+                        text: "Je ne peux pas venir te chercher, je ne suis pas en service de transport. Mais on va chercher une autre solution.", 
+                        score: 10, 
+                        feedback: "Bonne tenue du cadre. Tu n'es pas un taxi, mais tu ne l'abandonnes pas.",
+                        next: 5 
+                    },
+                    { 
+                        text: "Débrouille-toi, fallait pas t'embrouiller avec ton proprio.", 
+                        score: -10, 
+                        feedback: "Punitif et non aidant.",
+                        next: 5 
+                    }
+                ]
+            },
+            {
+                id: 5,
+                npc: "Kevin",
+                text: "T'es comme les autres en fait ! Tu sers à rien ! J'vais dormir sous un pont et ce sera de ta faute !",
+                options: [
+                    { 
+                        text: "Comment tu me parles ?! Je raccroche.", 
+                        score: -5, 
+                        feedback: "Réaction à l'ego. Il est en détresse, il teste le lien.",
+                        next: 6 
+                    },
+                    { 
+                        text: "Kevin, je sais que tu es stressé, mais le chantage ne marche pas. Je veux t'aider, mais dans mes possibilités.", 
+                        score: 10, 
+                        feedback: "Excellent. Tu nommes le comportement (chantage) et tu restes solide.",
+                        next: 6 
+                    },
+                    { 
+                        text: "Non non, attends, ne dis pas ça ! Je vais trouver une solution, je te paie un Uber.", 
+                        score: -15, 
+                        feedback: "Tu cèdes à la culpabilisation en sortant ta carte bleue perso. Erreur.",
+                        next: 6 
+                    }
+                ]
+            },
+            {
+                id: 6,
+                npc: "Kevin",
+                text: "Bon... ok. J'ai pas de thunes pour le 115 ou l'hôtel. J'fais quoi ?",
+                options: [
+                    { 
+                        text: "Appelle le 115, c'est gratuit. Je reste en ligne avec toi si tu veux le temps que tu les aies.", 
+                        score: 10, 
+                        feedback: "Autonomisation + Soutien. Tu lui donnes l'outil mais tu l'accompagnes.",
+                        next: 7 
+                    },
+                    { 
+                        text: "Je vais appeler pour toi.", 
+                        score: 5, 
+                        feedback: "Correct, mais moins bon pour l'autonomie. À 19 ans, il peut le faire.",
+                        next: 7 
+                    },
+                    { 
+                        text: "T'as qu'à retourner t'excuser chez ton proprio.", 
+                        score: -5, 
+                        feedback: "Solution simpliste qui ignore la tension actuelle.",
+                        next: 7 
+                    }
+                ]
+            },
+            {
+                id: 7,
+                npc: "Kevin",
+                text: "(10 min plus tard) C'est bon, le 115 a une place au foyer d'urgence du centre. Mais j'ai faim...",
+                options: [
+                    { 
+                        text: "Super pour la place. Pour manger, tu verras là-bas s'il reste quelque chose.", 
+                        score: 5, 
+                        feedback: "Réaliste.",
+                        next: 8 
+                    },
+                    { 
+                        text: "Je te commande une pizza là-bas ?", 
+                        score: -10, 
+                        feedback: "Encore une fois, pas de cadeaux financiers personnels. Ça crée une dette et de la confusion.",
+                        next: 8 
+                    },
+                    { 
+                        text: "Bien joué pour l'appel. C'est une étape importante. Rends-toi là-bas tout de suite pour sécuriser ta nuit.", 
+                        score: 10, 
+                        feedback: "Renforcement positif. Focalisation sur l'urgence (le logement).",
+                        next: 8 
+                    }
+                ]
+            },
+            {
+                id: 8,
+                npc: "Kevin",
+                text: "Merci... Désolé de t'avoir crié dessus tout à l'heure. T'es une bonne personne.",
+                options: [
+                    { 
+                        text: "C'est normal. On en reparlera demain au bureau à 10h pour faire le point sur ta situation logement ?", 
+                        score: 10, 
+                        feedback: "Retour au cadre professionnel. Fixation d'un rendez-vous formel.",
+                        next: 9 
+                    },
+                    { 
+                        text: "T'inquiète, je t'aime bien Kevin.", 
+                        score: -5, 
+                        feedback: "Ambigu. Préférer 'J'apprécie nos échanges' ou rester sur le pro.",
+                        next: 9 
+                    },
+                    { 
+                        text: "Ouais, évite la prochaine fois.", 
+                        score: -5, 
+                        feedback: "Un peu sec après des excuses.",
+                        next: 9 
+                    }
+                ]
+            },
+            {
+                id: 9,
+                npc: "Kevin",
+                text: "Ça marche. À demain 10h. Bonne nuit.",
+                options: [
+                    { 
+                        text: "Bonne nuit Kevin. Fais attention à toi.", 
+                        score: 10, 
+                        feedback: "Fin de l'échange propre.",
+                        next: 10 
+                    },
+                    { 
+                        text: "Bisous !", 
+                        score: -20, 
+                        feedback: "Inapproprié.",
+                        next: 10 
+                    },
+                    { 
+                        text: "...", 
+                        score: 0, 
+                        feedback: "Un au revoir est préférable.",
+                        next: 10 
+                    }
+                ]
+            },
+            {
+                id: 10,
+                npc: "Système",
+                text: "L'appel est terminé. Que fais-tu maintenant ?",
+                options: [
+                    { 
+                        text: "Je vais me coucher, c'est fini.", 
+                        score: 0, 
+                        feedback: "Attention, il faut une trace de cet événement.",
+                        next: 999 
+                    },
+                    { 
+                        text: "J'envoie un mail/note à mon chef et à l'équipe pour les informer de l'incident et du RDV demain.", 
+                        score: 10, 
+                        feedback: "Parfait. Transmission de l'info = sécurité pour toi et suivi pour le jeune.",
+                        next: 999 
+                    },
+                    { 
+                        text: "Je rappelle Kevin pour vérifier qu'il est bien arrivé.", 
+                        score: -5, 
+                        feedback: "Surprotection. Laisse-le gérer maintenant qu'il a une solution.",
+                        next: 999 
+                    }
+                ]
+            }
+        ];
+
+        // --- GAME LOGIC ---
+
+        let currentScore = 100;
+        let currentStep = 0; // Index in scenario array (initially undefined until start)
+
+        function startGame() {
+            const chatContainer = document.getElementById('chat-container');
+            const choicesContainer = document.getElementById('choices-container');
+            
+            chatContainer.innerHTML = ''; // Clear chat
+            currentScore = 100;
+            currentStep = 0;
+            updateUI();
+
+            // Display first message
+            displayStep(scenario[0]);
+        }
+
+        function scrollToBottom() {
+            const chatContainer = document.getElementById('chat-container');
+            // Small delay to allow DOM to update
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+
+        function displayStep(stepData) {
+            const chatContainer = document.getElementById('chat-container');
+            const choicesContainer = document.getElementById('choices-container');
+
+            // Add NPC Message Bubble
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'flex flex-col w-3/4 slide-up';
+            bubbleDiv.innerHTML = `
+                <span class="text-xs text-slate-500 mb-1 ml-1">${stepData.npc}</span>
+                <div class="bubble-npc p-3 rounded-2xl shadow-sm text-sm">
+                    ${stepData.text}
+                </div>
+            `;
+            chatContainer.appendChild(bubbleDiv);
+            scrollToBottom();
+
+            // Generate Buttons
+            choicesContainer.innerHTML = '';
+            stepData.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left text-sm p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition duration-200 mb-1';
+                btn.innerText = option.text;
+                btn.onclick = () => makeChoice(option, index);
+                choicesContainer.appendChild(btn);
+            });
+
+            // Update progress
+            document.getElementById('step-count').innerText = stepData.id;
+            const progressPct = (stepData.id / 10) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPct}%`;
+        }
+
+        function makeChoice(option, index) {
+            const chatContainer = document.getElementById('chat-container');
+            const choicesContainer = document.getElementById('choices-container');
+
+            // 1. Add User Message Bubble
+            const userBubbleDiv = document.createElement('div');
+            userBubbleDiv.className = 'flex flex-col w-3/4 ml-auto slide-up';
+            userBubbleDiv.innerHTML = `
+                <div class="bubble-user p-3 rounded-2xl shadow-sm text-sm">
+                    ${option.text}
+                </div>
+            `;
+            chatContainer.appendChild(userBubbleDiv);
+            scrollToBottom();
+            
+            // 2. Update Score
+            currentScore += option.score;
+            if (currentScore > 100) currentScore = 100;
+            if (currentScore < 0) currentScore = 0;
+            updateUI();
+
+            // 3. Show Feedback
+            showFeedback(option.feedback, option.score);
+
+            // 4. Move to next step or finish
+            choicesContainer.innerHTML = ''; // Disable buttons during delay
+            
+            setTimeout(() => {
+                if (option.next === 999) {
+                    endGame();
+                } else {
+                    const nextStepData = scenario.find(s => s.id === option.next);
+                    if (nextStepData) {
+                        displayStep(nextStepData);
+                    }
+                }
+            }, 1500); // 1.5s delay for realism
+        }
+
+        function showFeedback(text, scoreDelta) {
+            const panel = document.getElementById('feedback-panel');
+            const feedbackText = document.getElementById('feedback-text');
+            
+            feedbackText.innerText = text;
+            panel.classList.remove('hidden');
+            
+            // Visual cue on score change
+            const scoreDisplay = document.getElementById('score-display');
+            const colorClass = scoreDelta >= 0 ? 'text-green-500' : 'text-red-500';
+            const sign = scoreDelta > 0 ? '+' : '';
+            
+            // Create a floating number effect could go here, but keeping it simple for single file
+        }
+
+        function updateUI() {
+            const scoreEl = document.getElementById('score-display');
+            scoreEl.innerText = `${currentScore}/100`;
+            
+            if (currentScore >= 80) scoreEl.className = 'font-bold text-2xl text-emerald-600';
+            else if (currentScore >= 50) scoreEl.className = 'font-bold text-2xl text-orange-500';
+            else scoreEl.className = 'font-bold text-2xl text-red-600';
+        }
+
+        function endGame() {
+            const modal = document.getElementById('result-modal');
+            const title = document.getElementById('final-title');
+            const score = document.getElementById('final-score');
+            const msg = document.getElementById('final-message');
+            const icon = document.getElementById('final-icon');
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            score.innerText = `Score Final : ${currentScore}/100`;
+
+            if (currentScore >= 80) {
+                icon.innerHTML = '<i class="fa-solid fa-trophy text-yellow-400"></i>';
+                title.innerText = "Excellent !";
+                msg.innerText = "Tu as une posture solide. Tu sais protéger le jeune tout en te protégeant toi-même.";
+            } else if (currentScore >= 50) {
+                icon.innerHTML = '<i class="fa-solid fa-medal text-slate-400"></i>';
+                title.innerText = "Pas mal !";
+                msg.innerText = "Tu as de bons réflexes, mais attention à certaines limites (émotionnelles ou cadre) qui ont été un peu floues.";
+            } else {
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500"></i>';
+                title.innerText = "Attention Danger";
+                msg.innerText = "Ta posture met en danger soit le jeune (fausses promesses), soit toi (épuisement, intrusion). Relis la partie théorique !";
+            }
+        }
+
+        function resetGame() {
+            const modal = document.getElementById('result-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('feedback-panel').classList.add('hidden');
+            startGame();
+        }
+
+    </script>
+</body>
+</html>
