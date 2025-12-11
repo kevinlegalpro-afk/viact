@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boss Fight: Quizz Méthodologies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap');
+
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff41;
+            --neon-yellow: #ffee00;
+            --neon-red: #ff3333;
+            --dark-bg: #0d0d15;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 255, 0.05) 0%, transparent 20%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pixel-font { font-family: 'Press Start 2P', cursive; }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        .boss-idle { animation: float 3s ease-in-out infinite; }
+        .shake-element { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .glitch-text { animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; color: var(--neon-red); }
+        
+        .health-bar-container {
+            background: #222;
+            border: 2px solid #444;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .health-bar-fill {
+            height: 100%;
+            transition: width 0.5s ease-out, background-color 0.3s;
+        }
+
+        .glass-panel {
+            background: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-blue);
+            box-shadow: 0 5px 15px rgba(0, 243, 255, 0.15);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1a1a20; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-blue); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="p-2 md:p-4 w-full text-white">
+
+    <!-- TOP UI -->
+    <div class="fixed top-0 left-0 w-full p-4 flex justify-between items-start z-50 pointer-events-none">
+        <div class="text-[10px] md:text-xs text-gray-500 font-mono pointer-events-auto">
+            SYSTEM: ONLINE<br>V.4.1.LMS
+        </div>
+        <!-- Added mr-14 to push buttons left away from the edge -->
+        <div class="flex gap-1 pointer-events-auto bg-black/50 p-1 rounded backdrop-blur-sm mr-14">
+            <button onclick="setLanguage('mg')" class="px-2 py-1 rounded hover:bg-white/10 text-xs font-bold transition border border-transparent hover:border-green-500 opacity-50" id="btn-mg">MG</button>
+            <button onclick="setLanguage('fr')" class="px-2 py-1 rounded hover:bg-white/10 text-xs font-bold transition border border-transparent hover:border-blue-500" id="btn-fr">FR</button>
+            <button onclick="setLanguage('en')" class="px-2 py-1 rounded hover:bg-white/10 text-xs font-bold transition border border-transparent hover:border-purple-500 opacity-50" id="btn-en">EN</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-5xl mx-auto my-auto relative pt-12">
+
+        <!-- SCREEN 1: LANDING -->
+        <div id="landing-screen" class="text-center space-y-6 animate-fade-in py-10">
+            <h1 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 pixel-font leading-tight filter drop-shadow-[0_0_15px_rgba(0,243,255,0.3)]">
+                BOSS FIGHT
+            </h1>
+            <h2 class="text-lg md:text-2xl text-gray-400 font-semibold tracking-[0.2em] uppercase" data-key="subtitle">
+                Quizz des Méthodologies
+            </h2>
+
+            <div class="glass-panel p-6 md:p-10 rounded-2xl max-w-lg mx-auto border-t-4 border-blue-500 mt-8">
+                <p class="mb-8 text-gray-300 text-sm md:text-base leading-relaxed" data-key="introText">
+                    Affrontez le Boss de l'Ignorance ! Testez vos connaissances sur 8 méthodologies d'apprentissage.
+                </p>
+                
+                <button onclick="startGame()" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-blue-600 font-lg rounded-lg hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(0,100,255,0.6)] focus:outline-none ring-offset-2 focus:ring-2 ring-blue-400">
+                    <span class="pixel-font text-sm md:text-base" data-key="startBtn">START GAME</span>
+                    <div class="absolute inset-0 rounded-lg ring-2 ring-white/20 group-hover:ring-white/40"></div>
+                </button>
+            </div>
+
+            <div class="mt-12 opacity-80 hover:opacity-100 transition">
+                <p class="text-[10px] text-gray-500 mb-2 uppercase tracking-widest" data-key="haveCode">Avez-vous le code ?</p>
+                <div class="flex justify-center gap-2">
+                    <input type="text" id="secret-code-input" placeholder="CODE" class="bg-gray-800/80 border border-gray-700 rounded px-3 py-2 text-center tracking-widest uppercase focus:outline-none focus:border-blue-500 w-28 text-sm text-white">
+                    <button onclick="checkCode()" class="bg-blue-900/50 hover:bg-blue-800 text-blue-200 px-3 py-2 rounded font-bold border border-blue-800 text-sm">OK</button>
+                </div>
+                <p id="code-error" class="text-red-400 text-[10px] mt-2 h-4 transition-opacity opacity-0">Code Invalide</p>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: GAME ARENA -->
+        <div id="game-screen" class="hidden flex-col w-full">
+            
+            <!-- HUD -->
+            <div class="flex justify-between items-end mb-6 bg-black/30 p-3 rounded-xl border border-white/5">
+                <div class="w-[45%]">
+                    <div class="flex justify-between text-[10px] md:text-xs font-bold mb-1 uppercase tracking-wider">
+                        <span class="text-blue-400">Player</span>
+                        <span id="player-hp-text">100/100</span>
+                    </div>
+                    <div class="health-bar-container">
+                        <div id="player-hp-bar" class="health-bar-fill bg-blue-500 w-full shadow-[0_0_10px_#3b82f6]"></div>
+                    </div>
+                </div>
+                
+                <div class="text-xl md:text-3xl font-bold pixel-font text-yellow-500 animate-pulse mx-2">VS</div>
+
+                <div class="w-[45%] text-right">
+                    <div class="flex justify-between text-[10px] md:text-xs font-bold mb-1 uppercase tracking-wider">
+                        <span id="boss-hp-text">100/100</span>
+                        <span class="text-red-500" data-key="bossName">Ignorance</span>
+                    </div>
+                    <div class="health-bar-container">
+                        <div id="boss-hp-bar" class="health-bar-fill bg-red-600 w-full float-right shadow-[0_0_10px_#dc2626]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BATTLE CONTENT -->
+            <div class="flex flex-col md:flex-row gap-4 md:gap-6 min-h-[420px]">
+                
+                <!-- BOSS CARD -->
+                <div class="w-full md:w-1/3 glass-panel rounded-xl flex flex-col items-center justify-center p-6 relative overflow-hidden border border-red-900/30 min-h-[200px]">
+                    <div id="boss-visual" class="boss-idle mb-6 transition-transform">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="filter drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                            <path d="M9 10a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z" fill="currentColor"></path>
+                            <path d="M15 10a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z" fill="currentColor"></path>
+                            <path d="M9 14h6"></path>
+                        </svg>
+                    </div>
+                    <div class="text-center w-full">
+                        <div class="inline-block px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-400 mb-2 border border-gray-700">TOPIC</div>
+                        <h3 id="question-category" class="text-lg font-bold text-white mb-2 leading-tight">...</h3>
+                        <div class="h-0.5 w-12 bg-red-500/50 mx-auto rounded"></div>
+                    </div>
+                </div>
+
+                <!-- QUESTION INTERFACE -->
+                <div class="w-full md:w-2/3 glass-panel rounded-xl p-4 md:p-6 flex flex-col border border-blue-500/20 relative">
+                    <!-- Progress Header -->
+                    <div class="flex justify-between items-center text-gray-500 text-xs mb-4 border-b border-gray-700 pb-2">
+                        <span id="question-counter" class="font-mono text-blue-400">Q: 01/12</span>
+                        <span id="difficulty-badge" class="px-2 py-0.5 rounded bg-yellow-900/30 text-yellow-500 border border-yellow-700/50">LEVEL 1</span>
+                    </div>
+
+                    <!-- Question Text -->
+                    <p id="question-text" class="text-base font-medium leading-relaxed mb-6 min-h-[3rem]">
+                        Loading...
+                    </p>
+
+                    <!-- DYNAMIC INTERACTION AREA -->
+                    <div id="interaction-area" class="flex-grow flex flex-col justify-center">
+                        <!-- Standard Buttons (Injected) -->
+                        <div id="answers-container" class="grid grid-cols-1 gap-2.5"></div>
+                    </div>
+                    
+                    <!-- Feedback Footer -->
+                    <div id="feedback-area" class="mt-4 min-h-[1.5rem] flex items-center justify-center font-bold text-sm tracking-widest uppercase opacity-0 transition-opacity">
+                        <!-- Feedback text -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: VICTORY / ARCHIVES -->
+        <div id="victory-screen" class="hidden w-full pb-10">
+            
+            <div class="text-center mb-10 animate-float">
+                <h2 class="text-4xl md:text-6xl font-bold text-yellow-400 pixel-font mb-4 drop-shadow-[0_0_20px_rgba(255,215,0,0.5)]">VICTORY</h2>
+                <p class="text-blue-200 text-sm md:text-base" data-key="unlockMsg">Archives Sécrètes Déverrouillées</p>
+            </div>
+
+            <div class="bg-gray-900/80 border border-yellow-500/30 rounded-lg p-6 mb-12 max-w-md mx-auto text-center relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent"></div>
+                <p class="text-[10px] text-yellow-600 uppercase tracking-widest mb-2" data-key="saveCode">Sauvegardez ce code :</p>
+                <p class="text-3xl md:text-4xl font-mono font-bold text-white tracking-[0.2em] select-all cursor-pointer hover:text-yellow-200 transition">TINKER25</p>
+            </div>
+
+            <h3 class="text-xl md:text-2xl font-bold mb-6 text-left border-l-4 border-blue-500 pl-4 text-white" data-key="bonusTitle">
+                MÉTHODOLOGIES BONUS
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-12">
+                <!-- Cards generated via JS -->
+                <div id="bonus-grid" class="contents"></div>
+            </div>
+            
+            <div class="text-center">
+                 <button onclick="location.reload()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 py-3 px-8 rounded border border-gray-600 text-xs uppercase tracking-widest font-bold transition">
+                    Replay
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: DEFEAT -->
+        <div id="defeat-screen" class="hidden w-full h-full flex flex-col items-center justify-center text-center pb-20">
+            <div class="mb-8 relative">
+                <div class="text-6xl md:text-8xl glitch-text mb-4">☠</div>
+                <h2 class="text-4xl md:text-6xl font-bold text-red-600 pixel-font mb-4" data-key="gameOverTitle">GAME OVER</h2>
+                <p class="text-gray-400 text-sm md:text-lg" data-key="endGameLose">L'Ignorance l'emporte...</p>
+            </div>
+            
+            <button onclick="location.reload()" class="bg-red-900/50 hover:bg-red-800 text-red-200 py-4 px-10 rounded border border-red-600 text-sm uppercase tracking-widest font-bold transition transform hover:scale-105 shadow-[0_0_20px_rgba(220,38,38,0.4)]">
+                Try Again
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/90 z-[100] hidden flex items-center justify-center p-2 md:p-4 backdrop-blur-sm" onclick="closeModal()">
+        <div class="glass-panel w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl border border-gray-600 shadow-2xl transform transition-all scale-95 opacity-0" id="modal-content" onclick="event.stopPropagation()">
+            
+            <!-- Modal Header -->
+            <div class="relative h-32 md:h-40 bg-gradient-to-r from-blue-900 to-purple-900 p-6 flex flex-col justify-end">
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full w-8 h-8 flex items-center justify-center transition">✕</button>
+                <h2 id="modal-title" class="text-2xl md:text-4xl font-bold text-white mb-1 shadow-black drop-shadow-md">Title</h2>
+                <div class="h-1 w-24 bg-neon-blue rounded shadow-[0_0_10px_#00f3ff]"></div>
+            </div>
+            
+            <div class="p-6 md:p-8 space-y-8">
+                <!-- Concept Section -->
+                <div class="flex gap-4 items-start">
+                    <div class="text-3xl">💡</div>
+                    <div>
+                        <h3 class="text-sm font-bold text-blue-400 uppercase mb-2 tracking-wider" data-key="modalConcept">Le Concept</h3>
+                        <p id="modal-concept" class="text-gray-200 leading-relaxed text-sm md:text-base border-l-2 border-gray-600 pl-4">...</p>
+                    </div>
+                </div>
+
+                <!-- Tips Grid -->
+                <div class="bg-gray-800/40 p-5 rounded-lg border border-yellow-500/20">
+                    <h3 class="text-sm font-bold text-yellow-400 uppercase mb-4 flex items-center gap-2">
+                        <span>⚡</span> Tips & Tricks
+                    </h3>
+                    <ul id="modal-tips" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-300">
+                        <!-- Tips injected -->
+                    </ul>
+                </div>
+
+                <!-- Resources Section -->
+                <div>
+                    <h3 class="text-sm font-bold text-purple-400 uppercase mb-3 flex items-center gap-2" data-key="modalResources">
+                         <span>🛠️</span> Ressources
+                    </h3>
+                    <div id="modal-resources" class="flex flex-wrap gap-2">
+                        <!-- Tags injected -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME DATA ---
+        const SECRET_CODE = "TINKER25";
+        
+        const i18n = {
+            fr: {
+                subtitle: "Quizz des Méthodologies",
+                introText: "Affrontez le Boss de l'Ignorance ! Testez vos connaissances sur les méthologies actives. 12 questions pour la victoire.",
+                startBtn: "COMMENCER",
+                haveCode: "Vous avez un code ?",
+                bossName: "L'IGNORANCE",
+                unlockMsg: "Accès autorisé aux Archives Secrètes.",
+                saveCode: "NOTEZ CE CODE :",
+                bonusTitle: "MÉTHODOLOGIES BONUS",
+                modalConcept: "Le Concept",
+                modalResources: "Ressources / Outils",
+                correct: "EXCELLENT !",
+                wrong: "TOUCHÉ !",
+                gameOverTitle: "GAME OVER",
+                endGameLose: "L'Ignorance l'emporte..."
+            },
+            en: {
+                subtitle: "Learning Methodologies Quiz",
+                introText: "Face the Boss of Ignorance! Test your knowledge on active methodologies. 12 questions to victory.",
+                startBtn: "START GAME",
+                haveCode: "Have a code?",
+                bossName: "IGNORANCE",
+                unlockMsg: "Access granted to Secret Archives.",
+                saveCode: "SAVE THIS CODE:",
+                bonusTitle: "BONUS METHODOLOGIES",
+                modalConcept: "The Concept",
+                modalResources: "Resources / Tools",
+                correct: "EXCELLENT!",
+                wrong: "HIT TAKEN!",
+                gameOverTitle: "GAME OVER",
+                endGameLose: "Ignorance prevails..."
+            },
+            mg: {
+                subtitle: "Fanadinana Fomba Fampianarana",
+                introText: "Miady amin'ny Lehiben'ny Tsy Fahalalana! Zahao ny fahaizanao momba ny fomba fampianarana. Fanontaniana 12 handresena.",
+                startBtn: "MANOMBOKA",
+                haveCode: "Manana kaody ve ianao?",
+                bossName: "TSY FAHALALANA",
+                unlockMsg: "Nahazo alalana hiditra amin'ny Tahiry Miafina.",
+                saveCode: "RAIKETIO ITY KAODY ITY:",
+                bonusTitle: "FOMBA FAMPIANARANA FANAMPINY",
+                modalConcept: "Ny Hevitra Fototra",
+                modalResources: "Fitaovana / Loharano",
+                correct: "TENA TSARA !",
+                wrong: "VOA IANAO !",
+                gameOverTitle: "RESY IANAO",
+                endGameLose: "Nandresy ny Tsy Fahalalana..."
+            }
+        };
+
+        // --- FULL QUESTIONS DATA ---
+        const questionsData = {
+            fr: [
+                { category: "Project Based Learning", text: "Quelle est la caractéristique principale du PBL ?", answers: [{text: "Mémoriser pour un examen", correct: false}, {text: "Créer un produit final tangible", correct: true}, {text: "Écouter le professeur", correct: false}] },
+                { category: "Peer Based Learning", text: "Qui est la source principale de savoir en Peer Learning ?", answers: [{text: "Le manuel", correct: false}, {text: "Les autres apprenants", correct: true}, {text: "Un expert externe", correct: false}] },
+                { category: "Game Based Learning", text: "Quelle est la différence entre Gamification et GBL ?", answers: [{text: "C'est exactement la même chose", correct: false}, {text: "Gamification = éléments de jeu / GBL = jeu complet", correct: true}, {text: "Le GBL ne sert qu'à s'amuser sans apprendre", correct: false}] },
+                { category: "Problem Based Learning", text: "Le 'Problem Based Learning' commence par :", answers: [{text: "Un scénario flou et ouvert", correct: true}, {text: "Une liste de définitions", correct: false}, {text: "La solution", correct: false}] },
+                { category: "Challenge Based Learning", text: "Le Challenge Based Learning s'attaque à...", answers: [{text: "Un problème fictif", correct: false}, {text: "Une problématique mondiale réelle", correct: true}, {text: "Des calculs abstraits", correct: false}] },
+                { category: "Game Based Learning", text: "Qu'est-ce qui n'est PAS essentiel au GBL ?", answers: [{text: "Graphismes 4K réalistes", correct: true}, {text: "Règles et objectifs", correct: false}, {text: "Feedback immédiat", correct: false}] },
+                { category: "Place Based Learning", text: "Sur quoi repose le Place Based Learning ?", answers: [{text: "Une salle de classe fermée", correct: false}, {text: "Un lieu précis et défini (contexte réel)", correct: true}, {text: "Un espace uniquement virtuel", correct: false}] },
+                { category: "Debate Based Learning", text: "Objectif principal du débat ?", answers: [{text: "Crier plus fort", correct: false}, {text: "Argumentation et critique", correct: true}, {text: "Être toujours d'accord", correct: false}] },
+                { category: "Project Based Learning", text: "Vrai ou Faux : L'élève a son mot à dire sur le sujet.", answers: [{text: "Vrai", correct: true}, {text: "Faux", correct: false}] },
+                { category: "Bootcamp", text: "Le format Bootcamp se définit par :", answers: [{text: "Forte intensité, courte durée", correct: true}, {text: "Apprentissage sur 3 ans", correct: false}, {text: "Lecture silencieuse", correct: false}] },
+                { category: "Peer Based Learning", text: "L'enseignement mutuel renforce...", answers: [{text: "La rétention pour celui qui enseigne", correct: true}, {text: "La confusion", correct: false}, {text: "La charge du prof", correct: false}] },
+                { category: "Mixed Methodologies", text: "Quelle méthode est la plus efficace ?", answers: [{text: "Cours magistral seul", correct: false}, {text: "Celle adaptée au contexte", correct: true}, {text: "Celle avec le plus d'écrans", correct: false}] }
+            ],
+            en: [
+                { category: "Project Based Learning", text: "Main characteristic of PBL?", answers: [{text: "Memorizing facts", correct: false}, {text: "Creating a tangible product", correct: true}, {text: "Listening only", correct: false}] },
+                { category: "Peer Based Learning", text: "Who is the knowledge source in Peer Learning?", answers: [{text: "The textbook", correct: false}, {text: "Other learners", correct: true}, {text: "An expert", correct: false}] },
+                { category: "Game Based Learning", text: "Difference between Gamification and GBL?", answers: [{text: "They are exactly the same", correct: false}, {text: "Gamification = game elements / GBL = full game", correct: true}, {text: "GBL has no learning goals", correct: false}] },
+                { category: "Problem Based Learning", text: "PBL usually starts with:", answers: [{text: "Messy open scenario", correct: true}, {text: "Definitions list", correct: false}, {text: "The solution", correct: false}] },
+                { category: "Challenge Based Learning", text: "Challenge Based Learning addresses...", answers: [{text: "Fictional problems", correct: false}, {text: "Real global issues", correct: true}, {text: "Abstract math", correct: false}] },
+                { category: "Game Based Learning", text: "What is NOT essential for GBL?", answers: [{text: "Realistic 4K graphics", correct: true}, {text: "Rules and goals", correct: false}, {text: "Immediate feedback", correct: false}] },
+                { category: "Place Based Learning", text: "Place Based Learning relies on...", answers: [{text: "Closed classroom", correct: false}, {text: "A specific, defined place (context)", correct: true}, {text: "Virtual space only", correct: false}] },
+                { category: "Debate Based Learning", text: "Main goal of debating?", answers: [{text: "Shouting loud", correct: false}, {text: "Critical argumentation", correct: true}, {text: "Always agreeing", correct: false}] },
+                { category: "Project Based Learning", text: "True or False: Student voice matters.", answers: [{text: "True", correct: true}, {text: "False", correct: false}] },
+                { category: "Bootcamp", text: "Bootcamp format is defined by:", answers: [{text: "High intensity, short time", correct: true}, {text: "3 years long", correct: false}, {text: "Silent reading", correct: false}] },
+                { category: "Peer Based Learning", text: "Mutual teaching reinforces...", answers: [{text: "Teacher's retention", correct: true}, {text: "Confusion", correct: false}, {text: "Teacher workload", correct: false}] },
+                { category: "Mixed Methodologies", text: "Most effective method?", answers: [{text: "Lecture only", correct: false}, {text: "Context adapted", correct: true}, {text: "Most screens", correct: false}] }
+            ],
+            mg: [
+                { category: "Project Based Learning", text: "Inona no tena mampiavaka ny PBL?", answers: [{text: "Mitadidy lesona fotsiny", correct: false}, {text: "Mamorona vokatra azo tsapain-tanana", correct: true}, {text: "Mihaino mpampianatra fotsiny", correct: false}] },
+                { category: "Peer Based Learning", text: "Iza no loharanon'ny fahalalana amin'ny Peer Learning?", answers: [{text: "Ny boky", correct: false}, {text: "Ny mpianatra hafa", correct: true}, {text: "Ny manampahaizana", correct: false}] },
+                { category: "Game Based Learning", text: "Inona no maha-samy hafa ny Gamification sy GBL?", answers: [{text: "Mitovy tanteraka izy ireo", correct: false}, {text: "Gamification = singa lalao / GBL = lalao feno", correct: true}, {text: "Tsy misy tanjona ny GBL", correct: false}] },
+                { category: "Problem Based Learning", text: "Ahoana no manomboka ny Problem Based Learning?", answers: [{text: "Olana sarotra tsy voavaha", correct: true}, {text: "Lisitra famaritana", correct: false}, {text: "Ny valiny tonga dia omena", correct: false}] },
+                { category: "Challenge Based Learning", text: "Ny Challenge Based Learning dia miompana amin'ny...", answers: [{text: "Olana noforonina", correct: false}, {text: "Olana misy eo amin'izao tontolo izao", correct: true}, {text: "Kajy", correct: false}] },
+                { category: "Game Based Learning", text: "Inona no TSY voatery ilaina amin'ny GBL?", answers: [{text: "Sary 4K tena tsara", correct: true}, {text: "Fitsipika sy tanjona", correct: false}, {text: "Valiny eo noho eo", correct: false}] },
+                { category: "Place Based Learning", text: "Ny Place Based Learning dia mifantoka amin'ny...", answers: [{text: "Efitrano mihidy", correct: false}, {text: "Toerana voafaritra manokana", correct: true}, {text: "Amin'ny Internet ihany", correct: false}] },
+                { category: "Debate Based Learning", text: "Tanjon'ny adihevitra?", answers: [{text: "Mikiakiaka mafy", correct: false}, {text: "Mampiasa saina sy manazava hevitra", correct: true}, {text: "Manaiky foana", correct: false}] },
+                { category: "Project Based Learning", text: "Marina sa Diso: Afaka mifidy ny lohahevitra ny mpianatra.", answers: [{text: "Marina", correct: true}, {text: "Diso", correct: false}] },
+                { category: "Bootcamp", text: "Ny endriky ny Bootcamp dia:", answers: [{text: "Mafy be ary fohy fotoana", correct: true}, {text: "Mianatra mandritra ny 3 taona", correct: false}, {text: "Mamaky teny mangina", correct: false}] },
+                { category: "Peer Based Learning", text: "Ny fampianarana ny namana dia manamafy...", answers: [{text: "Ny fahaizan'ilay mampianatra", correct: true}, {text: "Ny korontana", correct: false}, {text: "Ny asan'ny mpampianatra", correct: false}] },
+                { category: "Mixed Methodologies", text: "Inona no fomba mahomby indrindra?", answers: [{text: "Toriteny ihany", correct: false}, {text: "Izay mifanaraka amin'ny zava-misy", correct: true}, {text: "Izay mampiasa teknolojia be indrindra", correct: false}] }
+            ]
+        };
+
+        const bonusesData = {
+            fr: [
+                { title: "Adventure Based Learning", concept: "Utilisation d'activités structurées (souvent physiques ou en extérieur) comportant un risque perçu (mais géré) pour favoriser le développement personnel.", tips: ["Commencez par des 'Ice Breakers' simples.", "Le débriefing après l'action est vital.", "Challenge by Choice : ne jamais forcer."], resources: ["Randonnée", "Escalade", "Jeux de confiance", "Nature"] },
+                { title: "Digital Storytelling", concept: "Combiner la narration traditionnelle avec des outils numériques (images, sons, vidéos) pour créer de courtes histoires engageantes.", tips: ["Le script d'abord, la tech ensuite.", "Court (2-3 min max).", "La voix de l'élève est la clé."], resources: ["Canva", "Stop Motion", "Audacity", "iMovie"] },
+                { title: "Learning by Tinkering", concept: "Apprendre en 'bidouillant'. Approche pratique où l'on démonte, répare ou construit pour comprendre le fonctionnement.", tips: ["L'échec est une donnée, pas une fin.", "Matériaux 'low tech' d'abord (carton).", "Documenter chaque étape."], resources: ["Arduino", "LEGO", "Imprimante 3D", "Carton"] },
+                { title: "Open Space Technology", concept: "Méthode pour organiser des réunions où les participants créent eux-mêmes l'ordre du jour sur place.", tips: ["Loi des deux pieds : si tu n'apprends rien, bouge.", "Laissez le chaos s'organiser.", "Grand mur vide nécessaire."], resources: ["Post-its géants", "Cercle", "Confiance", "Liberté"] }
+            ],
+            en: [
+                { title: "Adventure Based Learning", concept: "Structured outdoor activities with perceived risk for growth.", tips: ["Start with Ice Breakers.", "Debriefing is key.", "Challenge by Choice."], resources: ["Hiking", "Climbing", "Nature"] },
+                { title: "Digital Storytelling", concept: "Mixing narrative with digital media.", tips: ["Script first.", "Keep it short.", "Student's voice."], resources: ["Canva", "Podcasts", "Video"] },
+                { title: "Learning by Tinkering", concept: "Learning by making/breaking.", tips: ["Failure is data.", "Low tech first.", "Document process."], resources: ["Arduino", "LEGO", "Maker"] },
+                { title: "Open Space Technology", concept: "Participant-driven agenda.", tips: ["Law of Two Feet.", "Self-organization.", "Big wall needed."], resources: ["Post-its", "Circle", "Trust"] }
+            ],
+            mg: [
+                { title: "Adventure Based Learning", concept: "Fampiasana hetsika (matetika any ivelany) misy risika voafehy mba hampitomboana ny fahaizana miaina sy miaraka.", tips: ["Atomboka amin'ny lalao tsotra.", "Ny famakafakana aorian'ny hetsika no zava-dehibe.", "Tsy maintsy safidy ny fandraisana anjara."], resources: ["Dia an-tongotra", "Fianihana", "Lalao"] },
+                { title: "Digital Storytelling", concept: "Fampifangaroana ny fitantarana sy ny teknolojia (sary, feo) hamoronana tantara fohy.", tips: ["Soratra aloha vao teknolojia.", "Ataovy fohy (2-3 min).", "Ny feon'ny mpianatra no ampiasaina."], resources: ["Canva", "Horonantsary", "Feo"] },
+                { title: "Learning by Tinkering", concept: "Mianatra amin'ny alalan'ny fanaovana zavatra (Tinkering). Manamboatra, mandrava, manitsy.", tips: ["Ny tsy fahombiazana dia fianarana.", "Fitaovana tsotra (baoritra) aloha.", "Raketo an-tsoratra ny dingana."], resources: ["Arduino", "LEGO", "3D", "Fanamboarana"] },
+                { title: "Open Space Technology", concept: "Fomba fandaminana fivoriana izay ny mpandray anjara ihany no mamorona ny fandaharam-potoana.", tips: ["Lalàn'ny tongotra roa: raha tsy mianatra ianao dia mifindrà.", "Avelao hilamina ny korontana.", "Mila rindrina malalaka."], resources: ["Taratasy", "Vondrona", "Fahatokisana"] }
+            ]
+        };
+
+        // --- STATE ---
+        let currentLang = 'fr';
+        let playerHP = 100;
+        let bossHP = 100;
+        let currentQIndex = 0;
+        let gameActive = false;
+        let questions = [];
+
+        // --- CORE FUNCTIONS ---
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            ['fr', 'en', 'mg'].forEach(l => {
+                document.getElementById(`btn-${l}`).classList.toggle('opacity-50', l !== lang);
+                document.getElementById(`btn-${l}`).classList.toggle('border-transparent', l !== lang);
+            });
+            
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (i18n[lang][key]) el.textContent = i18n[lang][key];
+            });
+
+            if (!document.getElementById('victory-screen').classList.contains('hidden')) {
+                 renderBonusCards();
+            }
+        }
+
+        function checkCode() {
+            const input = document.getElementById('secret-code-input').value.toUpperCase().trim();
+            const err = document.getElementById('code-error');
+            
+            if (input === SECRET_CODE) {
+                showVictory();
+            } else {
+                err.style.opacity = '1';
+                setTimeout(() => err.style.opacity = '0', 2000);
+            }
+        }
+
+        function startGame() {
+            gameActive = true;
+            playerHP = 100;
+            bossHP = 100;
+            currentQIndex = 0;
+            updateBars();
+
+            // Load language specific questions & Clone properly
+            questions = JSON.parse(JSON.stringify(questionsData[currentLang]));
+            
+            document.getElementById('landing-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('flex');
+            document.getElementById('defeat-screen').classList.add('hidden'); // Ensure defeat screen is hidden
+            
+            loadQuestion();
+        }
+
+        function updateBars() {
+            const pBar = document.getElementById('player-hp-bar');
+            const bBar = document.getElementById('boss-hp-bar');
+            
+            pBar.style.width = playerHP + '%';
+            document.getElementById('player-hp-text').innerText = Math.round(playerHP) + '/100';
+            
+            bBar.style.width = bossHP + '%';
+            document.getElementById('boss-hp-text').innerText = bossHP + '/100';
+
+            pBar.className = `health-bar-fill w-full ${playerHP < 34 ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-blue-500 shadow-[0_0_10px_#3b82f6]'}`;
+        }
+
+        function loadQuestion() {
+            if (currentQIndex >= questions.length) {
+                showVictory();
+                return;
+            }
+
+            const q = questions[currentQIndex];
+            document.getElementById('question-category').innerText = q.category;
+            document.getElementById('question-counter').innerText = `Q: ${currentQIndex + 1}/${questions.length}`;
+            
+            const feedback = document.getElementById('feedback-area');
+            feedback.style.opacity = '0';
+
+            // Reset containers
+            const stdContainer = document.getElementById('answers-container');
+            stdContainer.innerHTML = '';
+            
+            document.getElementById('question-text').innerText = q.text;
+
+            // Shuffle answers
+            const answers = [...q.answers].sort(() => Math.random() - 0.5);
+
+            answers.forEach(ans => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-lg bg-gray-800/80 hover:bg-gray-700 border border-gray-600 hover:border-blue-400 transition-all text-sm md:text-base font-medium relative overflow-hidden group";
+                btn.innerHTML = `<span class="relative z-10">${ans.text}</span><div class="absolute inset-0 bg-blue-600/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>`;
+                btn.onclick = () => handleChoiceAnswer(ans.correct, btn);
+                stdContainer.appendChild(btn);
+            });
+        }
+
+        // --- CHOICE LOGIC ---
+        function handleChoiceAnswer(isCorrect, btnElement) {
+            const btns = document.querySelectorAll('#answers-container button');
+            btns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                bossHP = Math.max(0, bossHP - 9); // Calibrated for 12 questions (9 * 12 = 108 > 100)
+                btnElement.classList.replace('border-gray-600', 'border-green-400');
+                btnElement.classList.add('bg-green-600/20');
+                showFeedback(true, i18n[currentLang].correct);
+                document.getElementById('boss-visual').classList.add('shake-element');
+            } else {
+                playerHP = Math.max(0, playerHP - 34); // Increased damage: 3 hits = 102 damage -> Death
+                btnElement.classList.replace('border-gray-600', 'border-red-400');
+                btnElement.classList.add('bg-red-600/20');
+                showFeedback(false, i18n[currentLang].wrong);
+                document.body.classList.add('shake-element');
+            }
+            
+            setTimeout(() => {
+                document.getElementById('boss-visual').classList.remove('shake-element');
+                document.body.classList.remove('shake-element');
+            }, 500);
+
+            updateBars();
+
+            if (playerHP <= 0) {
+                 setTimeout(showDefeat, 1000);
+            } else if (bossHP <= 0) { 
+                 setTimeout(showVictory, 1000);
+            } else {
+                currentQIndex++;
+                setTimeout(loadQuestion, 1500);
+            }
+        }
+
+        function showFeedback(isGood, text) {
+            const fb = document.getElementById('feedback-area');
+            fb.innerText = text;
+            fb.style.color = isGood ? '#4ade80' : '#ef4444';
+            fb.style.opacity = '1';
+        }
+
+        function showVictory() {
+            gameActive = false;
+            document.getElementById('landing-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('flex');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('victory-screen').classList.remove('hidden');
+            renderBonusCards();
+        }
+
+        function showDefeat() {
+            gameActive = false;
+            document.getElementById('game-screen').classList.remove('flex');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('defeat-screen').classList.remove('hidden');
+        }
+
+        function renderBonusCards() {
+            const grid = document.getElementById('bonus-grid');
+            grid.innerHTML = '';
+            
+            const bonuses = bonusesData[currentLang];
+            const colors = ['green', 'blue', 'yellow', 'purple'];
+            
+            bonuses.forEach((b, idx) => {
+                const color = colors[idx % colors.length];
+                const card = document.createElement('div');
+                card.className = `glass-panel p-5 rounded-xl card-hover cursor-pointer border-l-4 border-${color}-400 flex flex-col justify-between h-32 md:h-40`;
+                card.onclick = () => openModal(idx);
+                card.innerHTML = `
+                    <h4 class="text-lg md:text-xl font-bold leading-tight">${b.title}</h4>
+                    <div class="flex justify-between items-end mt-2">
+                        <span class="text-[10px] uppercase tracking-widest text-gray-400">Tap for details</span>
+                        <div class="w-8 h-8 rounded-full bg-${color}-500/20 flex items-center justify-center text-${color}-400">
+                            ➜
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- MODAL LOGIC ---
+        function openModal(index) {
+            const data = bonusesData[currentLang][index];
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            document.getElementById('modal-title').innerText = data.title;
+            document.getElementById('modal-concept').innerText = data.concept;
+            
+            const tipsList = document.getElementById('modal-tips');
+            tipsList.innerHTML = '';
+            data.tips.forEach(tip => {
+                tipsList.innerHTML += `<li class="flex items-start gap-2"><span class="text-yellow-500 mt-1">▹</span><span>${tip}</span></li>`;
+            });
+
+            const resDiv = document.getElementById('modal-resources');
+            resDiv.innerHTML = '';
+            data.resources.forEach(res => {
+                resDiv.innerHTML += `<span class="bg-blue-900/40 text-blue-200 px-3 py-1 rounded-full text-xs border border-blue-500/30 font-mono">${res}</span>`;
+            });
+
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        // Init
+        setLanguage('fr');
+
+    </script>
+</body>
+</html>
