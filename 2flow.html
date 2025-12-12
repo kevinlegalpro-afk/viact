@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamiques d'Engagement & Apprentissage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow: hidden; }
+        
+        .interactive-zone {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.85;
+        }
+        
+        .interactive-zone:hover, .interactive-zone.active {
+            opacity: 1;
+            stroke: #1e293b;
+            stroke-width: 2px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+            z-index: 10;
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .scale-in { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+
+        .dash-draw { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawLine 2.5s ease-out forwards; }
+        @keyframes drawLine { to { stroke-dashoffset: 0; } }
+        
+        .step-point { cursor: pointer; }
+        .step-point circle { transition: all 0.2s ease; }
+        .step-point:hover circle { stroke: #1e293b; stroke-width: 4px; r: 18px; }
+        .step-label { pointer-events: none; font-weight: 800; text-shadow: 0 0 3px white, 0 0 3px white; }
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col text-slate-800">
+
+    <!-- HEADER -->
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-20 shrink-0">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="app.setView('home')">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-md">
+                <i data-lucide="compass" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight text-slate-800">Dynamiques d'Engagement</h1>
+                <p class="text-[11px] text-slate-500 uppercase tracking-widest font-semibold">Outils pour Travailleurs Jeunesse</p>
+            </div>
+        </div>
+
+        <div class="flex gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button onclick="app.setLang('fr')" id="btn-fr" class="px-3 py-1 text-xs font-bold rounded shadow-sm bg-white text-indigo-700 transition-colors">FR</button>
+            <button onclick="app.setLang('en')" id="btn-en" class="px-3 py-1 text-xs font-medium rounded text-slate-500 hover:bg-white transition-colors">EN</button>
+            <button onclick="app.setLang('mg')" id="btn-mg" class="px-3 py-1 text-xs font-medium rounded text-slate-500 hover:bg-white transition-colors">MG</button>
+        </div>
+    </header>
+
+    <!-- CONTENU -->
+    <main id="main-content" class="flex-1 overflow-hidden relative flex bg-slate-50">
+        <!-- Injecté via JS -->
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="h-8 bg-white border-t border-slate-200 flex items-center justify-center text-[10px] text-slate-400 uppercase tracking-widest shrink-0">
+        COPYRIGHT Vi-Act 2025 - auteur Kévin Le Gal
+    </footer>
+
+    <script>
+        const data = {
+            fr: {
+                home_title: "Comprendre et Agir sur l'Apprentissage",
+                home_subtitle: "Pourquoi utiliser ces modèles ?",
+                home_desc: "Dans le travail jeunesse, nous sommes confrontés à des jeunes qui s'ennuient, qui paniquent ou qui décrochent. Ces deux modèles (Flow & Vygotsky) sont des **boussoles pédagogiques**.<br><br>Ils permettent de :<br>1. **Diagnostiquer** l'état émotionnel du jeune.<br>2. **Ajuster** votre posture (Aider ou laisser faire ?).<br>3. **Maintenir** l'engagement.",
+                btn_flow: "Le Flow (Mihaly C.)",
+                btn_zpd: "La ZPD (Vygotsky)",
+                btn_discover: "Explorer le modèle",
+                btn_start: "Accéder au Graphique Interactif",
+                
+                back: "Menu Principal",
+                nav_quadrant: "Vue Matrice",
+                nav_channel: "Vue Canal (5 zones)",
+                nav_trajectory: "La Spirale de Progression",
+                nav_circles: "Vue Zones",
+                nav_ladder: "Vue Étayage",
+                
+                title_flow: "La Théorie du Flow",
+                title_zpd: "Zone de Développement Proximal",
+                axis_skill: "Compétences",
+                axis_challenge: "Défi",
+                axis_time: "Temps",
+                
+                theory_label: "L'Explication Théorique",
+                ex_label: "Exemples Concrets",
+                
+                context_flow: "<strong>Résumé :</strong> L'engagement naît de l'équilibre entre Compétence et Défi.",
+                context_zpd: "<strong>Résumé :</strong> L'apprentissage se fait grâce à l'aide temporaire (étayage) de l'éducateur.",
+                context_trajectory: "<strong>Résumé :</strong> Pour maintenir le Flow, il faut augmenter la difficulté quand la compétence augmente.",
+
+                // CONTENU MODALE (POP-UP)
+                modal_flow: {
+                    who_title: "L'Inventeur",
+                    who_name: "Mihaly Csikszentmihalyi",
+                    who_job: "Psychologue Hongrois-Américain",
+                    what_title: "Le Concept",
+                    what_desc: "Le 'Flow' est un état mental de concentration absolue et de satisfaction profonde. On est tellement absorbé par l'activité que le temps semble disparaître.",
+                    how_title: "Pour le Travailleur Jeunesse",
+                    how_desc: "Ce modèle est votre **thermomètre d'ambiance**. Si un jeune perturbe, regardez le graphique :<br>• Est-ce trop facile ? (Il s'ennuie -> Augmentez le défi).<br>• Est-ce trop dur ? (Il angoisse -> Simplifiez ou aidez).<br>Votre but est de maintenir le groupe dans le 'Canal du Flow'."
+                },
+                modal_zpd: {
+                    who_title: "L'Inventeur",
+                    who_name: "Lev Vygotsky",
+                    who_job: "Psychologue et Pédagogue Soviétique",
+                    what_title: "Le Concept",
+                    what_desc: "La ZPD est l'écart entre ce que l'enfant sait faire seul et ce qu'il peut faire avec de l'aide. C'est dans cette zone que se produit l'apprentissage.",
+                    how_title: "Pour le Travailleur Jeunesse",
+                    how_desc: "Ce modèle définit votre **posture**. Vous êtes un échafaudage (scaffolding).<br>• Si vous faites tout à sa place : il n'apprend pas (Zone Confort).<br>• Si vous ne l'aidez pas du tout : il échoue (Zone Panique).<br>Votre rôle est d'apporter l'aide minimale nécessaire, puis de la retirer progressivement."
+                },
+
+                details: {
+                    'flow': { title: "FLOW (Zone Optimale)", color: "emerald", desc: "Immersion totale. Le défi est élevé mais surmontable.", ex: "Montage vidéo pendant 3h sans pause." },
+                    'anxiety': { title: "Anxiété / Stress", color: "red", desc: "Défi trop élevé. Le jeune panique.", ex: "Parler en public sans préparation." },
+                    'boredom': { title: "Ennui (Boredom)", color: "amber", desc: "Compétences trop élevées pour la tâche.", ex: "Coloriage simple à 15 ans." },
+                    'apathy': { title: "Apathie", color: "slate", desc: "Faible défi, faible compétence. Désintérêt.", ex: "Refus de participer." },
+                    'control': { title: "Contrôle", color: "blue", desc: "Forte compétence, défi moyen. Confortable.", ex: "Refaire une activité connue." },
+                    'arousal': { title: "Éveil", color: "orange", desc: "Défi élevé, compétence moyenne. Apprentissage.", ex: "Apprendre une nouvelle règle complexe." },
+                    't_step1': { title: "1. Débutant", color: "emerald", desc: "Défi faible, compétence faible. Équilibre.", ex: "Apprendre les bases." },
+                    't_step2': { title: "2. Progression", color: "amber", desc: "Compétence en hausse. Tâche devenue facile.", ex: "C'est répétitif." },
+                    't_step3': { title: "3. Nouveau Défi", color: "orange", desc: "On augmente la difficulté.", ex: "Passer au niveau supérieur." },
+                    't_step4': { title: "4. Maîtrise", color: "emerald", desc: "Retour au Flow à un niveau supérieur.", ex: "Maîtrise du niveau difficile." },
+                    'panic_zone': { title: "Zone Panique", color: "red", desc: "Trop dur, même avec aide.", ex: "Calcul intégral en primaire." },
+                    'zpd_zone': { title: "Zone Proximale (ZPD)", color: "emerald", desc: "Réussite AVEC AIDE.", ex: "Vélo avec soutien." },
+                    'comfort_zone': { title: "Zone Confort", color: "blue", desc: "Réussite SEUL.", ex: "Marcher." },
+                    'step_ido': { title: "1. JE fais", color: "blue", desc: "Démonstration.", ex: "Regarde-moi faire." },
+                    'step_wedo': { title: "2. NOUS faisons", color: "emerald", desc: "Pratique guidée.", ex: "On fait ensemble." },
+                    'step_youdo': { title: "3. TU fais", color: "amber", desc: "Autonomie.", ex: "Vas-y seul." }
+                }
+            },
+            en: {
+                home_title: "Learning Dynamics",
+                home_subtitle: "Why use these models?",
+                home_desc: "Diagnostic tools for youth work to manage engagement and learning.",
+                btn_flow: "Flow Theory",
+                btn_zpd: "ZPD Theory",
+                btn_discover: "Explore",
+                btn_start: "Start Interactive Graph",
+                back: "Menu",
+                nav_quadrant: "Matrix",
+                nav_channel: "Channel",
+                nav_trajectory: "Trajectory",
+                nav_circles: "Circles",
+                nav_ladder: "Ladder",
+                title_flow: "Flow Theory",
+                title_zpd: "Zone of Proximal Dev.",
+                axis_skill: "Skill",
+                axis_challenge: "Challenge",
+                axis_time: "Time",
+                theory_label: "Theory",
+                ex_label: "Example",
+                context_flow: "Balance Skill & Challenge.",
+                context_zpd: "Scaffolding learning.",
+                context_trajectory: "Increasing challenge over time.",
+                modal_flow: {
+                    who_title: "The Inventor",
+                    who_name: "Mihaly Csikszentmihalyi",
+                    who_job: "Psychologist",
+                    what_title: "The Concept",
+                    what_desc: "Flow is a state of complete immersion and focus. Time flies.",
+                    how_title: "For Youth Workers",
+                    how_desc: "Use this to diagnose behavior. Bored? Increase challenge. Anxious? Offer support. Keep them in the Flow Channel."
+                },
+                modal_zpd: {
+                    who_title: "The Inventor",
+                    who_name: "Lev Vygotsky",
+                    who_job: "Psychologist",
+                    what_title: "The Concept",
+                    what_desc: "The distance between what a child can do alone and what they can do with help.",
+                    how_title: "For Youth Workers",
+                    how_desc: "You are the scaffold. Don't do it for them, don't leave them alone too soon. Bridge the gap."
+                },
+                details: {
+                    'flow': { title: "FLOW", color: "emerald", desc: "Total immersion.", ex: "Editing video." },
+                    'anxiety': { title: "Anxiety", color: "red", desc: "Too hard.", ex: "Public speaking." },
+                    'boredom': { title: "Boredom", color: "amber", desc: "Too easy.", ex: "Baby tasks." },
+                    'apathy': { title: "Apathy", color: "slate", desc: "No interest.", ex: "Doing nothing." },
+                    'control': { title: "Control", color: "blue", desc: "Comfortable.", ex: "Routine task." },
+                    'arousal': { title: "Arousal", color: "orange", desc: "Learning.", ex: "New rules." },
+                    't_step1': { title: "1. Novice", color: "emerald", desc: "Balanced start.", ex: "Basics." },
+                    't_step2': { title: "2. Growth", color: "amber", desc: "Too easy now.", ex: "Repetitive." },
+                    't_step3': { title: "3. Challenge", color: "orange", desc: "Harder task.", ex: "Level up." },
+                    't_step4': { title: "4. Mastery", color: "emerald", desc: "Flow again.", ex: "Mastery." },
+                    'panic_zone': { title: "Panic", color: "red", desc: "Impossible.", ex: "Calculus." },
+                    'zpd_zone': { title: "ZPD", color: "emerald", desc: "With help.", ex: "Guided." },
+                    'comfort_zone': { title: "Comfort", color: "blue", desc: "Alone.", ex: "Walking." },
+                    'step_ido': { title: "1. I Do", color: "blue", desc: "Model.", ex: "Watch me." },
+                    'step_wedo': { title: "2. We Do", color: "emerald", desc: "Together.", ex: "Help me." },
+                    'step_youdo': { title: "3. You Do", color: "amber", desc: "Alone.", ex: "Go ahead." }
+                }
+            },
+            mg: {
+                home_title: "Dinamikan'ny Fianarana",
+                home_subtitle: "Nahoana no ilaina?",
+                home_desc: "Fitaovana hanampiana ny mpanabe hahatakatra ny tanora.",
+                btn_flow: "Flow (Mihaly C.)",
+                btn_zpd: "ZPD (Vygotsky)",
+                btn_discover: "Hijery",
+                btn_start: "Hanomboka",
+                back: "Miverina",
+                nav_quadrant: "Efamira",
+                nav_channel: "Lakandrano",
+                nav_trajectory: "Fivoarana",
+                nav_circles: "Faritra",
+                nav_ladder: "Tohatra",
+                title_flow: "Teorian'ny Flow",
+                title_zpd: "Faritra ZPD",
+                axis_skill: "Fahaizana",
+                axis_challenge: "Fanamby",
+                axis_time: "Fotoana",
+                theory_label: "Teoria",
+                ex_label: "Ohatra",
+                context_flow: "Fifandanjana Fahaizana & Fanamby.",
+                context_zpd: "Fanampiana miandalana.",
+                context_trajectory: "Fampiakarana lenta.",
+                modal_flow: {
+                    who_title: "Mamorona",
+                    who_name: "Mihaly Csikszentmihalyi",
+                    who_job: "Psychologue",
+                    what_title: "Hevitra",
+                    what_desc: "Ny Flow dia fahasambarana sy fifantohana tanteraka amin'ny asa atao.",
+                    how_title: "Ho an'ny Mpanabe",
+                    how_desc: "Raha leo ny tanora -> ampiakaro ny asa. Raha matahotra -> ampio. Tadiavo ny fifandanjana."
+                },
+                modal_zpd: {
+                    who_title: "Mamorona",
+                    who_name: "Lev Vygotsky",
+                    who_job: "Psychologue",
+                    what_title: "Hevitra",
+                    what_desc: "Ny elanelana misy eo amin'ny zavatra vitan'ny zaza irery sy izay vitany rehefa ampiana.",
+                    how_title: "Ho an'ny Mpanabe",
+                    how_desc: "Aza atao ny asany, fa ampio izy hahavita izany. Ianao no tohatra (échafaudage)."
+                },
+                details: {
+                    'flow': { title: "FLOW", color: "emerald", desc: "Variana.", ex: "Miasa." },
+                    'anxiety': { title: "Ahiahy", color: "red", desc: "Sarotra.", ex: "Matahotra." },
+                    'boredom': { title: "Fahasosorana", color: "amber", desc: "Mora.", ex: "Leo." },
+                    'apathy': { title: "Tsy firaharahiana", color: "slate", desc: "Tsy liana.", ex: "Bored." },
+                    'control': { title: "Fifehezana", color: "blue", desc: "Mahazo aina.", ex: "Mahazatra." },
+                    'arousal': { title: "Fahataitairana", color: "orange", desc: "Mianatra.", ex: "Vaovao." },
+                    't_step1': { title: "1. Vao manomboka", color: "emerald", desc: "Mety.", ex: "Abidy." },
+                    't_step2': { title: "2. Fivoarana", color: "amber", desc: "Mora loatra.", ex: "Leo." },
+                    't_step3': { title: "3. Fanamby", color: "orange", desc: "Sarotra.", ex: "Ambaratonga." },
+                    't_step4': { title: "4. Fifehezana", color: "emerald", desc: "Flow.", ex: "Mahay." },
+                    'panic_zone': { title: "Mampatahotra", color: "red", desc: "Tsy vita.", ex: "Kajy." },
+                    'zpd_zone': { title: "ZPD", color: "emerald", desc: "Ampiana.", ex: "Miaraka." },
+                    'comfort_zone': { title: "Mahazatra", color: "blue", desc: "Irery.", ex: "Mandeha." },
+                    'step_ido': { title: "1. Manao Aho", color: "blue", desc: "Modely.", ex: "Jereo." },
+                    'step_wedo': { title: "2. Manao Isika", color: "emerald", desc: "Miaraka.", ex: "Ampio." },
+                    'step_youdo': { title: "3. Manao Ianao", color: "amber", desc: "Irery.", ex: "Vita." }
+                }
+            }
+        };
+
+        const app = {
+            lang: 'fr',
+            currentView: 'home',
+            subView: 'default',
+            showIntro: false, // State for the modal
+            
+            init: function() { this.render(); },
+
+            setLang: function(l) { this.lang = l; this.render(); },
+
+            setView: function(v) { 
+                this.currentView = v; 
+                this.subView = 'default';
+                // Trigger modal only for model views
+                if(v === 'flow' || v === 'zpd') {
+                    this.showIntro = true;
+                } else {
+                    this.showIntro = false;
+                }
+                this.render(); 
+            },
+
+            closeIntro: function() {
+                this.showIntro = false;
+                this.render();
+            },
+
+            setSubView: function(sv) { 
+                this.subView = sv; 
+                this.render(); 
+            },
+
+            render: function() {
+                const container = document.getElementById('main-content');
+                const t = data[this.lang];
+                
+                // HEADER BUTTONS STYLE
+                ['fr', 'en', 'mg'].forEach(l => {
+                    const btn = document.getElementById(`btn-${l}`);
+                    if(l === this.lang) btn.className = "px-3 py-1 text-xs font-bold rounded shadow-sm bg-indigo-600 text-white transition-colors";
+                    else btn.className = "px-3 py-1 text-xs font-medium rounded text-slate-500 hover:bg-white transition-colors";
+                });
+
+                // 1. HOME VIEW
+                if (this.currentView === 'home') {
+                    container.innerHTML = `
+                        <div class="w-full h-full flex flex-col items-center justify-center p-8 bg-slate-50 fade-in overflow-y-auto">
+                            <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                                <div>
+                                    <h2 class="text-3xl font-extrabold text-slate-800 mb-2">${t.home_title}</h2>
+                                    <span class="inline-block h-1 w-20 bg-indigo-500 rounded mb-6"></span>
+                                    <h3 class="font-bold text-slate-600 mb-2 uppercase text-xs tracking-wider">${t.home_subtitle}</h3>
+                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-slate-600 leading-relaxed text-sm">
+                                        ${t.home_desc}
+                                    </div>
+                                </div>
+                                <div class="grid gap-6">
+                                    <div onclick="app.setView('flow')" class="bg-white p-6 rounded-xl shadow-md border-l-4 border-indigo-500 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer flex items-center gap-4 group">
+                                        <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                            <i data-lucide="activity" class="w-6 h-6"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-slate-800 text-lg">${t.btn_flow}</h3>
+                                            <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 group-hover:text-indigo-600">
+                                                ${t.btn_discover} <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div onclick="app.setView('zpd')" class="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer flex items-center gap-4 group">
+                                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                            <i data-lucide="layers" class="w-6 h-6"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-slate-800 text-lg">${t.btn_zpd}</h3>
+                                            <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 group-hover:text-emerald-600">
+                                                ${t.btn_discover} <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } 
+                // 2. MODEL VIEWS
+                else {
+                    const isFlow = this.currentView === 'flow';
+                    let contextText = isFlow ? t.context_flow : t.context_zpd;
+                    if(isFlow && this.subView === 'trajectory') contextText = t.context_trajectory;
+
+                    container.innerHTML = `
+                        <!-- CONTENT UNDERLYING (BLURRED IF MODAL IS OPEN) -->
+                        <div class="flex-1 flex h-full ${this.showIntro ? 'filter blur-sm pointer-events-none' : ''} transition-all duration-500">
+                             <!-- VISUALIZATION (LEFT) -->
+                            <div class="w-full md:w-3/4 bg-slate-100 p-4 md:p-6 flex flex-col relative border-r border-slate-200">
+                                <div class="flex flex-wrap justify-between items-center mb-6 z-10 gap-3">
+                                    <button onclick="app.setView('home')" class="flex items-center text-slate-500 hover:text-slate-800 font-bold text-xs uppercase tracking-wide">
+                                        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> ${t.back}
+                                    </button>
+                                    <div class="bg-white p-1 rounded-lg border border-slate-300 flex shadow-sm">
+                                        ${this.getNavButtons(isFlow, t)}
+                                    </div>
+                                </div>
+                                <div class="flex-1 flex flex-col items-center justify-center relative min-h-[300px]">
+                                    <h2 class="text-2xl font-bold text-slate-800 mb-4 absolute top-0 left-0">${isFlow ? t.title_flow : t.title_zpd}</h2>
+                                    <div class="w-full max-w-3xl aspect-[16/9] bg-white rounded-xl shadow-sm border border-slate-200 p-2 overflow-hidden relative">
+                                        ${this.getSVG(isFlow, t)}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- INFO PANEL (RIGHT) -->
+                            <div class="w-full md:w-1/4 bg-white p-6 border-l border-slate-200 shadow-xl z-20 overflow-y-auto custom-scroll flex flex-col">
+                                <div id="info-panel" class="flex-1">
+                                    <div class="fade-in">
+                                        <div class="w-12 h-12 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center mb-4">
+                                            <i data-lucide="book-open" class="w-6 h-6"></i>
+                                        </div>
+                                        <h3 class="text-lg font-bold text-slate-800 mb-4 uppercase tracking-wide border-b pb-2">Contexte</h3>
+                                        <p class="text-sm text-slate-600 leading-relaxed">${contextText}</p>
+                                        <div class="mt-8 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                                            <div class="flex items-center gap-2 text-indigo-600 mb-2">
+                                                <i data-lucide="mouse-pointer" class="w-4 h-4"></i>
+                                                <span class="text-xs font-bold uppercase">Interaction</span>
+                                            </div>
+                                            <p class="text-xs text-indigo-800">Passez votre souris sur les différentes zones du graphique pour voir les définitions et exemples.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. MODAL OVERLAY (POP-UP) -->
+                        ${this.showIntro ? this.getModalHTML(isFlow, t) : ''}
+                    `;
+                    
+                    if(!this.showIntro) setTimeout(() => this.addInteractListeners(), 50);
+                }
+                lucide.createIcons();
+            },
+
+            getModalHTML: function(isFlow, t) {
+                const info = isFlow ? t.modal_flow : t.modal_zpd;
+                const icon = isFlow ? 'activity' : 'layers';
+                const color = isFlow ? 'text-indigo-600 bg-indigo-100' : 'text-emerald-600 bg-emerald-100';
+                
+                return `
+                <div class="absolute inset-0 z-50 modal-backdrop flex items-center justify-center p-4 fade-in">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scroll scale-in flex flex-col">
+                        
+                        <!-- Header Modal -->
+                        <div class="p-6 border-b border-slate-100 flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-full ${color} flex items-center justify-center shrink-0">
+                                <i data-lucide="${icon}" class="w-7 h-7"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Introduction</p>
+                                <h2 class="text-2xl font-bold text-slate-800">${isFlow ? t.title_flow : t.title_zpd}</h2>
+                            </div>
+                        </div>
+
+                        <!-- Body Modal -->
+                        <div class="p-6 space-y-8">
+                            
+                            <!-- 1. Who -->
+                            <div class="flex gap-4">
+                                <div class="mt-1"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 mb-1">${info.who_title}</h3>
+                                    <p class="text-slate-600 text-sm">
+                                        <span class="font-semibold text-indigo-600">${info.who_name}</span> - ${info.who_job}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 2. What -->
+                            <div class="flex gap-4">
+                                <div class="mt-1"><i data-lucide="lightbulb" class="w-5 h-5 text-slate-400"></i></div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 mb-1">${info.what_title}</h3>
+                                    <p class="text-slate-600 text-sm leading-relaxed">${info.what_desc}</p>
+                                </div>
+                            </div>
+
+                            <!-- 3. How -->
+                            <div class="flex gap-4">
+                                <div class="mt-1"><i data-lucide="briefcase" class="w-5 h-5 text-slate-400"></i></div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 mb-1">${info.how_title}</h3>
+                                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-600 leading-relaxed">
+                                        ${info.how_desc}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Modal -->
+                        <div class="p-6 bg-slate-50 border-t border-slate-200 flex justify-end">
+                            <button onclick="app.closeIntro()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition-all flex items-center gap-2">
+                                ${t.btn_start} <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            },
+
+            getNavButtons: function(isFlow, t) {
+                const btnClass = (active) => `px-3 py-2 text-xs font-bold rounded transition-all ${active ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`;
+                
+                if(isFlow) {
+                    return `
+                        <button onclick="app.setSubView('default')" class="${btnClass(this.subView === 'default')}">${t.nav_quadrant}</button>
+                        <button onclick="app.setSubView('channel')" class="${btnClass(this.subView === 'channel')}">${t.nav_channel}</button>
+                        <button onclick="app.setSubView('trajectory')" class="${btnClass(this.subView === 'trajectory')} flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> ${t.nav_trajectory}</button>
+                    `;
+                } else {
+                    return `
+                        <button onclick="app.setSubView('default')" class="${btnClass(this.subView === 'default')}">${t.nav_circles}</button>
+                        <button onclick="app.setSubView('ladder')" class="${btnClass(this.subView === 'ladder')}">${t.nav_ladder}</button>
+                    `;
+                }
+            },
+
+            getSVG: function(isFlow, t) {
+                if(isFlow) {
+                    if(this.subView === 'default') return this.svgFlowQuadrant(t);
+                    if(this.subView === 'channel') return this.svgFlowChannel(t);
+                    if(this.subView === 'trajectory') return this.svgFlowTrajectory(t);
+                } else {
+                    if(this.subView === 'default') return this.svgZpdCircles(t);
+                    return this.svgZpdLadder(t);
+                }
+            },
+
+            // --- SVG DEFINITIONS (CLEAN GEOMETRY) ---
+
+            svgFlowChannel: function(t) {
+                return `
+                <svg viewBox="0 0 800 450" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="gradFlow" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#34d399;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                        </linearGradient>
+                         <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b" /></marker>
+                    </defs>
+                    <path data-id="anxiety" d="M50 400 L50 20 L400 20 Z" fill="#fee2e2" class="interactive-zone"/>
+                    <text x="120" y="100" class="fill-red-800 text-sm font-bold pointer-events-none opacity-50">ANXIETY</text>
+                    <path data-id="boredom" d="M50 400 L750 400 L750 250 Z" fill="#fef3c7" class="interactive-zone"/>
+                    <text x="600" y="380" class="fill-amber-800 text-sm font-bold pointer-events-none opacity-50">BOREDOM</text>
+                    <rect data-id="apathy" x="50" y="350" width="100" height="50" fill="#f1f5f9" class="interactive-zone" />
+                    <text x="70" y="390" class="fill-slate-400 text-[10px] font-bold pointer-events-none">APATHY</text>
+                    <path data-id="control" d="M50 400 L750 250 L750 150 Z" fill="#bfdbfe" class="interactive-zone" />
+                    <path data-id="arousal" d="M50 400 L400 20 L600 20 Z" fill="#fdba74" class="interactive-zone" />
+                    <path data-id="flow" d="M50 400 L600 20 L750 150 Z" fill="url(#gradFlow)" stroke="white" stroke-width="2" class="interactive-zone" />
+                    <text x="500" y="80" transform="rotate(-30 500 80)" class="fill-orange-900 text-xs font-bold pointer-events-none opacity-60">AROUSAL</text>
+                    <text x="600" y="280" transform="rotate(-15 600 280)" class="fill-blue-800 text-xs font-bold pointer-events-none opacity-60">CONTROL</text>
+                    <text x="450" y="180" transform="rotate(-25 450 180)" class="fill-white text-2xl font-bold pointer-events-none drop-shadow-md tracking-widest">FLOW CHANNEL</text>
+                    <line x1="50" y1="400" x2="750" y2="400" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+                    <line x1="50" y1="400" x2="50" y2="20" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+                    <text x="400" y="430" text-anchor="middle" class="text-xs fill-slate-500 font-bold uppercase">${t.axis_skill}</text>
+                    <text x="20" y="200" transform="rotate(-90, 20, 200)" text-anchor="middle" class="text-xs fill-slate-500 font-bold uppercase">${t.axis_challenge}</text>
+                </svg>`;
+            },
+
+            svgFlowTrajectory: function(t) {
+                return `
+                <svg viewBox="0 0 800 450" class="w-full h-full">
+                    <path d="M50 400 L600 20 L750 150 Z" fill="#d1fae5" opacity="0.4" /> 
+                    <text x="650" y="150" class="fill-emerald-800 text-xs font-bold opacity-30">FLOW ZONE</text>
+                    <path d="M100 350 L250 350 L250 250 L400 250 L400 150 L550 150" fill="none" stroke="#4f46e5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="dash-draw"/>
+                    <g data-id="t_step1" class="step-point interactive-zone">
+                        <circle cx="100" cy="350" r="14" fill="#10b981" stroke="white" stroke-width="2" />
+                        <text x="100" y="380" text-anchor="middle" class="text-sm font-bold fill-slate-700 step-label">1. Start</text>
+                    </g>
+                    <g data-id="t_step2" class="step-point interactive-zone">
+                        <circle cx="250" cy="350" r="14" fill="#f59e0b" stroke="white" stroke-width="2" />
+                        <text x="250" y="380" text-anchor="middle" class="text-sm font-bold fill-slate-700 step-label">2. Easy</text>
+                    </g>
+                     <line x1="250" y1="335" x2="250" y2="265" stroke="#f97316" stroke-width="2" stroke-dasharray="4,4" />
+                    <g data-id="t_step3" class="step-point interactive-zone">
+                        <circle cx="250" cy="250" r="14" fill="#f97316" stroke="white" stroke-width="2" />
+                        <text x="210" y="255" text-anchor="end" class="text-sm font-bold fill-slate-700 step-label">3. Harder!</text>
+                    </g>
+                    <g data-id="t_step4" class="step-point interactive-zone">
+                        <circle cx="550" cy="150" r="18" fill="#10b981" stroke="white" stroke-width="3" />
+                         <text x="550" y="115" text-anchor="middle" class="text-sm font-bold fill-slate-700 step-label">4. Mastery</text>
+                    </g>
+                    <line x1="50" y1="400" x2="750" y2="400" stroke="#94a3b8" stroke-width="2" />
+                    <line x1="50" y1="400" x2="50" y2="20" stroke="#94a3b8" stroke-width="2" />
+                    <text x="700" y="430" class="text-xs fill-slate-400 font-bold uppercase">${t.axis_time}</text>
+                </svg>`;
+            },
+
+            svgFlowQuadrant: function(t) {
+                return `
+                <svg viewBox="0 0 800 450" class="w-full h-full">
+                     <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b" /></marker></defs>
+                    <rect data-id="anxiety" x="50" y="20" width="350" height="190" fill="#fee2e2" class="interactive-zone" />
+                    <text x="225" y="115" text-anchor="middle" class="fill-red-900 font-bold opacity-40 pointer-events-none text-xl">ANXIETY</text>
+                    <rect data-id="flow" x="400" y="20" width="350" height="190" fill="#d1fae5" class="interactive-zone" />
+                    <text x="575" y="115" text-anchor="middle" class="fill-emerald-800 font-bold opacity-80 pointer-events-none text-2xl">★ FLOW</text>
+                    <rect data-id="apathy" x="50" y="210" width="350" height="190" fill="#f1f5f9" class="interactive-zone" />
+                    <text x="225" y="305" text-anchor="middle" class="fill-slate-400 font-bold opacity-40 pointer-events-none text-xl">APATHY</text>
+                    <rect data-id="boredom" x="400" y="210" width="350" height="190" fill="#fef3c7" class="interactive-zone" />
+                    <text x="575" y="305" text-anchor="middle" class="fill-amber-800 font-bold opacity-40 pointer-events-none text-xl">BOREDOM</text>
+                    <circle cx="400" cy="210" r="40" fill="white" opacity="0.5" pointer-events="none" />
+                    <line x1="50" y1="400" x2="750" y2="400" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+                    <line x1="50" y1="400" x2="50" y2="20" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+                    <text x="400" y="430" text-anchor="middle" class="text-xs fill-slate-500 font-bold uppercase">${t.axis_skill}</text>
+                    <text x="20" y="200" transform="rotate(-90, 20, 200)" text-anchor="middle" class="text-xs fill-slate-500 font-bold uppercase">${t.axis_challenge}</text>
+                </svg>`;
+            },
+
+            svgZpdCircles: function(t) {
+                return `
+                <svg viewBox="0 0 500 400" class="h-full w-auto mx-auto">
+                    <circle data-id="panic_zone" cx="250" cy="200" r="180" fill="#fee2e2" stroke="#fca5a5" stroke-width="2" class="interactive-zone" />
+                    <text x="250" y="60" text-anchor="middle" class="fill-red-800 font-bold text-sm pointer-events-none uppercase">Panic / Impossible</text>
+                    <circle data-id="zpd_zone" cx="250" cy="200" r="110" fill="#d1fae5" stroke="#6ee7b7" stroke-width="2" class="interactive-zone" />
+                    <text x="250" y="115" text-anchor="middle" class="fill-emerald-800 font-bold text-lg pointer-events-none">ZPD</text>
+                    <circle data-id="comfort_zone" cx="250" cy="200" r="60" fill="white" stroke="#94a3b8" stroke-width="2" class="interactive-zone" />
+                    <text x="250" y="205" text-anchor="middle" class="fill-slate-500 font-bold text-xs pointer-events-none">Confort</text>
+                </svg>`;
+            },
+
+            svgZpdLadder: function(t) {
+                return `
+                <svg viewBox="0 0 800 450" class="w-full h-full">
+                    <rect x="50" y="400" width="700" height="20" fill="#cbd5e1" />
+                    <g data-id="step_ido" class="interactive-zone">
+                        <rect x="100" y="300" width="180" height="100" fill="#bfdbfe" stroke="#3b82f6" stroke-width="2" rx="8" />
+                        <text x="190" y="350" text-anchor="middle" class="fill-blue-900 font-bold pointer-events-none text-lg">1. I DO</text>
+                    </g>
+                    <g data-id="step_wedo" class="interactive-zone">
+                        <rect x="300" y="200" width="180" height="200" fill="#a7f3d0" stroke="#10b981" stroke-width="2" rx="8" />
+                        <text x="390" y="300" text-anchor="middle" class="fill-emerald-900 font-bold pointer-events-none text-lg">2. WE DO</text>
+                    </g>
+                    <g data-id="step_youdo" class="interactive-zone">
+                        <rect x="500" y="100" width="180" height="300" fill="#fde68a" stroke="#f59e0b" stroke-width="2" rx="8" />
+                        <text x="590" y="250" text-anchor="middle" class="fill-yellow-900 font-bold pointer-events-none text-lg">3. YOU DO</text>
+                    </g>
+                </svg>`;
+            },
+
+            addInteractListeners: function() {
+                const zones = document.querySelectorAll('.interactive-zone');
+                zones.forEach(zone => {
+                    zone.addEventListener('mouseenter', (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        this.showDetails(id);
+                        zones.forEach(z => z.classList.remove('active'));
+                        e.target.classList.add('active');
+                    });
+                });
+            },
+
+            showDetails: function(id) {
+                const info = data[this.lang].details[id];
+                if (!info) return;
+
+                const panel = document.getElementById('info-panel');
+                const t = data[this.lang];
+                
+                const themes = {
+                    red: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-500' },
+                    emerald: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-500' },
+                    amber: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-500' },
+                    blue: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-500' },
+                    slate: { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-500' },
+                    orange: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-500' }
+                };
+                const theme = themes[info.color] || themes.slate;
+
+                panel.innerHTML = `
+                    <div class="fade-in">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                            <div class="w-2 h-10 rounded-full ${theme.bg.replace('bg-', 'bg-').replace('50', '500')}"></div>
+                            <h3 class="text-xl font-bold text-slate-800 leading-tight">${info.title}</h3>
+                        </div>
+
+                        <div class="mb-6">
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest">${t.theory_label}</h4>
+                            <p class="text-slate-700 leading-relaxed text-sm">${info.desc}</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest">${t.ex_label}</h4>
+                            <div class="p-4 rounded-lg bg-white border border-slate-200 shadow-sm border-l-4 ${theme.border}">
+                                <p class="text-sm italic text-slate-600">"${info.ex}"</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
