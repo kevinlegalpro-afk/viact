@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Mondial du Bénévolat 🌍</title>
+    <!-- Tailwind CSS pour le style rapide -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti pour la fin -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        .btn-option {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .btn-option:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .correct-anim {
+            animation: bounce 0.5s;
+        }
+        .shake-anim {
+            animation: shake 0.5s;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        /* Style pour les checkboxes personnalisées (Q6) */
+        .custom-checkbox:checked + div {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        
+        /* Language Toggle Switch */
+        .lang-switch {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 relative">
+
+    <!-- Language Switcher -->
+    <div class="lang-switch bg-white/20 backdrop-blur-md p-1 rounded-full flex">
+        <button onclick="setLanguage('fr')" id="btn-fr" class="px-4 py-1 rounded-full text-sm font-bold transition bg-white text-indigo-900 shadow-sm">FR</button>
+        <button onclick="setLanguage('en')" id="btn-en" class="px-4 py-1 rounded-full text-sm font-bold text-white transition hover:bg-white/10">EN</button>
+    </div>
+
+    <!-- Container Principal -->
+    <div id="app" class="w-full max-w-2xl mt-8">
+        
+        <!-- Écran de démarrage -->
+        <div id="start-screen" class="glass-card p-8 text-center animate-fade-in">
+            <div class="mb-6 text-6xl">🌍✨</div>
+            <h1 id="start-title" class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Quiz : L'Engagement dans le Monde</h1>
+            <p id="start-desc" class="text-gray-600 mb-8 text-lg">Testez vos connaissances sur le bénévolat et la jeunesse à l'échelle mondiale !</p>
+            <button id="start-btn" onclick="startGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg transition transform hover:scale-105">
+                C'est parti ! 🚀
+            </button>
+        </div>
+
+        <!-- Écran de Jeu -->
+        <div id="game-screen" class="glass-card overflow-hidden hidden relative">
+            <!-- Barre de progression -->
+            <div class="w-full bg-gray-200 h-2">
+                <div id="progress-bar" class="bg-indigo-500 h-2 transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <!-- Header Question -->
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-indigo-600 font-bold bg-indigo-100 px-3 py-1 rounded-full text-sm"><span id="lbl-question">Question</span> <span id="q-current">1</span>/10</span>
+                    <span class="text-gray-500 font-semibold"><span id="lbl-score">Score</span>: <span id="score">0</span></span>
+                </div>
+
+                <!-- Texte de la question -->
+                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-gray-800 mb-8 min-h-[80px]">
+                    Chargement...
+                </h2>
+
+                <!-- Zone Réponses (Dynamique) -->
+                <div id="options-container" class="space-y-3">
+                    <!-- Les boutons seront injectés ici par JS -->
+                </div>
+
+                <!-- Bouton Valider (Uniquement pour choix multiples) -->
+                <button id="validate-btn" onclick="checkMultipleChoice()" class="hidden w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition">
+                    Valider ma réponse
+                </button>
+
+                <!-- Zone Feedback (Cachée par défaut) -->
+                <div id="feedback-area" class="hidden mt-6 p-4 rounded-xl border-l-4 animate-fade-in bg-gray-50 border-gray-300">
+                    <div class="flex items-start">
+                        <div id="feedback-icon" class="text-2xl mr-3">💡</div>
+                        <div>
+                            <h3 id="feedback-title" class="font-bold text-lg mb-1">Résultat</h3>
+                            <p id="feedback-text" class="text-gray-700 leading-relaxed"></p>
+                            <p id="feedback-source" class="text-xs text-gray-500 mt-2 italic"></p>
+                        </div>
+                    </div>
+                    <button id="next-btn" onclick="nextQuestion()" class="mt-4 w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-lg transition">
+                        Question Suivante →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Écran de Fin -->
+        <div id="end-screen" class="glass-card p-8 text-center hidden">
+            <div class="mb-4 text-6xl">🏆</div>
+            <h2 id="end-title" class="text-3xl font-bold text-gray-800 mb-2">Quiz Terminé !</h2>
+            <p id="end-desc" class="text-gray-600 mb-6">Voici votre score final</p>
+            
+            <div class="text-5xl font-black text-indigo-600 mb-6">
+                <span id="final-score">0</span> / 10
+            </div>
+
+            <p id="final-message" class="text-lg text-gray-700 mb-8 px-4 font-medium">
+                <!-- Message personnalisé selon le score -->
+            </p>
+
+            <button id="replay-btn" onclick="location.reload()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition">
+                Rejouer 🔄
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Script Logique -->
+    <script>
+        let currentLang = 'fr'; // 'fr' or 'en'
+
+        const uiText = {
+            fr: {
+                startTitle: "Quiz : L'Engagement dans le Monde",
+                startDesc: "Testez vos connaissances sur le bénévolat et la jeunesse à l'échelle mondiale !",
+                startBtn: "C'est parti ! 🚀",
+                question: "Question",
+                score: "Score",
+                validate: "Valider ma réponse",
+                next: "Question Suivante →",
+                didYouKnow: "Le saviez-vous ?",
+                endTitle: "Quiz Terminé !",
+                endDesc: "Voici votre score final",
+                replay: "Rejouer 🔄",
+                correctTitle: "Bonne réponse ! 🎉",
+                wrongTitle: "Oups, pas tout à fait...",
+                feedbackSuccess: "✅",
+                feedbackError: "🤔",
+                msgs: {
+                    perfect: "Incroyable ! Vous êtes un expert absolu de l'engagement mondial ! 🌟",
+                    great: "Excellent score ! Vous maîtrisez bien le sujet. 👏",
+                    good: "Pas mal ! Vous avez de bonnes bases. 👍",
+                    learn: "C'était l'occasion d'apprendre plein de choses ! Réessayez pour voir ? 📚"
+                }
+            },
+            en: {
+                startTitle: "Global Engagement Quiz",
+                startDesc: "Test your knowledge on volunteering and youth at a global scale!",
+                startBtn: "Let's Go! 🚀",
+                question: "Question",
+                score: "Score",
+                validate: "Submit Answer",
+                next: "Next Question →",
+                didYouKnow: "Did you know?",
+                endTitle: "Quiz Finished!",
+                endDesc: "Here is your final score",
+                replay: "Play Again 🔄",
+                correctTitle: "Correct! 🎉",
+                wrongTitle: "Oops, not quite...",
+                feedbackSuccess: "✅",
+                feedbackError: "🤔",
+                msgs: {
+                    perfect: "Amazing! You are an absolute expert on global engagement! 🌟",
+                    great: "Excellent score! You have a strong grasp of the subject. 👏",
+                    good: "Not bad! You have a solid foundation. 👍",
+                    learn: "A great opportunity to learn new things! Try again? 📚"
+                }
+            }
+        };
+
+        // Données du Quiz (Structure bilingue)
+        const quizData = [
+            {
+                type: 'single',
+                correct: 2, // Index 2 (35%)
+                fr: {
+                    question: "À l’échelle mondiale, parmi les personnes en âge de travailler, quelle proportion fait du bénévolat chaque mois (toutes formes confondues) ?",
+                    options: ["Environ 10 % (≈ 600 millions)", "Environ 20 % (≈ 1,2 milliard)", "Environ 35 % (≈ 2,1 milliards)"],
+                    fact: "C'est une estimation toute récente ! En préparation du rapport UNV 2026, l'ONU estime désormais à 2,1 milliards le nombre de bénévoles, car on comptabilise enfin mieux le bénévolat informel (entraide) qui était sous-estimé.",
+                    source: "Source: UNV (Estimations déc. 2025 pour le rapport 2026)"
+                },
+                en: {
+                    question: "Globally, what proportion of working-age people volunteer each month (all forms included)?",
+                    options: ["About 10% (≈ 600 million)", "About 20% (≈ 1.2 billion)", "About 35% (≈ 2.1 billion)"],
+                    fact: "This is a very recent estimate! In preparation for the 2026 report, the UN now estimates 2.1 billion volunteers, as informal volunteering (direct help) is finally being better measured.",
+                    source: "Source: UNV (Dec 2025 Estimates for 2026 Report)"
+                }
+            },
+            {
+                type: 'single',
+                correct: 1, // Index 1 (23%)
+                fr: {
+                    question: "Selon le Global Youth Development Index (2021), quel pourcentage de jeunes dans le monde déclaraient avoir fait du bénévolat ?",
+                    options: ["Environ 10 %", "Environ 23 %", "Environ 40 %"],
+                    fact: "En moyenne, 23,2 % des jeunes déclarent faire du bénévolat. C'est presque 1 jeune sur 4, le niveau le plus élevé depuis 2010.",
+                    source: "Source: Global Youth Development Index"
+                },
+                en: {
+                    question: "According to the Global Youth Development Index (2021), what percentage of youth worldwide reported volunteering?",
+                    options: ["About 10%", "About 23%", "About 40%"],
+                    fact: "On average, 23.2% of young people report volunteering. That's nearly 1 in 4, the highest level since at least 2010.",
+                    source: "Source: Global Youth Development Index"
+                }
+            },
+            {
+                type: 'single',
+                correct: 1, // "Informel domine"
+                fr: {
+                    question: "Le Match : Bénévolat Formel (via Organisation) VS Informel (Entraide directe). Qui rassemble le plus de monde ?",
+                    options: ["Le Formel domine largement", "L'Informel est beaucoup plus répandu (plus du double)", "C'est presque équivalent"],
+                    fact: "L'informel gagne par KO ! Selon les rapports de référence (2022), il y a deux fois plus de bénévolat informel que formel. Les nouvelles estimations (Q1) confirment que l'entraide directe est massive.",
+                    source: "Source: State of the World’s Volunteerism Report 2022"
+                },
+                en: {
+                    question: "The Match: Formal Volunteering (via Org) VS Informal (Direct Help). Which one engages more people?",
+                    options: ["Formal dominates largely", "Informal is much more common (more than double)", "It's almost equal"],
+                    fact: "Informal wins by KO! According to reference reports (2022), there is twice as much informal volunteering as formal. New estimates (Q1) confirm that direct help is massive.",
+                    source: "Source: State of the World’s Volunteerism Report 2022"
+                }
+            },
+            {
+                type: 'single',
+                correct: 2, 
+                fr: {
+                    question: "Dans les pays de l'OCDE, quel groupe d'âge est le plus engagé dans le bénévolat formel ?",
+                    options: ["Les Seniors (50 ans et +) dominent largement", "Les Adultes (30-49 ans) sont les plus actifs", "Les Jeunes (15-29 ans) sont légèrement devant"],
+                    fact: "Surprise ! Avec 24%, les jeunes sont légèrement plus nombreux à faire du bénévolat formel que les 30-49 ans (22%) et les 50+ (22%).",
+                    source: "Source: OCDE 2024"
+                },
+                en: {
+                    question: "In OECD countries, which age group is most engaged in formal volunteering?",
+                    options: ["Seniors (50+) dominate by far", "Adults (30-49) are the most active", "Youth (15-29) are slightly ahead"],
+                    fact: "Surprise! At 24%, young people are slightly more likely to volunteer formally than those aged 30-49 (22%) and 50+ (22%).",
+                    source: "Source: OECD 2024"
+                }
+            },
+            {
+                type: 'single',
+                correct: 1, // Faux
+                fr: {
+                    question: "Vrai ou Faux : Depuis les années 2010, au niveau mondial, l’engagement bénévole des jeunes a plutôt tendance à diminuer.",
+                    options: ["Vrai", "Faux"],
+                    fact: "C'est Faux ! La part de jeunes bénévoles a augmenté pour atteindre son plus haut niveau en 2021. Les formes changent, mais l'engagement reste fort.",
+                    source: "Source: Global Youth Development Index 2023"
+                },
+                en: {
+                    question: "True or False: Since 2010, global youth volunteer engagement has been trending downwards.",
+                    options: ["True", "False"],
+                    fact: "False! The share of youth volunteers has increased to reach its highest level in 2021. Forms are changing, but engagement remains strong.",
+                    source: "Source: Global Youth Development Index 2023"
+                }
+            },
+            {
+                type: 'multiple',
+                correctIndices: [0, 1, 3], // A, B, D
+                fr: {
+                    question: "Quelles formes d’engagement sont typiquement « jeunes » aujourd’hui ? (Plusieurs réponses possibles)",
+                    options: ["Engagement en ligne (pétitions...)", "Micro-engagement (ponctuel)", "Adhésion exclusive à un parti", "Engagement hybride (ligne + terrain)"],
+                    fact: "Les jeunes plébiscitent l'engagement en ligne, le micro-engagement et les formats hybrides. L'engagement purement institutionnel (partis) est moins populaire.",
+                    source: "Source: Rapports ONU / OCDE"
+                },
+                en: {
+                    question: "Which forms of engagement are typically 'youth' oriented today? (Multiple answers possible)",
+                    options: ["Online engagement (petitions...)", "Micro-volunteering (short-term)", "Exclusive political party membership", "Hybrid engagement (online + offline)"],
+                    fact: "Youth favor online engagement, micro-volunteering, and hybrid formats. Purely institutional engagement (parties) is less popular.",
+                    source: "Source: UN / OECD Reports"
+                }
+            },
+            {
+                type: 'single',
+                correct: 1, // Faux
+                fr: {
+                    question: "Vrai ou Faux : L’engagement en ligne n’est pas officiellement considéré comme du « vrai » bénévolat par les institutions internationales.",
+                    options: ["Vrai", "Faux"],
+                    fact: "C'est Faux. L'OIT et l'ONU incluent l'engagement en ligne dans la définition du travail bénévole. C'est une forme de citoyenneté à part entière.",
+                    source: "Source: World Youth Report / OIT"
+                },
+                en: {
+                    question: "True or False: Online engagement is not officially considered 'real' volunteering by international institutions.",
+                    options: ["True", "False"],
+                    fact: "False. The ILO and UN include online engagement in the definition of volunteer work. It is a full-fledged form of citizenship.",
+                    source: "Source: World Youth Report / ILO"
+                }
+            },
+            {
+                type: 'single',
+                correct: 1, // Faux
+                fr: {
+                    question: "Vrai ou Faux : Le bénévolat profite aux autres, mais a peu d'impact sur les compétences ou le bien-être des jeunes eux-mêmes.",
+                    options: ["Vrai", "Faux"],
+                    fact: "Faux ! Le bénévolat booste les compétences transversales (soft skills), l'employabilité et a un effet prouvé sur le bien-être mental.",
+                    source: "Source: Études OCDE"
+                },
+                en: {
+                    question: "True or False: Volunteering benefits others but has little impact on the skills or well-being of young people themselves.",
+                    options: ["True", "False"],
+                    fact: "False! Volunteering boosts soft skills, employability, and has a proven positive effect on mental well-being.",
+                    source: "Source: OECD Studies"
+                }
+            },
+            {
+                type: 'single',
+                correct: 1, // 2%
+                fr: {
+                    question: "Selon l'OCDE, le temps bénévole représente environ quelle part du PIB des pays étudiés ?",
+                    options: ["Environ 0,5 % du PIB", "Environ 2 % du PIB", "Environ 10 % du PIB"],
+                    fact: "Même s'il est gratuit, le bénévolat pèse lourd ! Il représente une contribution économique estimée à environ 2 % du PIB.",
+                    source: "Source: OCDE"
+                },
+                en: {
+                    question: "According to the OECD, volunteer time represents approximately what share of GDP in studied countries?",
+                    options: ["About 0.5% of GDP", "About 2% of GDP", "About 10% of GDP"],
+                    fact: "Even though it's unpaid, volunteering carries weight! It represents an economic contribution estimated at about 2% of GDP.",
+                    source: "Source: OECD"
+                }
+            },
+            {
+                type: 'single',
+                correct: 2, // "Ça booste l'engagement"
+                fr: {
+                    question: "Idée reçue ? Créer un Service National (Civique/Volontaire) tue-t-il l'envie de s'engager bénévolement à côté ?",
+                    options: ["Oui, ça tue l'initiative personnelle", "Ça ne change rien du tout", "Au contraire, ça booste l'engagement global"],
+                    fact: "C'est un cercle vertueux ! Les pays avec un programme national ont en moyenne PLUS de jeunes bénévoles (28%) que ceux qui n'en ont pas (21%).",
+                    source: "Source: Analyse OCDE"
+                },
+                en: {
+                    question: "Myth buster? Does creating a National Service (Civic/Volunteer) kill the desire to volunteer spontaneously?",
+                    options: ["Yes, it kills personal initiative", "It makes no difference at all", "On the contrary, it boosts global engagement"],
+                    fact: "It's a virtuous circle! Countries with a national program have, on average, MORE youth volunteers (28%) than those without (21%).",
+                    source: "Source: OECD Analysis"
+                }
+            }
+        ];
+
+        // État du jeu
+        let currentQuestion = 0;
+        let score = 0;
+        let userLocked = false;
+
+        // Éléments DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackArea = document.getElementById('feedback-area');
+        const scoreDisplay = document.getElementById('score');
+        const qCurrentDisplay = document.getElementById('q-current');
+        const progressBar = document.getElementById('progress-bar');
+        const validateBtn = document.getElementById('validate-btn');
+
+        // Initial UI Set
+        setLanguage('fr');
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Update Buttons State
+            const btnFr = document.getElementById('btn-fr');
+            const btnEn = document.getElementById('btn-en');
+            if(lang === 'fr') {
+                btnFr.className = "px-4 py-1 rounded-full text-sm font-bold transition bg-white text-indigo-900 shadow-sm cursor-default";
+                btnEn.className = "px-4 py-1 rounded-full text-sm font-bold text-white transition hover:bg-white/10 cursor-pointer";
+            } else {
+                btnEn.className = "px-4 py-1 rounded-full text-sm font-bold transition bg-white text-indigo-900 shadow-sm cursor-default";
+                btnFr.className = "px-4 py-1 rounded-full text-sm font-bold text-white transition hover:bg-white/10 cursor-pointer";
+            }
+
+            // Update Text Elements
+            const t = uiText[lang];
+            
+            document.getElementById('start-title').innerText = t.startTitle;
+            document.getElementById('start-desc').innerText = t.startDesc;
+            document.getElementById('start-btn').innerText = t.startBtn;
+
+            document.getElementById('lbl-question').innerText = t.question;
+            document.getElementById('lbl-score').innerText = t.score;
+            document.getElementById('validate-btn').innerText = t.validate;
+            document.getElementById('next-btn').innerText = t.next;
+
+            document.getElementById('end-title').innerText = t.endTitle;
+            document.getElementById('end-desc').innerText = t.endDesc;
+            document.getElementById('replay-btn').innerText = t.replay;
+
+            // If game is running, re-render question to update language
+            if(!gameScreen.classList.contains('hidden')) {
+                // We need to re-render but preserve the state (locked or not)
+                renderQuestion(true); 
+            }
+        }
+
+        function startGame() {
+            startScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            currentQuestion = 0;
+            score = 0;
+            scoreDisplay.innerText = 0;
+            userLocked = false;
+            renderQuestion();
+        }
+
+        function renderQuestion(refreshOnly = false) {
+            // FIX: Reset userLocked if moving to a new question (not just refreshing language)
+            if (!refreshOnly) {
+                userLocked = false;
+            }
+
+            const q = quizData[currentQuestion];
+            const t = uiText[currentLang];
+            const content = q[currentLang];
+            
+            // UI Updates
+            questionText.innerText = content.question;
+            qCurrentDisplay.innerText = currentQuestion + 1;
+            progressBar.style.width = `${((currentQuestion) / quizData.length) * 100}%`;
+            
+            // If we are just refreshing the language, update text only, don't reset buttons if locked
+            if (refreshOnly && userLocked) {
+                // Update feedback text if visible
+                if (!feedbackArea.classList.contains('hidden')) {
+                    const isCorrect = feedbackArea.classList.contains('bg-green-50');
+                    document.getElementById('feedback-title').innerText = isCorrect ? t.correctTitle : t.wrongTitle;
+                    document.getElementById('feedback-text').innerHTML = `<strong>${t.didYouKnow}</strong> ${content.fact}`;
+                    document.getElementById('feedback-source').innerText = content.source;
+                }
+            }
+
+            // Full Render Logic
+            optionsContainer.innerHTML = '';
+            
+            if (q.type === 'single') {
+                content.options.forEach((opt, index) => {
+                    const btn = document.createElement('button');
+                    // Base classes
+                    let classes = "btn-option w-full text-left p-4 rounded-xl border-2 border-indigo-100 bg-white text-gray-700 font-medium text-lg transition flex items-center";
+                    let icon = String.fromCharCode(65+index);
+                    let iconClasses = "w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3 text-sm font-bold flex-shrink-0";
+
+                    // Re-apply visual state if locked
+                    if (userLocked) {
+                         if (index === q.correct) {
+                             classes = classes.replace('border-indigo-100 bg-white', 'bg-green-100 border-green-500 text-green-800');
+                             iconClasses = iconClasses.replace('bg-indigo-100 text-indigo-600', 'bg-green-200 text-green-800');
+                             icon = "✓";
+                         } 
+                         btn.disabled = true;
+                    } else {
+                        classes += " hover:border-indigo-500 hover:bg-indigo-50";
+                    }
+
+                    btn.className = classes;
+                    btn.innerHTML = `<span class="${iconClasses}">${icon}</span> ${opt}`;
+                    btn.onclick = () => checkSingleAnswer(index, btn);
+                    optionsContainer.appendChild(btn);
+                });
+            } else if (q.type === 'multiple') {
+                content.options.forEach((opt, index) => {
+                    const label = document.createElement('label');
+                    label.className = "cursor-pointer w-full block";
+                    
+                    let divClass = "w-full text-left p-4 rounded-xl border-2 border-indigo-100 bg-white text-gray-700 font-medium text-lg transition flex items-center";
+                    let iconContent = "";
+                    let iconClass = "w-6 h-6 rounded border-2 border-indigo-300 mr-3 flex items-center justify-center flex-shrink-0 status-icon";
+
+                    if (userLocked) {
+                        const isCorrect = q.correctIndices.includes(index);
+                        if (isCorrect) {
+                             divClass = divClass.replace('border-indigo-100', 'border-green-500 bg-green-50');
+                             iconContent = "✓";
+                             iconClass += " bg-green-200 border-transparent text-green-800";
+                        } else {
+                            divClass += " opacity-50";
+                        }
+                    } else {
+                        divClass += " hover:bg-indigo-50";
+                    }
+
+                    label.innerHTML = `
+                        <input type="checkbox" class="hidden custom-checkbox" value="${index}" ${userLocked ? 'disabled' : ''}>
+                        <div class="${divClass}">
+                            <div class="${iconClass}">${iconContent}</div>
+                            <span class="option-text">${opt}</span>
+                        </div>
+                    `;
+                    optionsContainer.appendChild(label);
+                });
+                
+                if(!userLocked) {
+                    validateBtn.classList.remove('hidden');
+                } else {
+                    validateBtn.classList.add('hidden');
+                }
+            }
+
+            // Restore Feedback if locked
+            if (userLocked && refreshOnly) {
+                // If we are refreshing language while locked, we need to show feedback again
+                const feedbackTitle = document.getElementById('feedback-title');
+                const feedbackText = document.getElementById('feedback-text');
+                const feedbackSource = document.getElementById('feedback-source');
+                const feedbackIcon = document.getElementById('feedback-icon');
+
+                // Determine previous success state from class
+                const wasSuccess = feedbackArea.classList.contains('bg-green-50');
+                
+                feedbackTitle.innerText = wasSuccess ? t.correctTitle : t.wrongTitle;
+                feedbackIcon.innerText = wasSuccess ? t.feedbackSuccess : t.feedbackError;
+                feedbackText.innerHTML = `<strong>${t.didYouKnow}</strong> ${content.fact}`;
+                feedbackSource.innerText = content.source;
+                feedbackArea.classList.remove('hidden');
+            } else if (!userLocked) {
+                 feedbackArea.classList.add('hidden');
+            }
+        }
+
+        function checkSingleAnswer(selectedIndex, btnElement) {
+            if (userLocked) return;
+            userLocked = true;
+
+            const q = quizData[currentQuestion];
+            const t = uiText[currentLang];
+            const content = q[currentLang];
+            const isCorrect = selectedIndex === q.correct;
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            // Visuel bouton cliqué
+            if (isCorrect) {
+                btnElement.className = "btn-option w-full text-left p-4 rounded-xl border-2 bg-green-100 border-green-500 text-green-800 correct-anim flex items-center";
+                btnElement.querySelector('span').className = "w-8 h-8 rounded-full bg-green-200 text-green-800 flex items-center justify-center mr-3 text-sm font-bold flex-shrink-0";
+                btnElement.querySelector('span').innerText = '✓';
+                score++;
+                triggerConfetti(0.5);
+            } else {
+                btnElement.className = "btn-option w-full text-left p-4 rounded-xl border-2 bg-red-100 border-red-500 text-red-800 shake-anim flex items-center";
+                btnElement.querySelector('span').className = "w-8 h-8 rounded-full bg-red-200 text-red-800 flex items-center justify-center mr-3 text-sm font-bold flex-shrink-0";
+                btnElement.querySelector('span').innerText = '✗';
+                
+                // Montrer la bonne réponse
+                const correctBtn = buttons[q.correct];
+                correctBtn.classList.add('bg-green-50', 'border-green-500');
+            }
+
+            // Disable all
+            buttons.forEach(b => b.disabled = true);
+
+            scoreDisplay.innerText = score;
+            showFeedback(isCorrect);
+        }
+
+        function checkMultipleChoice() {
+            if (userLocked) return;
+            userLocked = true;
+
+            const q = quizData[currentQuestion];
+            const checkboxes = optionsContainer.querySelectorAll('input[type="checkbox"]');
+            const selectedIndices = [];
+            
+            checkboxes.forEach((cb, idx) => {
+                if (cb.checked) selectedIndices.push(idx);
+                cb.disabled = true;
+            });
+
+            const userSorted = selectedIndices.sort().toString();
+            const correctSorted = q.correctIndices.sort().toString();
+            const isCorrect = userSorted === correctSorted;
+
+            checkboxes.forEach((cb, idx) => {
+                const parentDiv = cb.nextElementSibling;
+                const isActuallyCorrect = q.correctIndices.includes(idx);
+                const isSelected = cb.checked;
+
+                parentDiv.className = "w-full text-left p-4 rounded-xl border-2 transition flex items-center"; // Reset basic
+
+                if (isActuallyCorrect) {
+                    parentDiv.classList.add('border-green-500', 'bg-green-50', 'text-gray-700');
+                    parentDiv.querySelector('.status-icon').innerText = '✓';
+                    parentDiv.querySelector('.status-icon').className = "w-6 h-6 rounded border-2 border-transparent bg-green-200 text-green-800 mr-3 flex items-center justify-center flex-shrink-0 status-icon";
+                } else if (isSelected && !isActuallyCorrect) {
+                    parentDiv.classList.add('border-red-500', 'bg-red-50', 'text-gray-700');
+                    parentDiv.querySelector('.status-icon').innerText = '✗';
+                    parentDiv.querySelector('.status-icon').className = "w-6 h-6 rounded border-2 border-transparent bg-red-200 text-red-800 mr-3 flex items-center justify-center flex-shrink-0 status-icon";
+                } else {
+                    parentDiv.classList.add('border-indigo-100', 'bg-white', 'opacity-50');
+                    parentDiv.querySelector('.status-icon').className = "w-6 h-6 rounded border-2 border-indigo-300 mr-3 flex items-center justify-center flex-shrink-0 status-icon";
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+                triggerConfetti(0.5);
+            }
+            scoreDisplay.innerText = score;
+            validateBtn.classList.add('hidden');
+            showFeedback(isCorrect);
+        }
+
+        function showFeedback(isCorrect) {
+            const t = uiText[currentLang];
+            const content = quizData[currentQuestion][currentLang];
+
+            const fbTitle = document.getElementById('feedback-title');
+            const fbText = document.getElementById('feedback-text');
+            const fbSource = document.getElementById('feedback-source');
+            const fbIcon = document.getElementById('feedback-icon');
+
+            feedbackArea.classList.remove('hidden', 'bg-green-50', 'border-green-500', 'bg-red-50', 'border-red-500');
+            
+            if (isCorrect) {
+                feedbackArea.classList.add('bg-green-50', 'border-green-500');
+                fbTitle.innerText = t.correctTitle;
+                fbTitle.className = "font-bold text-lg mb-1 text-green-800";
+                fbIcon.innerText = t.feedbackSuccess;
+            } else {
+                feedbackArea.classList.add('bg-red-50', 'border-red-500');
+                fbTitle.innerText = t.wrongTitle;
+                fbTitle.className = "font-bold text-lg mb-1 text-red-800";
+                fbIcon.innerText = t.feedbackError;
+            }
+
+            fbText.innerHTML = `<strong>${t.didYouKnow}</strong> ${content.fact}`;
+            fbSource.innerText = content.source;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            gameScreen.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+            
+            const msg = document.getElementById('final-message');
+            const t = uiText[currentLang].msgs;
+
+            if (score === 10) {
+                msg.innerText = t.perfect;
+                triggerConfetti(2);
+            } else if (score >= 7) {
+                msg.innerText = t.great;
+                triggerConfetti(1);
+            } else if (score >= 4) {
+                msg.innerText = t.good;
+            } else {
+                msg.innerText = t.learn;
+            }
+        }
+
+        function triggerConfetti(durationSeconds) {
+            var duration = durationSeconds * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#6366f1', '#ec4899', '#facc15']
+                });
+                confetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#6366f1', '#ec4899', '#facc15']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+    </script>
+</body>
+</html>
