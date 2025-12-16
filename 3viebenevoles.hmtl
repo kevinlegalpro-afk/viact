@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vi-Act - Vie Bénévole</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons (Version UMD Stable) -->
+    <script src="https://unpkg.com/lucide@0.279.0/dist/umd/lucide.min.js"></script>
+    
+    <style>
+        /* Styles Personnalisés & Animations */
+        .perspective { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+        
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fadeInUp { animation: fadeInUp 0.5s ease-out forwards; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+        .animate-slideIn { animation: slideIn 0.3s ease-out forwards; }
+        
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slideDown { animation: slideDown 0.3s ease-out forwards; }
+
+        .pattern-dots {
+            background-image: radial-gradient(#ffffff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Cursor pointer fix for buttons */
+        button { cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col">
+
+    <!-- Container Principal -->
+    <div id="app" class="flex flex-col min-h-screen"></div>
+
+    <!-- Modal (Cachée par défaut) -->
+    <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fadeIn hidden">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fadeInUp">
+            <!-- Le contenu sera injecté ici -->
+        </div>
+    </div>
+
+    <!-- Script Principal -->
+    <script>
+        // Gestion des erreurs globale pour éviter la page blanche
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            document.body.innerHTML = '<div style="padding:20px; color:red; text-align:center;"><h1>Oups ! Une erreur est survenue.</h1><p>' + msg + '</p></div>';
+            return false;
+        };
+
+        // --- DONNÉES DU CONTENU (CONTENT) ---
+        const CONTENT = {
+            en: {
+                title: "Volunteer Life",
+                subtitle: "Vi-Act Training by Kévin Le Gal",
+                startBtn: "Start Presentation",
+                nav: {
+                    cycle: "The Cycle",
+                    rights: "Rights",
+                    motivation: "Motivation",
+                    journey: "The Journey",
+                    recognition: "Recognition",
+                    intro: "Intro"
+                },
+                intro: {
+                    text: "Volunteering is a fundamental building block of civil society. It brings to life the noblest aspirations of humankind – the pursuit of peace, freedom, opportunity, safety, and justice for all people.",
+                    quote: "It is every man's obligation to put back into the world at least the equivalent of what he takes out of it. (Albert Einstein)",
+                    cards: [
+                        { title: "Personal Growth", text: "Developing soft skills like communication, leadership, and emotional intelligence.", icon: "target" },
+                        { title: "Social Impact", text: "Improving the quantity and quality of services and creatively developing new ones.", icon: "heart" },
+                        { title: "Employability", text: "Gaining experience towards paid employment and professional development.", icon: "award" }
+                    ]
+                },
+                cycle: {
+                    title: "The Volunteer Management Cycle",
+                    instruction: "Click on a step to explore details",
+                    steps: [
+                        { id: 'planning', label: "1. Planning", icon: "clipboard-list", color: "bg-blue-500", details: { headline: "Programme Planning & Job Descriptions", points: ["Needs Assessment: Why do we need volunteers?", "Job Descriptions: Crucial for clarity.", "Risk Management: Assessing potential risks."] } },
+                        { id: 'recruitment', label: "2. Recruitment", icon: "user-plus", color: "bg-green-500", details: { headline: "Finding the Right People", points: ["Target Audience: Who are we looking for?", "The Message: Must be clear, motivating, and honest.", "Channels: Social media, local events."] } },
+                        { id: 'selection', label: "3. Selection", icon: "check-circle", color: "bg-purple-500", details: { headline: "Interview & Placement", points: ["Screening: Application forms.", "The Interview: A two-way conversation.", "Matching: Aligning skills with needs."] } },
+                        { id: 'orientation', label: "4. Orientation", icon: "book-open", color: "bg-yellow-500", details: { headline: "Welcoming & Training", points: ["Orientation: Getting to know the organization.", "Training: Specific skills needed.", "Social Integration: Meeting the team."] } },
+                        { id: 'supervision', label: "5. Management", icon: "award", color: "bg-red-500", details: { headline: "Supervision & Evaluation", points: ["Supervision: Regular check-ins.", "Motivation: Keeping the flame alive.", "Exit Strategy: Learning from departures."] } }
+                    ]
+                },
+                rights: {
+                    title: "Rights and Responsibilities",
+                    instruction: "Flip the cards to see the other side",
+                    volunteer: "Volunteer",
+                    org: "Organization",
+                    items: [
+                        { front: "To be treated as a co-worker", back: "To be reliable and committed", type: "volunteer" },
+                        { front: "To receive training & support", back: "To respect confidentiality", type: "volunteer" },
+                        { front: "To know what is expected", back: "To ask for help when needed", type: "volunteer" },
+                        { front: "Right to select the volunteer", back: "Duty to provide a safe environment", type: "org" },
+                        { front: "Right to expect performance", back: "Duty to provide clear job descriptions", type: "org" },
+                        { front: "To work in a safe place", back: "To follow safety protocols", type: "volunteer" },
+                        { front: "To be heard & give feedback", back: "To accept guidance & direction", type: "volunteer" },
+                        { front: "To say 'No' to extra tasks", back: "To communicate absence in advance", type: "volunteer" },
+                        { front: "Right to reimbursement (if agreed)", back: "Duty to manage resources wisely", type: "volunteer" },
+                        { front: "Right to a reference letter", back: "Duty to stay for the agreed duration", type: "volunteer" }
+                    ]
+                },
+                motivation: {
+                    title: "Understanding Motivation",
+                    intro: "Why do people volunteer? Click on a theory to understand how to apply it in real life.",
+                    theories: [
+                        { name: "Maslow's Hierarchy", desc: "A pyramid of needs, from basic survival to self-actualization.", fullText: "Maslow suggests that humans have tiers of needs. Once basic safety is met, we seek Belonging (social connection), then Esteem (recognition), and finally Self-Actualization (growth).", application: "For the volunteer life: You cannot motivate a volunteer with 'personal growth' (top of pyramid) if they don't feel welcome or safe in the group (bottom of pyramid).", icon: "layout" },
+                        { name: "Herzberg's Theory", desc: "Hygiene Factors vs. Motivators. Avoiding dissatisfaction is not the same as motivating.", fullText: "Herzberg distinguishes two factors. 'Hygiene' factors (conditions, policy, safety) do not motivate, but their absence causes dissatisfaction. 'Motivators' (achievement, recognition, responsibility) allow for true engagement.", application: "For the volunteer life: Fixing the coffee machine won't make volunteers passionate—it just stops them from quitting. To motivate, offer recognition and meaningful work.", icon: "smile" },
+                        { name: "McClelland & Atkinson", desc: "The three drivers: Achievement, Affiliation, and Power.", fullText: "Achievement: desire to set and accomplish goals. Affiliation: desire to belong to a group. Power: desire to influence.", application: "For the volunteer life: Match the task to the person! Give complex challenges to 'Achievers'. Give team-building to 'Affiliators'. Give leadership roles to 'Power' seekers.", icon: "target" }
+                    ]
+                },
+                journey: {
+                    title: "The Ideal Volunteer Journey",
+                    subtitle: "A smooth process to engage and retain talents.",
+                    steps: [
+                        { title: "Recruitment", desc: "Clear job offer, broad communication.", icon: "user-plus" },
+                        { title: "Integration", desc: "Welcome booklet, team introduction, tour.", icon: "check-circle" },
+                        { title: "Training", desc: "Technical skills, mentoring by a senior.", icon: "graduation-cap" },
+                        { title: "Support", desc: "Regular check-ins, availability of a referent.", icon: "users" },
+                        { title: "Social Life", desc: "Shared meals, informal moments, bonding.", icon: "party-popper" },
+                        { title: "Evaluation", desc: "Constructive feedback, satisfaction survey.", icon: "file-text" },
+                        { title: "Recognition", desc: "Thanking, valuing, fidelity awards.", icon: "star" },
+                    ]
+                },
+                recognition: {
+                    title: "The Culture of Recognition",
+                    subtitle: "Recognition is not just an event, it's a daily attitude.",
+                    instruction: "The 3 Levels of Recognition",
+                    rulesTitle: "The 4 Golden Rules of Recognition",
+                    rules: [
+                        { title: "Sincerity", text: "Don't fake it. People can tell.", icon: "heart" },
+                        { title: "Timeliness", text: "Do it when it happens, don't wait.", icon: "clock" },
+                        { title: "Specific", text: "Acknowledge specific actions, not just generalities.", icon: "search" },
+                        { title: "Personal", text: "Some like public praise, others prefer private.", icon: "user-check" }
+                    ],
+                    levels: [
+                        { id: "everyday", title: "Everyday Recognition", color: "bg-teal-500", icon: "message-circle", desc: "Informal, frequent, and low cost. It builds the relationship.", examples: ["Saying 'Thank you' & 'Hello'", "Smiling when they arrive", "Asking about their weekend", "Including in coffee breaks", "Remembering their name!"] },
+                        { id: "intermediate", title: "Intermediate Recognition", color: "bg-orange-500", icon: "coffee", desc: "Occasional gestures that show you value their contribution.", examples: ["Celebrating birthdays", "Team lunch/dinner", "Organization T-shirt/Badge", "Professional training", "Public praise in meeting"] },
+                        { id: "formal", title: "Formal Recognition", color: "bg-indigo-500", icon: "award", desc: "Official acknowledgment of service and impact.", examples: ["Certificate of achievement", "Volunteer of the Year award", "Written Reference letter", "Dedicated press article", "Years of service pin"] }
+                    ]
+                }
+            },
+            fr: {
+                title: "Vie Bénévole",
+                subtitle: "Formation Vi-Act par Kévin Le Gal",
+                startBtn: "Démarrer la présentation",
+                nav: {
+                    cycle: "Le Cycle",
+                    rights: "Droits & Devoirs",
+                    motivation: "Motivation",
+                    journey: "Le Parcours",
+                    recognition: "Reconnaissance",
+                    intro: "Introduction"
+                },
+                intro: {
+                    text: "Le bénévolat est une pierre angulaire fondamentale de la société civile. Il concrétise les aspirations les plus nobles de l'humanité : la poursuite de la paix, de la liberté et de la justice pour tous.",
+                    quote: "C'est le devoir de chaque homme de rendre au monde au moins l'équivalent de ce qu'il en a reçu. (Albert Einstein)",
+                    cards: [
+                        { title: "Croissance Personnelle", text: "Développement de compétences (soft skills) : communication, leadership, intelligence émotionnelle.", icon: "target" },
+                        { title: "Impact Social", text: "Améliorer la quantité et la qualité des services et en développer de nouveaux de manière créative.", icon: "heart" },
+                        { title: "Employabilité", text: "Acquérir de l'expérience facilitant l'accès à l'emploi rémunéré.", icon: "award" }
+                    ]
+                },
+                cycle: {
+                    title: "Le Cycle de Gestion des Bénévoles",
+                    instruction: "Cliquez sur une étape pour voir les détails",
+                    steps: [
+                        { id: 'planning', label: "1. Planification", icon: "clipboard-list", color: "bg-blue-500", details: { headline: "Planification du Programme & Fiches de Poste", points: ["Analyse des besoins : Pourquoi avons-nous besoin de bénévoles ?", "Fiches de poste : Cruciales pour la clarté.", "Gestion des risques : Évaluer les risques potentiels."] } },
+                        { id: 'recruitment', label: "2. Recrutement", icon: "user-plus", color: "bg-green-500", details: { headline: "Trouver les Bonnes Personnes", points: ["Public Cible : Qui cherchons-nous ?", "Le Message : Doit être clair, motivant et honnête.", "Canaux : Réseaux sociaux, événements locaux."] } },
+                        { id: 'selection', label: "3. Sélection", icon: "check-circle", color: "bg-purple-500", details: { headline: "Entretien & Placement", points: ["Pré-sélection : Formulaires de candidature.", "L'Entretien : Une conversation à double sens.", "Matching : Aligner les compétences avec les besoins."] } },
+                        { id: 'orientation', label: "4. Intégration", icon: "book-open", color: "bg-yellow-500", details: { headline: "Accueil & Formation", points: ["Orientation : Découvrir l'organisation et ses règles.", "Formation : Compétences spécifiques nécessaires.", "Intégration Sociale : Présenter le bénévole à l'équipe."] } },
+                        { id: 'supervision', label: "5. Gestion", icon: "award", color: "bg-red-500", details: { headline: "Supervision & Évaluation", points: ["Supervision : Points réguliers et soutien.", "Motivation : Garder la flamme allumée.", "Stratégie de départ : Apprendre des départs."] } }
+                    ]
+                },
+                rights: {
+                    title: "Droits et Devoirs",
+                    instruction: "Retournez les cartes pour voir l'autre face",
+                    volunteer: "Bénévole",
+                    org: "Organisation",
+                    items: [
+                        { front: "Être traité comme un collègue", back: "Être fiable et engagé", type: "volunteer" },
+                        { front: "Recevoir formation et soutien", back: "Respecter la confidentialité", type: "volunteer" },
+                        { front: "Savoir ce qu'on attend de lui", back: "Demander de l'aide si besoin", type: "volunteer" },
+                        { front: "Droit de choisir le bénévole", back: "Devoir d'assurer un environnement sûr", type: "org" },
+                        { front: "Droit d'attendre des résultats", back: "Devoir de fournir des fiches de poste claires", type: "org" },
+                        { front: "Travailler en sécurité", back: "Respecter les consignes de sécurité", type: "volunteer" },
+                        { front: "Être écouté et donner son avis", back: "Accepter la supervision", type: "volunteer" },
+                        { front: "Dire 'Non' aux tâches supplémentaires", back: "Prévenir en cas d'absence", type: "volunteer" },
+                        { front: "Être remboursé (si convenu)", back: "Gérer les ressources avec soin", type: "volunteer" },
+                        { front: "Avoir une lettre de recommandation", back: "Respecter la durée d'engagement", type: "volunteer" }
+                    ]
+                },
+                motivation: {
+                    title: "Comprendre la Motivation",
+                    intro: "Pourquoi les gens s'engagent-ils ? Cliquez sur une théorie pour découvrir pourquoi c'est important pour la vie bénévole.",
+                    theories: [
+                        { name: "Pyramide de Maslow", desc: "Une hiérarchie des besoins, de la survie à l'accomplissement.", fullText: "Maslow suggère que les humains ont des niveaux de besoins. Une fois la sécurité assurée, nous cherchons l'Appartenance (lien social), puis l'Estime (reconnaissance), et enfin l'Accomplissement (sens).", application: "Pourquoi c'est important ? Vous ne pouvez pas motiver un bénévole avec du 'développement personnel' (haut de pyramide) s'il ne se sent pas encore intégré au groupe (appartenance).", icon: "layout" },
+                        { name: "Théorie de Herzberg", desc: "Facteurs d'hygiène vs Moteurs. Éviter l'insatisfaction n'est pas motiver.", fullText: "Herzberg distingue deux types de facteurs. Les facteurs d'hygiène (conditions, sécurité) ne motivent pas, mais leur absence crée de l'insatisfaction. Les facteurs moteurs (responsabilité, reconnaissance) créent l'engagement.", application: "Pourquoi c'est important ? Réparer la machine à café ne rendra pas les bénévoles passionnés. Pour les motiver, offrez de la reconnaissance et de l'autonomie.", icon: "smile" },
+                        { name: "McClelland & Atkinson", desc: "Trois moteurs : Accomplissement, Affiliation et Pouvoir.", fullText: "Accomplissement : désir d'atteindre des objectifs. Affiliation : désir d'appartenance. Pouvoir : désir d'influencer.", application: "Pourquoi c'est important ? Adaptez les tâches ! Confiez des défis aux profils 'Accomplissement'. Donnez des rôles d'équipe aux profils 'Affiliation'. Confiez la coordination aux profils 'Pouvoir'.", icon: "target" }
+                    ]
+                },
+                journey: {
+                    title: "Le Parcours Type du Bénévole",
+                    subtitle: "Un processus fluide pour engager et fidéliser.",
+                    steps: [
+                        { title: "Recrutement", desc: "Offre claire, diffusion large, premier contact.", icon: "user-plus" },
+                        { title: "Intégration", desc: "Livret d'accueil, présentation équipe, visite des lieux.", icon: "check-circle" },
+                        { title: "Formation", desc: "Compétences techniques, tutorat par un ancien.", icon: "graduation-cap" },
+                        { title: "Accompagnement", desc: "Points réguliers, disponibilité du référent.", icon: "users" },
+                        { title: "Temps Convivial", desc: "Repas partagés, moments informels, cohésion.", icon: "party-popper" },
+                        { title: "Évaluation", desc: "Feedback constructif, enquête de satisfaction.", icon: "file-text" },
+                        { title: "Reconnaissance", desc: "Remerciements, valorisation, prix fidélité.", icon: "star" },
+                    ]
+                },
+                recognition: {
+                    title: "La Culture de la Reconnaissance",
+                    subtitle: "La reconnaissance n'est pas juste un événement, c'est une attitude au quotidien.",
+                    instruction: "Les 3 Niveaux de Reconnaissance",
+                    rulesTitle: "Les 4 Règles d'Or de la Reconnaissance",
+                    rules: [
+                        { title: "Sincérité", text: "Ne faites pas semblant. Ça se voit.", icon: "heart" },
+                        { title: "Immédiateté", text: "Remerciez sur le coup, n'attendez pas.", icon: "clock" },
+                        { title: "Spécificité", text: "Valorisez l'action précise, pas le général.", icon: "search" },
+                        { title: "Personnalisation", text: "Public ou privé ? Adaptez-vous à la personne.", icon: "user-check" }
+                    ],
+                    levels: [
+                        { id: "everyday", title: "Reconnaissance Quotidienne", color: "bg-teal-500", icon: "message-circle", desc: "Informelle, fréquente et gratuite. Elle construit la relation.", examples: ["Dire 'Merci' et 'Bonjour'", "Sourire à leur arrivée !", "Prendre des nouvelles", "Inclure dans les pauses", "Se souvenir de leur prénom !"] },
+                        { id: "intermediate", title: "Reconnaissance Intermédiaire", color: "bg-orange-500", icon: "coffee", desc: "Gestes occasionnels qui montrent que vous valorisez leur apport.", examples: ["Fêter les anniversaires", "Repas d'équipe ou apéro", "T-shirt ou badge", "Offrir une formation pro", "Mention dans la newsletter"] },
+                        { id: "formal", title: "Reconnaissance Formelle", color: "bg-indigo-500", icon: "award", desc: "Reconnaissance officielle du service et de l'impact.", examples: ["Certificat de bénévolat", "Prix du 'Bénévole de l'année'", "Lettre de recommandation", "Article de presse", "Médaille d'ancienneté"] }
+                    ]
+                }
+            }
+        };
+
+        // --- ÉTAT DE L'APPLICATION ---
+        let currentLang = 'fr';
+        let currentSection = 'landing';
+        let isMenuOpen = false;
+        let activeCycleStep = 0;
+
+        // --- DOM ELEMENTS ---
+        const app = document.getElementById('app');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContent = document.getElementById('modal-content');
+
+        // --- FONCTIONS DE RENDU (VIEW) ---
+
+        function render() {
+            app.innerHTML = '';
+            
+            if (currentSection === 'landing') {
+                renderLanding();
+            } else {
+                renderHeader();
+                renderMainContent();
+                renderFooter();
+            }
+            
+            // Rafraîchir les icônes Lucide
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
+        function renderLanding() {
+            const data = CONTENT[currentLang];
+            const div = document.createElement('div');
+            div.className = "min-h-[90vh] flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white text-center px-4 relative overflow-hidden flex-grow";
+            div.innerHTML = `
+                <div class="absolute inset-0 opacity-10 pattern-dots"></div>
+                <div class="absolute top-6 right-6 z-20">
+                    <button onclick="toggleLang()" class="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition cursor-pointer">
+                        <i data-lucide="globe" class="w-5 h-5"></i>
+                        <span class="font-bold">${currentLang.toUpperCase()}</span>
+                    </button>
+                </div>
+                <div class="z-10 animate-fadeInUp">
+                    <div class="inline-block bg-white/10 backdrop-blur-md px-6 py-2 rounded-full mb-6 border border-white/20">
+                        <span class="text-blue-300 font-bold tracking-widest text-sm uppercase">Formation Vi-Act</span>
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-extrabold mb-4 leading-tight tracking-tight">${data.title}</h1>
+                    <p class="text-xl md:text-2xl text-blue-200 mb-12 font-light">${data.subtitle}</p>
+                    <button onclick="setSection('intro')" class="group relative px-8 py-4 bg-blue-500 hover:bg-blue-400 text-white text-lg font-bold rounded-full shadow-lg hover:shadow-blue-500/50 transition-all transform hover:-translate-y-1 flex items-center gap-2 mx-auto cursor-pointer">
+                        ${data.startBtn}
+                        <i data-lucide="arrow-right" class="group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            `;
+            app.appendChild(div);
+        }
+
+        function renderHeader() {
+            const data = CONTENT[currentLang];
+            const header = document.createElement('header');
+            header.className = "bg-slate-900 text-white shadow-lg sticky top-0 z-50";
+            
+            const navButtons = Object.keys(data.nav).map(key => {
+                const isActive = currentSection === key;
+                return `<button onclick="setSection('${key}')" class="text-sm font-medium transition-colors px-2 py-1 rounded cursor-pointer ${isActive ? 'text-blue-400 bg-slate-800' : 'text-slate-300 hover:text-white hover:bg-slate-800'}">${data.nav[key]}</button>`;
+            }).join('');
+
+            const mobileNav = Object.keys(data.nav).map(key => {
+                 const isActive = currentSection === key;
+                 return `<button onclick="setSection('${key}');" class="text-left p-3 rounded-xl transition-colors w-full flex justify-between items-center ${isActive ? 'bg-blue-600/20 text-blue-400 font-bold border border-blue-500/30' : 'text-slate-300 hover:bg-slate-700'}">
+                    <span>${data.nav[key]}</span>
+                    ${isActive ? '<i data-lucide="check-circle" class="w-4 h-4"></i>' : ''}
+                 </button>`;
+            }).join('');
+
+            header.innerHTML = `
+                <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                    <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition" onclick="setSection('landing')">
+                        <div class="bg-blue-600 p-2 rounded-lg"><i data-lucide="users" class="text-white w-6 h-6"></i></div>
+                        <div>
+                            <h1 class="font-bold text-lg leading-none">Vi-Act</h1>
+                            <span class="text-xs text-slate-400">Formation Kévin Le Gal</span>
+                        </div>
+                    </div>
+                    <!-- Desktop Nav -->
+                    <nav class="hidden lg:flex gap-3 items-center">
+                        ${navButtons}
+                        <button onclick="toggleLang()" class="flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-full border border-slate-700 hover:bg-slate-700 transition ml-2 cursor-pointer">
+                            <i data-lucide="globe" class="w-4 h-4"></i>
+                            <span class="text-xs font-bold">${currentLang.toUpperCase()}</span>
+                        </button>
+                    </nav>
+                    <!-- Mobile Nav Toggle -->
+                    <div class="lg:hidden flex items-center gap-3">
+                         <button onclick="toggleLang()" class="flex items-center gap-1 bg-slate-800 px-2 py-2 rounded-lg border border-slate-700 hover:bg-slate-700 transition cursor-pointer">
+                            <i data-lucide="globe" class="w-4 h-4"></i>
+                            <span class="text-xs font-bold">${currentLang.toUpperCase()}</span>
+                        </button>
+                        <button onclick="toggleMenu()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-md active:scale-95 border border-blue-400 cursor-pointer">
+                            <span class="text-sm tracking-wide uppercase">Menu</span>
+                            <i data-lucide="${isMenuOpen ? 'x' : 'menu'}" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Mobile Menu Dropdown -->
+                <div class="${isMenuOpen ? 'block' : 'hidden'} lg:hidden bg-slate-800 border-t border-slate-700 animate-slideDown shadow-2xl">
+                    <div class="flex flex-col p-4 gap-3">
+                        ${mobileNav}
+                    </div>
+                </div>
+            `;
+            app.appendChild(header);
+        }
+
+        function renderMainContent() {
+            const main = document.createElement('main');
+            main.className = "flex-grow";
+            
+            if (currentSection === 'intro') renderIntro(main);
+            if (currentSection === 'cycle') renderCycle(main);
+            if (currentSection === 'rights') renderRights(main);
+            if (currentSection === 'motivation') renderMotivation(main);
+            if (currentSection === 'journey') renderJourney(main);
+            if (currentSection === 'recognition') renderRecognition(main);
+
+            app.appendChild(main);
+        }
+
+        function renderFooter() {
+            const footer = document.createElement('footer');
+            footer.className = "bg-slate-900 text-slate-400 py-8 text-center mt-auto";
+            footer.innerHTML = `
+                <p class="font-bold text-white mb-2">Vi-Act • Kévin Le Gal</p>
+                <div class="flex justify-center gap-4 text-xs opacity-60">
+                    <span>Planning</span> • <span>Recrutement</span> • <span>Reconnaissance</span> • <span>Gestion</span>
+                </div>
+            `;
+            app.appendChild(footer);
+        }
+
+        // --- RENDU DES SECTIONS ---
+
+        function renderIntro(container) {
+            const data = CONTENT[currentLang].intro;
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto px-6 py-12 animate-fadeIn">
+                    <div class="text-center mb-16">
+                        <p class="text-xl md:text-2xl text-slate-700 leading-relaxed max-w-3xl mx-auto font-medium">${data.text}</p>
+                        <div class="mt-8 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg italic text-slate-700">${data.quote}</div>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        ${data.cards.map(card => `
+                            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100 hover:shadow-xl transition-shadow duration-300">
+                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4"><i data-lucide="${card.icon}"></i></div>
+                                <h3 class="text-xl font-bold text-slate-800 mb-2">${card.title}</h3>
+                                <p class="text-slate-600">${card.text}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCycle(container) {
+            const data = CONTENT[currentLang].cycle;
+            const currentStep = data.steps[activeCycleStep];
+            
+            const stepsHtml = data.steps.map((step, idx) => `
+                <button onclick="setCycleStep(${idx})" class="w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 border text-left cursor-pointer ${idx === activeCycleStep ? 'bg-white shadow-lg border-blue-500 scale-105' : 'bg-white/50 border-transparent hover:bg-white hover:shadow-md'}">
+                    <div class="p-3 rounded-full text-white shadow-sm ${step.color}"><i data-lucide="${step.icon}"></i></div>
+                    <span class="font-bold text-lg ${idx === activeCycleStep ? 'text-slate-800' : 'text-slate-500'}">${step.label}</span>
+                </button>
+            `).join('');
+
+            const pointsHtml = currentStep.details.points.map(point => `
+                <li class="flex items-start gap-3 text-lg text-slate-600">
+                    <i data-lucide="check-circle" class="w-6 h-6 shrink-0 mt-1 ${currentStep.color.replace('bg-', 'text-')}"></i>
+                    <span>${point}</span>
+                </li>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="max-w-6xl mx-auto px-4 py-12 animate-fadeIn">
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-bold text-slate-900">${data.title}</h2>
+                        <p class="text-slate-500 mt-2">${data.instruction}</p>
+                    </div>
+                    <div class="flex flex-col lg:flex-row gap-8 items-start">
+                        <div class="w-full lg:w-1/3 space-y-3">${stepsHtml}</div>
+                        <div class="w-full lg:w-2/3">
+                            <div class="bg-white rounded-2xl shadow-xl p-8 border border-slate-100 min-h-[400px] relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-32 h-32 opacity-10 rounded-bl-full transition-colors duration-500 ${currentStep.color}"></div>
+                                <div class="relative z-10 animate-slideIn">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider ${currentStep.color}">Step ${activeCycleStep + 1}</span>
+                                        <h3 class="text-3xl font-bold text-slate-800">${currentStep.details.headline}</h3>
+                                    </div>
+                                    <ul class="space-y-4">${pointsHtml}</ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRights(container) {
+            const data = CONTENT[currentLang].rights;
+            const itemsHtml = data.items.map((item, idx) => {
+                const isVol = item.type === 'volunteer';
+                const label = isVol ? data.volunteer : data.org;
+                const badgeClass = isVol ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700';
+                const backBg = isVol ? 'bg-blue-600' : 'bg-emerald-600';
+                const borderClass = isVol ? 'border-blue-500' : 'border-emerald-500';
+
+                return `
+                    <div class="group h-64 perspective cursor-pointer" onclick="this.querySelector('.card-inner').classList.toggle('rotate-y-180')">
+                        <div class="card-inner relative w-full h-full transition-transform duration-700 transform-style-3d">
+                            <!-- Front -->
+                            <div class="absolute inset-0 backface-hidden rounded-2xl shadow-lg p-6 flex flex-col justify-between items-center text-center border-t-8 ${borderClass} bg-white">
+                                <div class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${badgeClass}">${label}</div>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight">"${item.front}"</h3>
+                                <div class="text-slate-400 text-sm flex items-center gap-1"><span>Tap to reveal</span> <i data-lucide="arrow-right" class="w-4 h-4"></i></div>
+                            </div>
+                            <!-- Back -->
+                            <div class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-lg p-6 flex flex-col justify-center items-center text-center text-white ${backBg}">
+                                <h4 class="text-sm font-semibold opacity-90 mb-2 uppercase tracking-wide">Responsibility</h4>
+                                <p class="text-xl font-bold">${item.back}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="max-w-6xl mx-auto px-4 py-12 animate-fadeIn">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-bold text-slate-900">${data.title}</h2>
+                        <p class="text-slate-500 mt-2">${data.instruction}</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">${itemsHtml}</div>
+                </div>
+            `;
+        }
+
+        function renderMotivation(container) {
+            const data = CONTENT[currentLang].motivation;
+            const theoriesHtml = data.theories.map((theory, idx) => `
+                <button onclick="openModal(${idx})" class="group w-full bg-white p-6 rounded-xl shadow-md border-l-8 border-indigo-500 flex gap-6 items-center hover:shadow-xl transition-all hover:scale-[1.02] text-left cursor-pointer">
+                    <div class="shrink-0 p-4 bg-indigo-50 rounded-full text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><i data-lucide="${theory.icon}"></i></div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">${theory.name} <i data-lucide="zap" class="w-4 h-4 text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity"></i></h3>
+                        <p class="text-slate-500 text-sm">${theory.desc}</p>
+                    </div>
+                    <div class="bg-slate-100 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="arrow-right" class="w-5 h-5 text-indigo-600"></i></div>
+                </button>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto px-4 py-12 animate-fadeIn">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-bold text-slate-900">${data.title}</h2>
+                        <p class="text-slate-600 mt-4 max-w-2xl mx-auto">${data.intro}</p>
+                    </div>
+                    <div class="grid gap-6">${theoriesHtml}</div>
+                </div>
+            `;
+        }
+
+        function renderJourney(container) {
+            const data = CONTENT[currentLang].journey;
+            const stepsHtml = data.steps.map((step, idx) => {
+                const isLeft = idx % 2 === 0;
+                return `
+                <div class="relative flex items-center ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-0 group hover-trigger">
+                    <!-- Marker -->
+                    <div class="absolute left-8 md:left-1/2 w-12 h-12 rounded-full bg-white border-4 border-slate-300 transform -translate-x-1/2 z-10 flex items-center justify-center text-slate-400 group-hover:border-blue-500 group-hover:text-blue-600 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                        <i data-lucide="${step.icon}" class="w-5 h-5"></i>
+                    </div>
+                    <!-- Card -->
+                    <div class="w-full md:w-1/2 pl-24 md:pl-0 ${isLeft ? 'md:pr-12 md:text-right' : 'md:pl-12 md:text-left'}">
+                        <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-100 transition-all duration-300 transform group-hover:shadow-xl group-hover:-translate-y-1 group-hover:border-blue-200 group-hover:ring-2 group-hover:ring-blue-50">
+                            <div class="flex items-center gap-3 mb-2 ${isLeft ? 'md:justify-end' : 'md:justify-start'}">
+                                <span class="text-xs font-bold text-blue-500 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">Step ${idx + 1}</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">${step.title}</h3>
+                            <p class="text-slate-600 leading-relaxed">${step.desc}</p>
+                        </div>
+                    </div>
+                    <!-- Spacer -->
+                    <div class="hidden md:block w-1/2"></div>
+                </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="max-w-5xl mx-auto px-4 py-12 pb-24 animate-fadeIn">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl font-bold text-slate-900 mb-4">${data.title}</h2>
+                        <p class="text-xl text-slate-600">${data.subtitle}</p>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute left-8 md:left-1/2 top-0 bottom-0 w-1 bg-slate-200 transform md:-translate-x-1/2 rounded-full"></div>
+                        <div class="space-y-12">${stepsHtml}</div>
+                        <div class="absolute left-8 md:left-1/2 bottom-[-20px] w-4 h-4 rounded-full bg-slate-300 transform -translate-x-1/2"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRecognition(container) {
+            const data = CONTENT[currentLang].recognition;
+            
+            const rulesHtml = data.rules.map(rule => `
+                <div class="text-center">
+                    <div class="inline-flex p-3 bg-indigo-100 text-indigo-600 rounded-full mb-3"><i data-lucide="${rule.icon}"></i></div>
+                    <h4 class="font-bold text-lg text-slate-800 mb-1">${rule.title}</h4>
+                    <p class="text-slate-500 text-sm leading-snug">${rule.text}</p>
+                </div>
+            `).join('');
+
+            const levelsHtml = data.levels.map(level => {
+                 const examplesHtml = level.examples.map(ex => `
+                    <div class="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
+                        <i data-lucide="star" class="w-4 h-4 shrink-0 mt-1 ${level.color.replace('bg-', 'text-')}"></i>
+                        <span class="text-slate-800 font-medium">${ex}</span>
+                    </div>
+                 `).join('');
+
+                 return `
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden hover:-translate-y-2 transition-transform duration-300">
+                        <div class="p-6 ${level.color} text-white flex items-center gap-4">
+                            <div class="p-3 bg-white/20 rounded-full backdrop-blur-sm"><i data-lucide="${level.icon}"></i></div>
+                            <h3 class="text-xl font-bold">${level.title}</h3>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-slate-600 mb-6 italic min-h-[48px] flex items-center">"${level.desc}"</p>
+                            <div class="space-y-3">${examplesHtml}</div>
+                        </div>
+                    </div>
+                 `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="max-w-6xl mx-auto px-4 py-12 pb-24 animate-fadeIn">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-slate-900 mb-4">${data.title}</h2>
+                        <p class="text-slate-600 mb-8">${data.subtitle}</p>
+                    </div>
+                    <!-- Rules -->
+                    <div class="bg-white rounded-2xl shadow-lg p-8 mb-16 border border-slate-100">
+                        <h3 class="text-2xl font-bold text-center text-slate-800 mb-8">${data.rulesTitle}</h3>
+                        <div class="grid md:grid-cols-4 gap-6">${rulesHtml}</div>
+                    </div>
+                    <!-- Levels -->
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">${data.instruction}</h3>
+                    <div class="grid lg:grid-cols-3 gap-8">${levelsHtml}</div>
+                </div>
+            `;
+        }
+
+        // --- INTERACTIONS & EVENTS ---
+
+        function setSection(section) {
+            currentSection = section;
+            isMenuOpen = false; // Ferme le menu au clic
+            render();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            render();
+        }
+        
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'fr' : 'en';
+            render();
+        }
+
+        function toggleMenu() {
+            isMenuOpen = !isMenuOpen;
+            render(); // On recharge juste le rendu complet
+        }
+
+        function setCycleStep(idx) {
+            activeCycleStep = idx;
+            render();
+        }
+
+        function openModal(idx) {
+            const theory = CONTENT[currentLang].motivation.theories[idx];
+            modalContent.innerHTML = `
+                <button onclick="closeModal()" class="absolute top-4 right-4 p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5 text-slate-600"></i>
+                </button>
+                <div class="p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="p-4 bg-indigo-100 text-indigo-600 rounded-xl"><i data-lucide="${theory.icon}" class="w-8 h-8"></i></div>
+                        <h3 class="text-2xl md:text-3xl font-bold text-slate-800">${theory.name}</h3>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-100">
+                            <h4 class="flex items-center gap-2 font-bold text-indigo-600 mb-2"><i data-lucide="book-open" class="w-5 h-5"></i> The Theory</h4>
+                            <p class="text-slate-700 leading-relaxed text-lg">${theory.fullText}</p>
+                        </div>
+                        <div class="bg-amber-50 p-6 rounded-xl border border-amber-100">
+                            <h4 class="flex items-center gap-2 font-bold text-amber-700 mb-2"><i data-lucide="lightbulb" class="w-5 h-5"></i> Importance for Volunteer Life</h4>
+                            <p class="text-slate-800 leading-relaxed font-medium">${theory.application}</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal()" class="w-full mt-8 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition cursor-pointer">Close</button>
+                </div>
+            `;
+            modalOverlay.classList.remove('hidden');
+            if(window.lucide) window.lucide.createIcons();
+        }
+
+        function closeModal() {
+            modalOverlay.classList.add('hidden');
+        }
+
+        // Fermer la modale si on clique dehors
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // Démarrage sécurisé : on attend que tout soit chargé
+        window.addEventListener('load', function() {
+            try {
+                render();
+            } catch(e) {
+                console.error("Erreur de rendu initial:", e);
+                document.body.innerHTML = '<h1 style="color:red; text-align:center; margin-top:50px;">Erreur de chargement. Veuillez rafraîchir la page.</h1>';
+            }
+        });
+
+    </script>
+</body>
+</html>
