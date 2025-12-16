@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vi-Act Formation - Types d'Engagement</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8fafc;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Main container fixed */
+        }
+
+        /* Allow scrolling on small screens or if content is too tall */
+        @media (max-height: 700px), (max-width: 640px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+                display: block;
+            }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #4F46E5, #9333EA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15);
+            border-color: #6366f1; /* indigo-500 */
+        }
+
+        /* Modal Animation */
+        #modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        #modal-content {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+        }
+
+        /* Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        
+        /* Grid Alignment Fixes */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1rem;
+            width: 100%;
+        }
+        @media (min-width: 640px) {
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 1024px) {
+            .card-grid {
+                grid-template-columns: repeat(3, 1fr);
+                /* Center the last item if we have 7 items (3 rows: 3, 3, 1) */
+            }
+            /* Specific logic for 7th item centering handled in JS or specific CSS classes */
+        }
+    </style>
+</head>
+<body class="text-slate-700 antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="flex-none w-full bg-white/80 backdrop-blur-md border-b border-slate-200 z-40 sticky top-0">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-extrabold text-lg shadow-md shadow-indigo-200">V</div>
+                    <span class="font-bold text-xl tracking-tight text-slate-800">Vi-Act</span>
+                </div>
+
+                <!-- Language Toggle -->
+                <div class="flex items-center bg-slate-100/80 rounded-full p-1 cursor-pointer border border-slate-200" onclick="toggleLanguage()">
+                    <button id="btn-fr" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm bg-white text-indigo-600 ring-1 ring-black/5">FR</button>
+                    <button id="btn-en" class="px-4 py-1.5 rounded-full text-xs font-bold text-slate-500 transition-all hover:text-indigo-600">EN</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4 sm:p-8 w-full max-w-6xl mx-auto overflow-y-auto custom-scroll">
+        
+        <!-- Header -->
+        <div class="text-center mb-10 w-full max-w-2xl">
+            <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-bold tracking-widest uppercase mb-4 shadow-sm border border-indigo-100" id="hero-tag">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                Formation Vi-Act
+            </span>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-3 leading-tight">
+                <span id="hero-title">Les facettes de</span> 
+                <span class="gradient-text block sm:inline" id="hero-title-highlight">l'Engagement</span>
+            </h1>
+            <p class="text-base text-slate-500 max-w-lg mx-auto leading-relaxed font-medium" id="hero-desc">
+                Une vue d'ensemble structurée pour comprendre comment s'investir.
+            </p>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="card-grid" id="cards-container">
+            <!-- Cards injected via JS -->
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-xs text-slate-400 font-medium text-center pb-4">
+            <span id="creator-credit">Créateur : Kévin Le Gal</span> &copy; <span id="year"></span>
+        </div>
+    </main>
+
+    <!-- Modal / Pop-up -->
+    <div id="modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 flex items-center justify-center p-4" onclick="closeModalOutside(event)">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform scale-95 opacity-0 overflow-hidden relative border border-white/20">
+            
+            <!-- Modal Header -->
+            <div id="modal-header" class="flex-none p-6 sm:p-8 text-white relative overflow-hidden transition-colors duration-300">
+                <div class="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+                <div class="absolute bottom-0 left-0 -mb-8 -ml-8 w-32 h-32 bg-black opacity-5 rounded-full blur-2xl"></div>
+                
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-9 h-9 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-white/50">
+                    <i class="fa-solid fa-times text-lg"></i>
+                </button>
+
+                <div class="flex items-center gap-5 relative z-10">
+                    <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-4xl shadow-inner border border-white/10">
+                        <span id="modal-icon"></span>
+                    </div>
+                    <div>
+                        <h2 id="modal-title" class="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-1"></h2>
+                        <p id="modal-subtitle" class="text-indigo-50 text-sm sm:text-base font-medium opacity-90"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div id="modal-body" class="flex-grow p-6 sm:p-8 overflow-y-auto custom-scroll space-y-8 bg-white">
+                <!-- Content injected here -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex-none p-4 border-t border-slate-100 bg-slate-50/80 backdrop-blur flex justify-between items-center">
+                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Vi-Act • Formation</span>
+                <button onclick="closeModal()" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all shadow-sm focus:ring-2 focus:ring-indigo-500/20 outline-none">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // --- DATA OBJECT ---
+        const contentData = {
+            fr: {
+                heroTag: "Formation Vi-Act",
+                heroTitle: "Les facettes de",
+                heroTitleHighlight: "l'Engagement",
+                heroDesc: "Le bénévolat prend de nombreuses formes selon le comment, le où, le pourquoi et le niveau d'expertise.",
+                creator: "Créateur : Kévin Le Gal",
+                categories: [
+                    {
+                        id: 1,
+                        title: "Niveau d'engagement",
+                        icon: "⏱️",
+                        color: "from-blue-600 to-cyan-500",
+                        description: "Du ponctuel au régulier",
+                        sections: [
+                            {
+                                subtitle: "🕒 Court terme / Occasionnel",
+                                items: ["Événements ponctuels (festivals, nettoyages, courses)", "Aide saisonnière (récoltes, collectes)", "Réponse à une crise ou urgence"],
+                                footer: "Idéal pour : découvrir le bénévolat sans engagement long terme."
+                            },
+                            {
+                                subtitle: "📅 Long terme / Régulier",
+                                items: ["Rôles hebdomadaires ou mensuels", "Mentorat, gouvernance (CA/Bureau)", "Soutien continu en association"],
+                                footer: "Idéal pour : développer des compétences et un impact durable."
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        title: "Type d'activité",
+                        icon: "🎯",
+                        color: "from-emerald-500 to-teal-500",
+                        description: "Social, environnement, éducatif...",
+                        sections: [
+                            {
+                                subtitle: "🤝 Social & Solidaire",
+                                items: ["Visites aux isolés, maraudes", "Banques alimentaires, entraide", "Projets de quartier"]
+                            },
+                            {
+                                subtitle: "🌱 Environnement",
+                                items: ["Conservation nature, reboisement", "Ramassage de déchets (Clean-ups)", "Jardins partagés, biodiversité"]
+                            },
+                            {
+                                subtitle: "📚 Éducation & Jeunesse",
+                                items: ["Soutien scolaire, alphabétisation", "Mentorat de jeunes", "Animation d'ateliers"]
+                            },
+                            {
+                                subtitle: "🚑 Santé & Secourisme",
+                                items: ["Premiers secours, postes de secours", "Soutien logistique humanitaire", "Accompagnement handicap"]
+                            },
+                            {
+                                subtitle: "🎭 Culture & Loisirs",
+                                items: ["Bénévolat en festival, musées", "Ateliers artistiques", "Préservation du patrimoine"]
+                            }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        title: "Par compétences",
+                        icon: "🛠️",
+                        color: "from-orange-500 to-amber-500",
+                        description: "Manuel ou intellectuel",
+                        sections: [
+                            {
+                                subtitle: "🛠️ Bénévolat 'Terrain' / Manuel",
+                                items: ["Chantier, bricolage, logistique", "Cuisine, transport, manutention"]
+                            },
+                            {
+                                subtitle: "🧠 Bénévolat de Compétences",
+                                items: ["Formation, animation", "Compta, web, juridique, graphisme", "Gestion de projet, stratégie"],
+                                footer: "Mobilise une expertise spécifique au service du projet."
+                            }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        title: "Lieu & Format",
+                        icon: "🌍",
+                        color: "from-indigo-600 to-violet-500",
+                        description: "Local, international, en ligne",
+                        sections: [
+                            {
+                                subtitle: "🏠 Bénévolat de Proximité",
+                                items: ["Dans sa ville ou son village", "Impact visible direct, lien social fort"]
+                            },
+                            {
+                                subtitle: "🌍 Volontariat International",
+                                items: ["Missions à l'étranger (court/long terme)", "ONG, chantiers internationaux", "Cadre souvent plus formel (VSI, Corps Européen...)"]
+                            },
+                            {
+                                subtitle: "💻 Bénévolat en Ligne (E-bénévolat)",
+                                items: ["Traduction, modération, mentorat visio", "Community management, rédaction", "Flexible et accessible de chez soi"]
+                            }
+                        ]
+                    },
+                    {
+                        id: 5,
+                        title: "Par structure",
+                        icon: "🏛️",
+                        color: "from-rose-500 to-pink-500",
+                        description: "Formel ou informel",
+                        sections: [
+                            {
+                                subtitle: "🏛️ Bénévolat Formel",
+                                items: ["Au sein d'une association ou ONG", "Rôles définis, assurance, cadre"]
+                            },
+                            {
+                                subtitle: "🌱 Bénévolat Informel",
+                                items: ["Entraide de voisinage", "Collectifs citoyens auto-gérés", "Solidarité spontanée"]
+                            }
+                        ]
+                    },
+                    {
+                        id: 6,
+                        title: "Motivations",
+                        icon: "❤️",
+                        color: "from-red-500 to-orange-500",
+                        description: "Pourquoi s'engager ?",
+                        sections: [
+                            {
+                                subtitle: "Moteurs de l'engagement",
+                                items: [
+                                    "❤️ Altruisme (aider autrui)",
+                                    "🌱 Développement personnel",
+                                    "🤝 Socialisation et appartenance",
+                                    "🧭 Convictions civiques ou politiques",
+                                    "🎓 Tremplin professionnel"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 7,
+                        title: "Pro & Entreprise",
+                        icon: "🚀",
+                        color: "from-slate-700 to-slate-600",
+                        description: "Du novice à l'expert",
+                        isCentered: true, // Marker for centering in 3-col grid
+                        sections: [
+                            {
+                                subtitle: "🌱 Accès libre (Pas de pré-requis)",
+                                items: ["Savoir-être et motivation suffisent", "Formation sur le tas"],
+                                footer: "Ex: distribution repas, accueil événement."
+                            },
+                            {
+                                subtitle: "🧩 Compétences Transférables",
+                                items: ["Utilisation de savoirs généraux", "Autonomie modérée"],
+                                footer: "Ex: trésorerie simple, secrétariat, animation."
+                            },
+                            {
+                                subtitle: "🧠 Expert / Haute technicité",
+                                items: ["Expertise métier indispensable", "Rôle consultatif ou stratégique"],
+                                footer: "Ex: audit financier, refonte SI, juridique."
+                            },
+                            {
+                                subtitle: "🏢 Bénévolat d'Entreprise",
+                                items: ["Soutenu par l'employeur", "Journées solidaires d'équipe", "Souvent sur temps de travail"]
+                            },
+                            {
+                                subtitle: "🎓 Mécénat de Compétences",
+                                items: ["Don d'expertise sur temps de travail (défiscalisé)", "Cadre contractuel entreprise/asso", "Mission d'expert (audit, stratégie, formation)"]
+                            }
+                        ]
+                    }
+                ]
+            },
+            en: {
+                heroTag: "Vi-Act Training",
+                heroTitle: "Discover facets of",
+                heroTitleHighlight: "Volunteering",
+                heroDesc: "Volunteering comes in many forms depending on how, where, and why you get involved. Here is a compact overview.",
+                creator: "Creator: Kévin Le Gal",
+                categories: [
+                    {
+                        id: 1,
+                        title: "Level of commitment",
+                        icon: "⏱️",
+                        color: "from-blue-600 to-cyan-500",
+                        description: "Short-term vs Long-term",
+                        sections: [
+                            {
+                                subtitle: "🕒 Short-term / Occasional",
+                                items: ["One-off events (festivals, clean-ups)", "Seasonal help", "Crisis response"],
+                                footer: "Great for trying out volunteering."
+                            },
+                            {
+                                subtitle: "📅 Long-term / Regular",
+                                items: ["Weekly roles, mentoring", "Board membership", "Ongoing organizational support"],
+                                footer: "Great for building skills and deep impact."
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        title: "Type of activity",
+                        icon: "🎯",
+                        color: "from-emerald-500 to-teal-500",
+                        description: "Social, Eco, Youth...",
+                        sections: [
+                            {
+                                subtitle: "🤝 Social & Community",
+                                items: ["Elderly support, food banks", "Shelters, neighborhood projects"]
+                            },
+                            {
+                                subtitle: "🌱 Environmental",
+                                items: ["Conservation, reforestation", "Clean-ups", "Urban gardens"]
+                            },
+                            {
+                                subtitle: "📚 Education & Youth",
+                                items: ["Tutoring, literacy", "Mentoring", "Workshops"]
+                            },
+                            {
+                                subtitle: "🚑 Health & Crisis",
+                                items: ["First aid", "Refugee assistance", "Disability support"]
+                            },
+                            {
+                                subtitle: "🎭 Cultural & Creative",
+                                items: ["Festivals, museums", "Art workshops", "Heritage preservation"]
+                            }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        title: "By skills",
+                        icon: "🛠️",
+                        color: "from-orange-500 to-amber-500",
+                        description: "Hands-on vs Pro skills",
+                        sections: [
+                            {
+                                subtitle: "🛠️ Hands-on / Practical",
+                                items: ["Building, logistics", "Cooking, transport"]
+                            },
+                            {
+                                subtitle: "🧠 Skills-based",
+                                items: ["Teaching, IT, Legal, Accounting", "Project management, strategy"],
+                                footer: "Mobilizes existing professional expertise."
+                            }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        title: "Location & Format",
+                        icon: "🌍",
+                        color: "from-indigo-600 to-violet-500",
+                        description: "Local, Global, Online",
+                        sections: [
+                            {
+                                subtitle: "🏠 Local Volunteering",
+                                items: ["In your town/village", "Strong social ties"]
+                            },
+                            {
+                                subtitle: "🌍 International Volunteering",
+                                items: ["Missions abroad", "Development projects", "Requires ethical preparation"]
+                            },
+                            {
+                                subtitle: "💻 Online / Remote",
+                                items: ["Translation, mentoring, design", "Flexible and accessible"]
+                            }
+                        ]
+                    },
+                    {
+                        id: 5,
+                        title: "Structure",
+                        icon: "🏛️",
+                        color: "from-rose-500 to-pink-500",
+                        description: "Formal vs Informal",
+                        sections: [
+                            {
+                                subtitle: "🏛️ Formal Volunteering",
+                                items: ["Through NGOs/Non-profits", "Defined roles, insurance"]
+                            },
+                            {
+                                subtitle: "🌱 Informal Volunteering",
+                                items: ["Neighborly help", "Grassroots initiatives"]
+                            }
+                        ]
+                    },
+                    {
+                        id: 6,
+                        title: "Motivation",
+                        icon: "❤️",
+                        color: "from-red-500 to-orange-500",
+                        description: "Why get involved?",
+                        sections: [
+                            {
+                                subtitle: "Key Drivers",
+                                items: [
+                                    "❤️ Altruism",
+                                    "🌱 Personal growth",
+                                    "🤝 Social connection",
+                                    "🧭 Civic engagement",
+                                    "🎓 Career exploration"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 7,
+                        title: "Pro Engagement",
+                        icon: "🚀",
+                        color: "from-slate-700 to-slate-600",
+                        description: "Skills & Corporate",
+                        isCentered: true,
+                        sections: [
+                            {
+                                subtitle: "🌱 Entry-level",
+                                items: ["No prior skills needed", "Learn on the spot"]
+                            },
+                            {
+                                subtitle: "🧩 Skilled / Transferable",
+                                items: ["Uses general life/work skills", "Some autonomy"]
+                            },
+                            {
+                                subtitle: "🧠 Expert",
+                                items: ["Specific technical expertise", "Strategic impact"]
+                            },
+                            {
+                                subtitle: "🏢 Corporate Volunteering",
+                                items: ["Supported by employer", "Team days"]
+                            },
+                            {
+                                subtitle: "🎓 Skills Sponsorship",
+                                items: ["Pro skills during work hours", "Formal agreements", "High expertise tasks"]
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // --- APP STATE ---
+        let currentLang = 'fr';
+
+        // --- FUNCTIONS ---
+
+        function init() {
+            document.getElementById('year').textContent = new Date().getFullYear();
+            renderContent();
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            updateLangButtons();
+            renderContent();
+        }
+
+        function updateLangButtons() {
+            const btnFr = document.getElementById('btn-fr');
+            const btnEn = document.getElementById('btn-en');
+            
+            if (currentLang === 'fr') {
+                btnFr.classList.add('bg-white', 'text-indigo-600', 'ring-1', 'ring-black/5');
+                btnFr.classList.remove('text-slate-500', 'hover:text-indigo-600');
+                
+                btnEn.classList.remove('bg-white', 'text-indigo-600', 'ring-1', 'ring-black/5');
+                btnEn.classList.add('text-slate-500', 'hover:text-indigo-600');
+            } else {
+                btnEn.classList.add('bg-white', 'text-indigo-600', 'ring-1', 'ring-black/5');
+                btnEn.classList.remove('text-slate-500', 'hover:text-indigo-600');
+                
+                btnFr.classList.remove('bg-white', 'text-indigo-600', 'ring-1', 'ring-black/5');
+                btnFr.classList.add('text-slate-500', 'hover:text-indigo-600');
+            }
+        }
+
+        function renderContent() {
+            const data = contentData[currentLang];
+
+            // Update Static Text
+            document.getElementById('hero-tag').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span> ${data.heroTag}`;
+            document.getElementById('hero-title').innerHTML = data.heroTitle;
+            document.getElementById('hero-title-highlight').textContent = data.heroTitleHighlight;
+            document.getElementById('hero-desc').textContent = data.heroDesc;
+            document.getElementById('creator-credit').textContent = data.creator;
+
+            // Render Cards Grid
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+
+            data.categories.forEach((cat, index) => {
+                const card = document.createElement('div');
+                
+                // Centering logic for the 7th item (index 6) on desktop (3 cols)
+                // If it's the last item and we have an odd number of items that leaves 1 orphan in a 3-col grid
+                let gridClass = '';
+                if (cat.isCentered) {
+                    // This puts the item in the 2nd column of the grid (centering it)
+                    // Only applies on large screens (lg) where we have 3 columns
+                    gridClass = 'lg:col-start-2 lg:col-span-1'; 
+                }
+
+                card.className = `${gridClass} relative group bg-white rounded-2xl shadow-sm border border-slate-100/80 overflow-hidden cursor-pointer card-hover flex flex-col h-full`;
+                card.onclick = () => openModal(cat);
+
+                card.innerHTML = `
+                    <div class="h-1.5 w-full bg-gradient-to-r ${cat.color} opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="p-5 flex items-start gap-4 h-full relative">
+                        <div class="absolute right-3 top-3 text-slate-200 group-hover:text-indigo-100 transition-colors text-5xl font-black -z-0 opacity-20 pointer-events-none select-none">
+                            ${index + 1}
+                        </div>
+                        
+                        <div class="flex-none w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-white group-hover:shadow-md transition-all z-10">
+                            ${cat.icon}
+                        </div>
+                        
+                        <div class="flex-grow min-w-0 z-10 pt-0.5">
+                            <h3 class="font-bold text-slate-800 text-lg leading-tight mb-1 group-hover:text-indigo-600 transition-colors">${cat.title}</h3>
+                            <p class="text-sm text-slate-400 font-medium leading-normal">${cat.description}</p>
+                        </div>
+                        
+                        <div class="self-center text-slate-300 text-sm group-hover:translate-x-1 group-hover:text-indigo-400 transition-all z-10 pl-2">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // --- MODAL LOGIC ---
+        
+        function openModal(category) {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            // Populate Modal Headers
+            document.getElementById('modal-title').textContent = category.title;
+            document.getElementById('modal-subtitle').textContent = category.description;
+            document.getElementById('modal-icon').textContent = category.icon;
+            
+            // Set header gradient
+            const header = document.getElementById('modal-header');
+            // We use a regular expression to replace the existing gradient classes
+            header.className = header.className.replace(/from-\w+-\d+ to-\w+-\d+/, category.color);
+            // Fallback if regex didn't match (first run) - append
+            if (!header.className.includes('from-')) {
+                header.classList.add(...category.color.split(' '));
+                header.classList.add('bg-gradient-to-r');
+            } else {
+                 // Clean restart of classes just to be safe and simple
+                 header.className = `flex-none p-6 sm:p-8 text-white relative overflow-hidden transition-colors duration-300 bg-gradient-to-r ${category.color}`;
+            }
+
+
+            // Build Body
+            let bodyHtml = '';
+            category.sections.forEach(sec => {
+                const listItems = sec.items.map(item => 
+                    `<li class="flex items-start gap-3 mb-3">
+                        <span class="flex-none mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                        <span class="text-slate-600 text-sm sm:text-base leading-relaxed font-medium">${item}</span>
+                    </li>`
+                ).join('');
+
+                const footerHtml = sec.footer 
+                    ? `<div class="mt-4 p-3 bg-indigo-50/50 rounded-xl text-xs sm:text-sm text-indigo-700 font-medium border border-indigo-100 flex gap-2 items-start">
+                        <i class="fa-solid fa-lightbulb mt-0.5 text-indigo-500"></i>
+                        <span>${sec.footer}</span>
+                       </div>` 
+                    : '';
+
+                bodyHtml += `
+                    <div class="pb-6 border-b border-slate-100 last:border-0 last:pb-0">
+                        <h4 class="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2">
+                            ${sec.subtitle}
+                        </h4>
+                        <ul class="">${listItems}</ul>
+                        ${footerHtml}
+                    </div>
+                `;
+            });
+            document.getElementById('modal-body').innerHTML = bodyHtml;
+
+            // Show
+            overlay.classList.remove('hidden');
+            // Trigger reflow
+            void overlay.offsetWidth;
+            
+            overlay.classList.remove('opacity-0');
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function closeModalOutside(event) {
+            if (event.target.id === 'modal-overlay') {
+                closeModal();
+            }
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+
+        // --- INIT ---
+        init();
+
+    </script>
+</body>
+</html>
