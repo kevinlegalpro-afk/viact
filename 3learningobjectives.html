@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Objectives Module</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f0f4f8;
+            overflow-x: hidden;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bloom-step {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .bloom-step:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+        .bloom-step.active-step {
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-left: 8px solid white;
+        }
+        .game-card {
+            transition: transform 0.3s;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+        .interactive-word {
+            position: relative;
+            cursor: help;
+            border-bottom: 2px dashed;
+            transition: all 0.2s;
+        }
+        .interactive-word:hover {
+            background-color: rgba(255,255,255,0.2);
+            border-bottom-style: solid;
+        }
+        /* Tooltip style */
+        .tooltip-custom {
+            visibility: hidden;
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .interactive-word:hover .tooltip-custom {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-dark text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-bullseye text-accent text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wide hidden md:block" data-key="nav_title">Objectifs Pédagogiques</h1>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="flex space-x-1 md:space-x-2 text-sm md:text-base">
+                    <button onclick="switchTab('intro')" class="nav-btn px-3 py-2 rounded hover:bg-slate-700 transition" id="btn-intro" data-key="nav_intro">Introduction</button>
+                    <button onclick="switchTab('bloom')" class="nav-btn px-3 py-2 rounded hover:bg-slate-700 transition" id="btn-bloom">Bloom & Anderson</button>
+                    <button onclick="switchTab('mager')" class="nav-btn px-3 py-2 rounded hover:bg-slate-700 transition" id="btn-mager">3C Mager</button>
+                    <button onclick="switchTab('activities')" class="nav-btn px-3 py-2 rounded bg-accent text-dark font-bold hover:bg-yellow-400 transition shadow-lg" id="btn-activities" data-key="nav_games">Jeux</button>
+                </div>
+                
+                <!-- Language Toggle -->
+                <button onclick="toggleLanguage()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded-full border border-slate-500 text-sm font-bold w-12 text-center">
+                    <span id="lang-display">FR</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 flex-grow">
+
+        <!-- INTRO TAB -->
+        <section id="intro" class="tab-content active">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-dark mb-4" data-key="intro_title">Formuler des Objectifs d'Apprentissage</h2>
+                    <p class="text-xl text-slate-600" data-key="intro_subtitle">L'art de définir clairement la destination pour mieux guider le voyage.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border-l-8 border-primary">
+                    <h3 class="text-2xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-lightbulb text-yellow-500 mr-3"></i>
+                        <span data-key="intro_why_title">Pourquoi c'est essentiel ?</span>
+                    </h3>
+                    <p class="mb-4 leading-relaxed" data-key="intro_why_text">
+                        Un objectif d'apprentissage décrit ce que l'apprenant sera capable de faire à la fin d'une intervention éducative. Ce n'est pas ce que le formateur va faire, mais ce que le participant va acquérir.
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-6 mt-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-2" data-key="intro_general_title">Fonctions Générales</h4>
+                            <p class="text-xs text-blue-600 mb-2 italic"><i class="fas fa-hand-pointer"></i> Cliquez pour plus de détails</p>
+                            <div class="space-y-2" id="intro_general_list">
+                                <!-- Populated by JS as buttons -->
+                            </div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-2" data-key="intro_youth_title">Spécifique au Youth Work</h4>
+                            <p class="text-xs text-green-600 mb-2 italic"><i class="fas fa-hand-pointer"></i> Cliquez pour plus de détails</p>
+                            <div class="space-y-2" id="intro_youth_list">
+                                <!-- Populated by JS as buttons -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BLOOM TAB -->
+        <section id="bloom" class="tab-content">
+            <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-start">
+                
+                <!-- Left Column: The Pyramid -->
+                <div class="bg-white p-6 rounded-2xl shadow-xl">
+                    <div class="bg-slate-100 p-4 rounded-lg mb-6 border-l-4 border-slate-400">
+                        <h4 class="font-bold text-sm text-slate-700 mb-1"><i class="fas fa-info-circle"></i> À quoi ça sert ?</h4>
+                        <p class="text-sm text-slate-600" data-key="bloom_context_desc">La taxonomie permet de classer les niveaux d'acquisition des connaissances, du plus simple (mémoriser) au plus complexe (créer/évaluer). Elle aide à structurer une progression pédagogique cohérente.</p>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-dark" id="taxonomy-title">Taxonomie de Bloom (1956)</h3>
+                        <button onclick="toggleTaxonomy()" class="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm hover:bg-indigo-700 transition shadow flex items-center gap-2">
+                            <i class="fas fa-exchange-alt"></i> <span id="btn-version-text">Version Anderson</span>
+                        </button>
+                    </div>
+
+                    <div id="pyramid-container" class="flex flex-col-reverse gap-1">
+                        <!-- Pyramid steps generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Right Column: Details -->
+                <div class="bg-white p-6 rounded-2xl shadow-xl h-full border-t-8 border-gray-300" id="bloom-detail-card">
+                    <div id="bloom-empty-state" class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                        <i class="fas fa-hand-pointer text-4xl mb-4 animate-bounce"></i>
+                        <p data-key="bloom_click_instruction">Cliquez sur un niveau pour voir les détails.</p>
+                    </div>
+
+                    <div id="bloom-content" class="hidden">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div id="detail-badge" class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl shadow">1</div>
+                            <h2 id="detail-title" class="text-2xl font-bold text-dark">Titre</h2>
+                        </div>
+                        
+                        <p id="detail-desc" class="text-gray-600 italic mb-6 border-l-4 border-gray-300 pl-4 py-1">Description...</p>
+
+                        <h4 class="font-bold text-dark mb-2 flex items-center"><i class="fas fa-list-ul mr-2 text-primary"></i> <span data-key="bloom_verbs">Verbes</span></h4>
+                        <div id="detail-verbs" class="flex flex-wrap gap-2 mb-6"></div>
+
+                        <h4 class="font-bold text-dark mb-2 flex items-center"><i class="fas fa-chalkboard-teacher mr-2 text-secondary"></i> <span data-key="bloom_example">Exemple</span></h4>
+                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                            <p id="detail-example" class="text-gray-800">Exemple...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAGER TAB -->
+        <section id="mager" class="tab-content">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-dark" data-key="mager_title">La Méthode Mager (Les 3C)</h2>
+                    <p class="text-gray-600" data-key="mager_subtitle">Pour être opérationnel, un objectif doit comporter 3 éléments clés.</p>
+                </div>
+                
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded shadow-sm">
+                    <h4 class="font-bold text-yellow-800 mb-1"><i class="fas fa-star"></i> Utilité</h4>
+                    <p class="text-sm text-yellow-900" data-key="mager_utility">Cette méthode permet d'éviter toute ambiguïté. L'apprenant sait exactement ce qu'on attend de lui (comportement), avec quels moyens (condition) et à quel niveau d'exigence (critère). C'est la base de l'évaluation objective.</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6 mb-12">
+                    <!-- Cards -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-blue-500 text-center transform hover:scale-105 transition">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto"><i class="fas fa-running text-xl"></i></div>
+                        <h3 class="text-xl font-bold mb-2" data-key="mager_c1_title">1. Comportement</h3>
+                        <p class="text-gray-700 text-sm" data-key="mager_c1_desc">L'action observable que l'apprenant doit accomplir.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-500 text-center transform hover:scale-105 transition">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 mb-4 mx-auto"><i class="fas fa-map-signs text-xl"></i></div>
+                        <h3 class="text-xl font-bold mb-2" data-key="mager_c2_title">2. Conditions</h3>
+                        <p class="text-gray-700 text-sm" data-key="mager_c2_desc">Le contexte, les outils ou les restrictions.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-red-500 text-center transform hover:scale-105 transition">
+                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600 mb-4 mx-auto"><i class="fas fa-ruler-combined text-xl"></i></div>
+                        <h3 class="text-xl font-bold mb-2" data-key="mager_c3_title">3. Critères</h3>
+                        <p class="text-gray-700 text-sm" data-key="mager_c3_desc">Le niveau de réussite acceptable (temps, quantité, qualité).</p>
+                    </div>
+                </div>
+
+                <!-- Interactive Sentence -->
+                <div class="bg-slate-800 text-white rounded-2xl p-8 shadow-2xl relative overflow-hidden mb-8">
+                    <div class="absolute top-0 right-0 opacity-10">
+                        <i class="fas fa-quote-right text-9xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-6 border-b border-slate-600 pb-2 flex justify-between items-center">
+                        <span data-key="mager_interactive_title">Exemple Interactif</span>
+                        <span class="text-sm font-normal text-slate-400 bg-slate-700 px-3 py-1 rounded-full"><i class="fas fa-mouse-pointer"></i> Survolez les mots</span>
+                    </h3>
+                    
+                    <div class="text-xl md:text-2xl leading-loose font-serif bg-slate-900 p-6 rounded-lg shadow-inner text-center">
+                        "
+                        <span class="interactive-word text-purple-300 border-purple-500">
+                            En utilisant le manuel de survie
+                            <span class="tooltip-custom bg-purple-600">Condition (Le contexte)</span>
+                        </span>
+                        , le participant sera capable d'
+                        <span class="interactive-word text-blue-300 border-blue-500">
+                            allumer un feu
+                            <span class="tooltip-custom bg-blue-600">Comportement (L'action)</span>
+                        </span>
+                        en
+                        <span class="interactive-word text-red-300 border-red-500">
+                            moins de 5 minutes
+                            <span class="tooltip-custom bg-red-600">Critère (La performance)</span>
+                        </span>
+                        ."
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACTIVITIES TAB -->
+        <section id="activities" class="tab-content">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-8" data-key="games_area_title">Zone d'Entraînement</h2>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <button onclick="startGame(1)" class="game-card bg-white p-6 rounded-xl shadow-lg border-b-4 border-red-500 text-left hover:bg-red-50 group">
+                        <div class="flex justify-between items-start mb-4">
+                            <i class="fas fa-user-md text-3xl text-red-500 group-hover:scale-110 transition"></i>
+                            <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded">10 Rounds</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1" data-key="game1_title">Docteur Objectif</h3>
+                        <p class="text-sm text-gray-500" data-key="game1_desc">Soignez les objectifs mal formulés.</p>
+                    </button>
+
+                    <button onclick="startGame(2)" class="game-card bg-white p-6 rounded-xl shadow-lg border-b-4 border-green-500 text-left hover:bg-green-50 group">
+                        <div class="flex justify-between items-start mb-4">
+                            <i class="fas fa-layer-group text-3xl text-green-500 group-hover:scale-110 transition"></i>
+                            <span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">10 Rounds</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1" data-key="game2_title">Bloom Master</h3>
+                        <p class="text-sm text-gray-500" data-key="game2_desc">Classez les verbes dans la pyramide.</p>
+                    </button>
+
+                    <button onclick="startGame(3)" class="game-card bg-white p-6 rounded-xl shadow-lg border-b-4 border-blue-500 text-left hover:bg-blue-50 group">
+                        <div class="flex justify-between items-start mb-4">
+                            <i class="fas fa-cubes text-3xl text-blue-500 group-hover:scale-110 transition"></i>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">10 Rounds</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1" data-key="game3_title">Mager Detective</h3>
+                        <p class="text-sm text-gray-500" data-key="game3_desc">Identifiez les 3C.</p>
+                    </button>
+
+                    <button onclick="startGame(4)" class="game-card bg-white p-6 rounded-xl shadow-lg border-b-4 border-purple-500 text-left hover:bg-purple-50 group">
+                        <div class="flex justify-between items-start mb-4">
+                            <i class="fas fa-link text-3xl text-purple-500 group-hover:scale-110 transition"></i>
+                            <span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded">10 Rounds</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1" data-key="game4_title">Le Chaînon Manquant</h3>
+                        <p class="text-sm text-gray-500" data-key="game4_desc">Quel élément (C-C-C) manque-t-il ?</p>
+                    </button>
+                </div>
+
+                <!-- Game Area -->
+                <div id="game-area" class="bg-white rounded-2xl shadow-2xl min-h-[500px] p-8 relative hidden flex flex-col">
+                    <div class="flex justify-between items-center mb-6 pb-4 border-b">
+                        <h3 id="game-title-display" class="text-2xl font-bold text-dark">Jeu</h3>
+                        <div class="flex items-center gap-4">
+                            <span id="score-display" class="font-mono text-xl font-bold text-primary">Score: 0/10</span>
+                            <button onclick="closeGame()" class="text-gray-400 hover:text-red-500 transition">
+                                <i class="fas fa-times text-2xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="game-content" class="flex-grow flex flex-col justify-center items-center w-full">
+                        <!-- Dynamic Game Content -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Generic Modal -->
+    <div id="info-modal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full transform scale-95 transition-transform duration-300" id="info-modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-2xl font-bold text-dark" id="modal-title">Titre</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-800 text-xl"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="text-gray-600 leading-relaxed" id="modal-body">
+                    Contenu...
+                </div>
+                <div class="mt-6 text-right">
+                    <button onclick="closeModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-lg font-bold transition">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS: Content & Logic -->
+    <script>
+        // --- TRANSLATION DATA ---
+        const content = {
+            fr: {
+                nav_title: "Objectifs Pédagogiques",
+                nav_intro: "Introduction",
+                nav_games: "Jeux",
+                intro_title: "Formuler des Objectifs",
+                intro_subtitle: "Définir la destination pour guider le voyage.",
+                intro_why_title: "Pourquoi c'est essentiel ?",
+                intro_why_text: "Un objectif décrit ce que l'apprenant saura faire après la formation. C'est centré sur l'apprenant, pas le formateur.",
+                intro_general_title: "Fonctions Générales",
+                intro_youth_title: "Spécifique au Youth Work",
+                bloom_context_desc: "La taxonomie permet de classer les niveaux d'acquisition des connaissances, du plus simple (mémoriser) au plus complexe (créer/évaluer). Elle aide à structurer une progression pédagogique cohérente.",
+                bloom_click_instruction: "Cliquez sur un niveau pour voir les détails.",
+                bloom_verbs: "Verbes d'action",
+                bloom_example: "Exemple",
+                mager_title: "Méthode Mager (Les 3C)",
+                mager_subtitle: "3 éléments clés pour un objectif opérationnel.",
+                mager_utility: "Cette méthode permet d'éviter toute ambiguïté. L'apprenant sait exactement ce qu'on attend de lui (comportement), avec quels moyens (condition) et à quel niveau d'exigence (critère). C'est la base de l'évaluation objective.",
+                mager_interactive_title: "Exemple Interactif",
+                mager_c1_title: "1. Comportement",
+                mager_c1_desc: "Action observable (verbe d'action).",
+                mager_c2_title: "2. Condition",
+                mager_c2_desc: "Le contexte et les outils (avec quoi ? où ?).",
+                mager_c3_title: "3. Critère",
+                mager_c3_desc: "Niveau de réussite (temps, précision, quantité).",
+                games_area_title: "Zone d'Entraînement",
+                game1_title: "Docteur Objectif",
+                game1_desc: "Diagnostiquez et formulez selon les 3C.",
+                game2_title: "Bloom Master",
+                game2_desc: "Classez dans la pyramide.",
+                game3_title: "Mager Detective",
+                game3_desc: "Identifiez les 3C.",
+                game4_title: "Le Chaînon Manquant",
+                game4_desc: "Quel élément manque ?",
+                game_end_title: "Session Terminée !",
+                game_replay: "Rejouer",
+                game_next: "Question Suivante",
+                feedback_correct: "Correct !",
+                feedback_wrong: "Incorrect.",
+                btn_anderson: "Version Anderson",
+                btn_bloom: "Version Bloom (Originale)",
+                bloom_taxonomy: "Taxonomie de Bloom"
+            },
+            en: {
+                nav_title: "Learning Objectives",
+                nav_intro: "Introduction",
+                nav_games: "Games",
+                intro_title: "Formulating Objectives",
+                intro_subtitle: "Defining the destination to guide the journey.",
+                intro_why_title: "Why is it essential?",
+                intro_why_text: "An objective describes what the learner will be able to do after training. It focuses on the learner, not the trainer.",
+                intro_general_title: "General Functions",
+                intro_youth_title: "Specific to Youth Work",
+                bloom_context_desc: "The taxonomy classifies learning levels from simplest (remembering) to most complex (creating/evaluating). It helps structure a coherent pedagogical progression.",
+                bloom_click_instruction: "Click a level to see details.",
+                bloom_verbs: "Action Verbs",
+                bloom_example: "Example",
+                mager_title: "Mager Method (The 3Cs)",
+                mager_subtitle: "3 key elements for an operational objective.",
+                mager_utility: "This method avoids ambiguity. The learner knows exactly what is expected (behavior), under what conditions, and to what standard (criteria). It is the basis of objective evaluation.",
+                mager_interactive_title: "Interactive Example",
+                mager_c1_title: "1. Behavior",
+                mager_c1_desc: "Observable action (action verb).",
+                mager_c2_title: "2. Condition",
+                mager_c2_desc: "Context and tools (with what? where?).",
+                mager_c3_title: "3. Criteria",
+                mager_c3_desc: "Success level (time, precision, quantity).",
+                games_area_title: "Training Zone",
+                game1_title: "Dr. Objective",
+                game1_desc: "Diagnose and fix using 3Cs.",
+                game2_title: "Bloom Master",
+                game2_desc: "Classify into the pyramid.",
+                game3_title: "Mager Detective",
+                game3_desc: "Identify the 3Cs.",
+                game4_title: "The Missing Link",
+                game4_desc: "What part is missing?",
+                game_end_title: "Session Finished!",
+                game_replay: "Play Again",
+                game_next: "Next Question",
+                feedback_correct: "Correct!",
+                feedback_wrong: "Wrong.",
+                btn_anderson: "Anderson Version",
+                btn_bloom: "Bloom Version (Original)",
+                bloom_taxonomy: "Bloom's Taxonomy"
+            }
+        };
+
+        const introDetailsData = {
+            fr: {
+                general: [
+                    { title: "Clarifier les attentes", text: "Permet aux apprenants de savoir exactement où ils vont et ce qui est attendu d'eux, réduisant ainsi l'anxiété et augmentant la motivation." },
+                    { title: "Choisir les bonnes méthodes", text: "Si l'objectif est 'souder', un cours théorique ne suffit pas. L'objectif dicte l'activité (pratique vs théorie)." },
+                    { title: "Faciliter l'évaluation", text: "Un objectif bien formulé contient ses propres critères d'évaluation. On sait immédiatement si c'est réussi ou non." },
+                    { title: "Structurer la progression", text: "Permet d'organiser les modules du plus simple au plus complexe pour une courbe d'apprentissage logique." }
+                ],
+                youth: [
+                    { title: "Justifier l'impact (bailleurs)", text: "Les financeurs (Erasmus+, mairies) demandent des preuves concrètes de résultats. Les objectifs précis prouvent le sérieux du projet." },
+                    { title: "Valoriser les Soft Skills", text: "Transforme des notions floues ('confiance en soi') en comportements observables ('prendre la parole devant un groupe')." },
+                    { title: "Responsabiliser les jeunes", text: "En partageant les objectifs, les jeunes deviennent acteurs de leur propre parcours d'apprentissage." },
+                    { title: "Reconnaissance (Youthpass)", text: "Facilite le remplissage des certificats comme le Youthpass en mettant des mots précis sur les compétences acquises." }
+                ]
+            },
+            en: {
+                general: [
+                    { title: "Clarify expectations", text: "Lets learners know exactly where they are going and what is expected, reducing anxiety and increasing motivation." },
+                    { title: "Select appropriate methods", text: "If the objective is 'to weld', a lecture is not enough. The objective dictates the activity (practice vs theory)." },
+                    { title: "Facilitate evaluation", text: "A well-formulated objective contains its own evaluation criteria. You know immediately if it is achieved or not." },
+                    { title: "Structure progression", text: "Allows organizing modules from simplest to most complex for a logical learning curve." }
+                ],
+                youth: [
+                    { title: "Justify impact (funders)", text: "Funders (Erasmus+, councils) ask for concrete proof of results. Precise objectives prove the project's validity." },
+                    { title: "Valorize Soft Skills", text: "Transforms vague notions ('self-confidence') into observable behaviors ('speak in front of a group')." },
+                    { title: "Empower young people", text: "By sharing objectives, young people become actors in their own learning journey." },
+                    { title: "Recognition (Youthpass)", text: "Facilitates filling out certificates like Youthpass by putting precise words on acquired skills." }
+                ]
+            }
+        };
+
+        const bloomData = {
+            fr: {
+                original: [
+                    { level: 1, name: "Connaissance", color: "bg-red-400", desc: "Se rappeler des faits, des termes, des concepts de base sans nécessairement comprendre.", verbs: ["Définir", "Lister", "Nommer", "Répéter", "Mémoriser", "Identifier", "Localiser", "Décrire", "Énumérer", "Rappeler", "Reconnaître", "Sélectionner", "Indiquer", "Citer", "Arranger"], example: "Lister les capitales des pays de l'Union Européenne." },
+                    { level: 2, name: "Compréhension", color: "bg-orange-400", desc: "Comprendre la signification, traduire, interpréter les instructions et les problèmes.", verbs: ["Expliquer", "Résumer", "Interpréter", "Décrire", "Paraphraser", "Classifier", "Discuter", "Traduire", "Illustrer", "Comparer", "Démontrer", "Distinguer", "Prédire", "Associer", "Estimer"], example: "Expliquer avec ses propres mots la théorie de la gravité." },
+                    { level: 3, name: "Application", color: "bg-yellow-400", desc: "Utiliser un concept dans une nouvelle situation ou utiliser une abstraction de manière concrète.", verbs: ["Appliquer", "Utiliser", "Démontrer", "Calculer", "Résoudre", "Modifier", "Opérer", "Préparer", "Produire", "Relier", "Changer", "Choisir", "Compléter", "Découvrir", "Examiner"], example: "Calculer le budget prévisionnel d'un projet de jeunes." },
+                    { level: 4, name: "Analyse", color: "bg-green-400", desc: "Séparer le matériel en composants pour comprendre sa structure organisationnelle.", verbs: ["Analyser", "Différencier", "Comparer", "Contraster", "Décomposer", "Critiquer", "Expérimenter", "Questionner", "Tester", "Examiner", "Catégoriser", "Déduire", "Discriminer", "Schématiser", "Enquêter"], example: "Analyser les causes de l'échec d'une campagne de sensibilisation." },
+                    { level: 5, name: "Synthèse", color: "bg-blue-400", desc: "Rassembler des parties disparates pour former un tout nouveau.", verbs: ["Créer", "Concevoir", "Formuler", "Inventer", "Composer", "Planifier", "Construire", "Développer", "Proposer", "Arranger", "Assembler", "Collecter", "Organiser", "Gérer", "Préparer"], example: "Concevoir un programme d'échange international complet." },
+                    { level: 6, name: "Évaluation", color: "bg-purple-400", desc: "Porter un jugement sur la valeur des idées ou des matériaux.", verbs: ["Évaluer", "Juger", "Argumenter", "Défendre", "Justifier", "Valider", "Appuyer", "Estimer", "Comparer", "Conclure", "Critiquer", "Décider", "Noter", "Prédire", "Recommander"], example: "Évaluer la pertinence d'une méthodologie pédagogique." }
+                ],
+                anderson: [
+                    { level: 1, name: "Se Rappeler", color: "bg-red-500", desc: "Retrouver des connaissances pertinentes dans sa mémoire à long terme.", verbs: ["Reconnaître", "Identifier", "Se rappeler", "Retrouver", "Lister", "Nommer", "Localiser", "Trouver", "Définir", "Citer", "Indiquer", "Arranger", "Sélectionner", "Dupliquer", "Répéter"], example: "Se rappeler des étapes de sécurité incendie." },
+                    { level: 2, name: "Comprendre", color: "bg-orange-500", desc: "Construire du sens à partir de messages pédagogiques (oral, écrit, graphique).", verbs: ["Interpréter", "Exemplifier", "Classifier", "Résumer", "Inférer", "Comparer", "Expliquer", "Paraphraser", "Discuter", "Prédire", "Associer", "Distinguer", "Estimer", "Généraliser", "Traduire"], example: "Expliquer pourquoi le recyclage est important." },
+                    { level: 3, name: "Appliquer", color: "bg-yellow-500", desc: "Mettre en œuvre ou utiliser une procédure dans une situation donnée.", verbs: ["Exécuter", "Implémenter", "Utiliser", "Appliquer", "Démontrer", "Dramatiser", "Illustrer", "Interpréter", "Opérer", "Planifier", "Esquisser", "Résoudre", "Calculer", "Modifier", "Compléter"], example: "Appliquer la méthode des 3C pour rédiger un objectif." },
+                    { level: 4, name: "Analyser", color: "bg-green-500", desc: "Décomposer le matériel en parties constituantes et déterminer comment les parties sont reliées.", verbs: ["Différencier", "Organiser", "Attribuer", "Distinguer", "Focaliser", "Sélectionner", "Intégrer", "Structurer", "Décomposer", "Trouver", "Enquêter", "Corréler", "Déduire", "Discriminer", "Schématiser"], example: "Distinguer les faits des opinions dans un discours politique." },
+                    { level: 5, name: "Évaluer", color: "bg-blue-500", desc: "Porter des jugements basés sur des critères et des normes.", verbs: ["Vérifier", "Critiquer", "Juger", "Tester", "Détecter", "Monitorer", "Coordonner", "Valider", "Argumenter", "Défendre", "Justifier", "Recommander", "Prioriser", "Noter", "Décider"], example: "Juger quelle solution est la plus économique et écologique." },
+                    { level: 6, name: "Créer", color: "bg-purple-600", desc: "Rassembler des éléments pour former un tout cohérent ou fonctionnel; réorganiser des éléments.", verbs: ["Générer", "Planifier", "Produire", "Concevoir", "Construire", "Inventer", "Composer", "Développer", "Formuler", "Assembler", "Modifier", "Arranger", "Réécrire", "Proposer", "Originer"], example: "Créer une application mobile pour aider les sans-abris." }
+                ]
+            },
+            en: {
+                original: [
+                    { level: 1, name: "Knowledge", color: "bg-red-400", desc: "Recall facts and basic concepts.", verbs: ["Define", "List", "Name", "Repeat", "Memorize", "Identify", "Locate", "Describe", "Enumerate", "Recall", "Recognize", "Select", "State", "Cite", "Arrange"], example: "List the capitals of EU countries." },
+                    { level: 2, name: "Comprehension", color: "bg-orange-400", desc: "Explain ideas or concepts.", verbs: ["Explain", "Summarize", "Interpret", "Describe", "Paraphrase", "Classify", "Discuss", "Translate", "Illustrate", "Compare", "Demonstrate", "Distinguish", "Predict", "Associate", "Estimate"], example: "Explain the theory of gravity in your own words." },
+                    { level: 3, name: "Application", color: "bg-yellow-400", desc: "Use information in new situations.", verbs: ["Apply", "Use", "Demonstrate", "Calculate", "Solve", "Modify", "Operate", "Prepare", "Produce", "Relate", "Change", "Choose", "Complete", "Discover", "Examine"], example: "Calculate the budget for a youth project." },
+                    { level: 4, name: "Analysis", color: "bg-green-400", desc: "Draw connections among ideas.", verbs: ["Analyze", "Differentiate", "Compare", "Contrast", "Decompose", "Criticize", "Experiment", "Question", "Test", "Examine", "Categorize", "Deduce", "Discriminate", "Diagram", "Investigate"], example: "Analyze the causes of a campaign failure." },
+                    { level: 5, name: "Synthesis", color: "bg-blue-400", desc: "Justify a stand or decision.", verbs: ["Create", "Design", "Formulate", "Invent", "Compose", "Plan", "Construct", "Develop", "Propose", "Arrange", "Assemble", "Collect", "Organize", "Manage", "Prepare"], example: "Design a comprehensive international exchange program." },
+                    { level: 6, name: "Evaluation", color: "bg-purple-400", desc: "Produce new or original work.", verbs: ["Evaluate", "Judge", "Argue", "Defend", "Justify", "Validate", "Support", "Estimate", "Compare", "Conclude", "Criticize", "Decide", "Rate", "Predict", "Recommend"], example: "Evaluate the relevance of a teaching methodology." }
+                ],
+                anderson: [
+                    { level: 1, name: "Remember", color: "bg-red-500", desc: "Recall facts and basic concepts.", verbs: ["Recognize", "Identify", "Recall", "Retrieve", "List", "Name", "Locate", "Find", "Define", "Cite", "State", "Arrange", "Select", "Duplicate", "Repeat"], example: "Recall fire safety steps." },
+                    { level: 2, name: "Understand", color: "bg-orange-500", desc: "Explain ideas or concepts.", verbs: ["Interpret", "Exemplify", "Classify", "Summarize", "Infer", "Compare", "Explain", "Paraphrase", "Discuss", "Predict", "Associate", "Distinguish", "Estimate", "Generalize", "Translate"], example: "Explain why recycling is important." },
+                    { level: 3, name: "Apply", color: "bg-yellow-500", desc: "Use information in new situations.", verbs: ["Execute", "Implement", "Use", "Apply", "Demonstrate", "Dramatize", "Illustrate", "Interpret", "Operate", "Plan", "Sketch", "Solve", "Calculate", "Modify", "Complete"], example: "Apply the 3Cs method to write an objective." },
+                    { level: 4, name: "Analyze", color: "bg-green-500", desc: "Draw connections among ideas.", verbs: ["Differentiate", "Organize", "Attribute", "Distinguish", "Focus", "Select", "Integrate", "Structure", "Decompose", "Find", "Investigate", "Correlate", "Deduce", "Discriminate", "Diagram"], example: "Distinguish facts from opinions in a political speech." },
+                    { level: 5, name: "Evaluate", color: "bg-blue-500", desc: "Justify a stand or decision.", verbs: ["Check", "Critique", "Judge", "Test", "Detect", "Monitor", "Coordinate", "Validate", "Argue", "Defend", "Justify", "Recommend", "Prioritize", "Rate", "Decide"], example: "Judge which solution is the most economical and ecological." },
+                    { level: 6, name: "Create", color: "bg-purple-600", desc: "Produce new or original work.", verbs: ["Generate", "Plan", "Produce", "Design", "Construct", "Invent", "Compose", "Develop", "Formulate", "Assemble", "Modify", "Arrange", "Rewrite", "Propose", "Originate"], example: "Create a mobile app to help the homeless." }
+                ]
+            }
+        };
+
+        // --- GAME DATA (TRICKY!) ---
+
+        // GAME 1: Dr Objective (Tricky Distractors)
+        const drData = {
+            fr: [
+                { sick: "Savoir nager.", valid: "Dans une piscine surveillée, nager 50m en brasse sans poser le pied.", options: ["À la fin du stage, les participants sauront nager 50m.", "Nager 50m en brasse pour améliorer son endurance."] },
+                { sick: "Comprendre le leadership.", valid: "Après le module, citer 3 styles de leadership sans consulter ses notes.", options: ["À l'issue de la formation, le participant aura compris les 3 styles de leadership.", "Identifier des styles de leadership pertinents."] },
+                { sick: "Introduction à la poterie.", valid: "Avec un tour électrique, façonner un bol de 10cm de haut minimum.", options: ["Le formateur montrera comment façonner un bol de 10cm.", "Façonner un bol en argile correctement."] },
+                { sick: "Sensibilisation à l'écologie.", valid: "Face à une poubelle de tri, jeter 10 déchets sans aucune erreur.", options: ["Trier ses déchets au quotidien pour protéger la planète.", "Connaître les règles de tri des déchets."] },
+                { sick: "Apprendre Excel.", valid: "À partir d'un jeu de données, créer un tableau croisé en moins de 3 minutes.", options: ["Utiliser Excel pour créer des tableaux croisés dynamiques.", "Comprendre comment faire un tableau croisé dynamique."] },
+                { sick: "Le respect.", valid: "En réunion, écouter les autres sans couper la parole pendant 1h.", options: ["Adopter une attitude respectueuse envers les collègues.", "Ne pas couper la parole aux autres."] },
+                { sick: "L'histoire de France.", valid: "Sur une carte vierge, placer 5 villes avec exactitude.", options: ["Connaître la géographie de la France.", "Placer des villes sur une carte."] },
+                { sick: "La communication.", valid: "Face à un client mécontent, reformuler sa plainte en utilisant le 'JE'.", options: ["Gérer les conflits avec les clients mécontents.", "Savoir utiliser le 'JE' pour apaiser les tensions."] },
+                { sick: "Savoir coder.", valid: "Sans aide, écrire une fonction qui ne renvoie aucune erreur de syntaxe.", options: ["Apprendre à coder des fonctions sans erreurs.", "Écrire du code propre et fonctionnel."] },
+                { sick: "La sécurité routière.", valid: "Sur un simulateur, identifier 5 dangers en moins de 10 secondes chacun.", options: ["Être vigilant face aux dangers de la route.", "Repérer les dangers potentiels sur la route."] }
+            ],
+            en: [
+                { sick: "Know how to swim.", valid: "In a supervised pool, swim 50m breaststroke without stopping.", options: ["At the end, participants will know how to swim 50m.", "Swim 50m to improve endurance."] },
+                { sick: "Understand leadership.", valid: "After the module, cite 3 leadership styles without notes.", options: ["Participants will understand the 3 leadership styles.", "Identify relevant leadership styles."] },
+                { sick: "Intro to pottery.", valid: "Using a wheel, throw a bowl at least 10cm high.", options: ["The trainer will show how to throw a 10cm bowl.", "Throw a clay bowl correctly."] },
+                { sick: "Ecology awareness.", valid: "Facing a recycling bin, sort 10 items with zero errors.", options: ["Sort waste daily to protect the planet.", "Know the rules of waste sorting."] },
+                { sick: "Learn Excel.", valid: "From a dataset, create a pivot table in under 3 minutes.", options: ["Use Excel to create pivot tables.", "Understand how to make a pivot table."] },
+                { sick: "Respect.", valid: "In a meeting, listen to others without interrupting for 1h.", options: ["Adopt a respectful attitude towards colleagues.", "Do not interrupt others."] },
+                { sick: "French History.", valid: "On a blank map, place 5 cities accurately.", options: ["Know the geography of France.", "Place cities on a map."] },
+                { sick: "Communication.", valid: "Facing an angry client, rephrase the complaint using 'I' statements.", options: ["Manage conflicts with angry clients.", "Know how to use 'I' statements to calm tensions."] },
+                { sick: "Know coding.", valid: "Without help, write a function with no syntax errors.", options: ["Learn to code functions without errors.", "Write clean and functional code."] },
+                { sick: "Road safety.", valid: "On a simulator, identify 5 dangers within 10 seconds each.", options: ["Be vigilant about road dangers.", "Spot potential dangers on the road."] }
+            ]
+        };
+
+        // GAME 2: Bloom Master (Tasks to classify)
+        const bloomGameData = {
+            fr: [
+                { task: "Réciter une poésie.", level: 1, explanation: "C'est de la mémoire pure (Connaissance)." },
+                { task: "Expliquer le cycle de l'eau.", level: 2, explanation: "Il faut avoir saisi le sens pour expliquer (Compréhension)." },
+                { task: "Calculer l'aire d'un cercle.", level: 3, explanation: "C'est l'application d'une règle/formule (Application)." },
+                { task: "Comparer deux articles de presse.", level: 4, explanation: "Comparer demande d'analyser les différences et ressemblances (Analyse)." },
+                { task: "Juger la fiabilité d'une source.", level: 6, explanation: "Cela demande une critique basée sur des critères (Évaluation)." },
+                { task: "Inventer une nouvelle recette.", level: 5, explanation: "On crée quelque chose de nouveau (Synthèse/Création)." },
+                { task: "Lister les planètes.", level: 1, explanation: "Restitution de faits mémorisés (Connaissance)." },
+                { task: "Traduire un texte en espagnol.", level: 2, explanation: "Traduire nécessite de comprendre le message (Compréhension)." },
+                { task: "Diagnostiquer une panne moteur.", level: 4, explanation: "Il faut analyser le système pour trouver la faille (Analyse)." },
+                { task: "Défendre une opinion politique.", level: 6, explanation: "Nécessite d'argumenter et d'évaluer des idées (Évaluation)." }
+            ],
+            en: [
+                { task: "Recite a poem.", level: 1, explanation: "Reciting relies on memory (Knowledge)." },
+                { task: "Explain the water cycle.", level: 2, explanation: "Explaining requires understanding meaning (Comprehension)." },
+                { task: "Calculate the area of a circle.", level: 3, explanation: "Applying a known formula (Application)." },
+                { task: "Compare two news articles.", level: 4, explanation: "Comparing requires analysis of components (Analysis)." },
+                { task: "Judge source reliability.", level: 6, explanation: "Judging requires critical evaluation based on criteria (Evaluation)." },
+                { task: "Invent a new recipe.", level: 5, explanation: "Inventing is a creative process (Synthesis)." },
+                { task: "List the planets.", level: 1, explanation: "Simple memorization (Knowledge)." },
+                { task: "Translate a text into Spanish.", level: 2, explanation: "Translation requires comprehension (Comprehension)." },
+                { task: "Diagnose an engine failure.", level: 4, explanation: "Analyzing symptoms to find the cause (Analysis)." },
+                { task: "Defend a political opinion.", level: 6, explanation: "Defending involves evaluation and argumentation (Evaluation)." }
+            ]
+        };
+
+        // GAME 3: Mager Detective (Identify parts)
+        const magerGameData = {
+            fr: [
+                { text: "En utilisant une carte (C), l'élève localisera la ville (A).", q: "La Condition ?", ans: "En utilisant une carte", dummies: ["l'élève localisera la ville"] },
+                { text: "Sans erreur (Cr), réciter l'alphabet (A).", q: "Le Critère ?", ans: "Sans erreur", dummies: ["réciter l'alphabet"] },
+                { text: "Le jeune montera la tente (A) en moins de 10 min (Cr).", q: "Le Comportement ?", ans: "montera la tente", dummies: ["en moins de 10 min", "Le jeune"] },
+                { text: "Avec un dictionnaire (C), traduire le mot (A).", q: "La Condition ?", ans: "Avec un dictionnaire", dummies: ["traduire le mot"] },
+                { text: "Courir 100m (A) en moins de 15s (Cr).", q: "Le Critère ?", ans: "en moins de 15s", dummies: ["Courir 100m"] },
+                { text: "Dessiner un carré (A) à main levée (C).", q: "Le Comportement ?", ans: "Dessiner un carré", dummies: ["à main levée"] },
+                { text: "Identifier 3 oiseaux (A) à partir de photos (C).", q: "La Condition ?", ans: "à partir de photos", dummies: ["Identifier 3 oiseaux"] },
+                { text: "Visser l'écrou (A) jusqu'au blocage (Cr).", q: "Le Critère ?", ans: "jusqu'au blocage", dummies: ["Visser l'écrou"] },
+                { text: "Sans calculatrice (C), diviser 100 par 4 (A).", q: "La Condition ?", ans: "Sans calculatrice", dummies: ["diviser 100 par 4"] },
+                { text: "Écrire un haïku (A) respectant la structure 5-7-5 (Cr).", q: "Le Critère ?", ans: "respectant la structure 5-7-5", dummies: ["Écrire un haïku"] }
+            ],
+            en: [
+                { text: "Using a map (C), locate the city (B).", q: "The Condition?", ans: "Using a map", dummies: ["locate the city"] },
+                { text: "Without error (Cr), recite the alphabet (B).", q: "The Criteria?", ans: "Without error", dummies: ["recite the alphabet"] },
+                { text: "Pitch the tent (B) in under 10 min (Cr).", q: "The Behavior?", ans: "Pitch the tent", dummies: ["in under 10 min"] },
+                { text: "With a dictionary (C), translate the word (B).", q: "The Condition?", ans: "With a dictionary", dummies: ["translate the word"] },
+                { text: "Run 100m (B) in under 15s (Cr).", q: "The Criteria?", ans: "in under 15s", dummies: ["Run 100m"] },
+                { text: "Draw a square (B) freehand (C).", q: "The Behavior?", ans: "Draw a square", dummies: ["freehand"] },
+                { text: "Identify 3 birds (B) from photos (C).", q: "The Condition?", ans: "from photos", dummies: ["Identify 3 birds"] },
+                { text: "Tighten the nut (B) until blocked (Cr).", q: "The Criteria?", ans: "until blocked", dummies: ["Tighten the nut"] },
+                { text: "Without calculator (C), divide 100 by 4 (B).", q: "The Condition?", ans: "Without calculator", dummies: ["divide 100 by 4"] },
+                { text: "Write a haiku (B) following 5-7-5 structure (Cr).", q: "The Criteria?", ans: "following 5-7-5 structure", dummies: ["Write a haiku"] }
+            ]
+        };
+
+        // GAME 4: The Missing Link (Find missing C, B, or Cr)
+        const missingData = {
+            fr: [
+                { text: "À la fin de la séance, les participants sauront faire des nœuds.", missing: "Critère (Quel nœud? Combien? Quelle qualité?)", type: "Critère" },
+                { text: "En moins de 5 minutes, citer les 7 merveilles du monde.", missing: "Condition (Avec ou sans aide ?)", type: "Condition" },
+                { text: "Sans utiliser de notes, le participant devra...", missing: "Comportement (Faire quoi ?)", type: "Comportement" },
+                { text: "Lister les départements français.", missing: "Critère (Tous? 10? Sans erreur?)", type: "Critère" },
+                { text: "Réparer la roue de vélo en 15 minutes.", missing: "Condition (Avec quels outils ?)", type: "Condition" },
+                { text: "À l'aide du manuel, avec 90% de réussite.", missing: "Comportement", type: "Comportement" },
+                { text: "Préparer une omelette.", missing: "Critère (Baveuse? Sans coquille?)", type: "Critère" },
+                { text: "Sauter à la corde 50 fois.", missing: "Condition (Sur quel sol? Pieds nus?)", type: "Condition" },
+                { text: "En groupe de 3, réaliser une affiche.", missing: "Critère (Quelle taille? Quel contenu?)", type: "Critère" },
+                { text: "Utiliser un extincteur pour éteindre un feu.", missing: "Critère (En combien de temps? Quel type de feu?)", type: "Critère" }
+            ],
+            en: [
+                { text: "By the end, participants will know how to tie knots.", missing: "Criteria (Which knot? How well?)", type: "Criteria" },
+                { text: "In under 5 minutes, list the 7 wonders of the world.", missing: "Condition (With or without help?)", type: "Condition" },
+                { text: "Without using notes, the participant must...", missing: "Behavior (Do what?)", type: "Behavior" },
+                { text: "List the French departments.", missing: "Criteria (All? 10? Without error?)", type: "Criteria" },
+                { text: "Fix the bike wheel in 15 minutes.", missing: "Condition (With what tools?)", type: "Condition" },
+                { text: "Using the manual, with 90% accuracy.", missing: "Behavior", type: "Behavior" },
+                { text: "Cook an omelet.", missing: "Criteria (Runny? No shells?)", type: "Criteria" },
+                { text: "Jump rope 50 times.", missing: "Condition (What surface?)", type: "Condition" },
+                { text: "In groups of 3, make a poster.", missing: "Criteria (Size? Content?)", type: "Criteria" },
+                { text: "Use an extinguisher to put out a fire.", missing: "Criteria (Time? Fire type?)", type: "Criteria" }
+            ]
+        };
+
+
+        // --- STATE & APP LOGIC ---
+        let lang = 'fr';
+        let currentTaxonomy = 'bloom';
+        
+        // GLOBAL GAME STATE VARIABLES
+        let currentScore = 0;
+        let currentRound = 0;
+        let currentGameId = 0;
+        let currentDrData = []; // Store shuffled Dr Objectives questions
+        let currentBloomData = []; // Store shuffled Bloom questions
+        let currentMagerData = []; // Store shuffled Mager questions
+        let currentMissingData = []; // Store shuffled Missing Link questions
+        
+        function toggleLanguage() {
+            lang = lang === 'fr' ? 'en' : 'fr';
+            document.getElementById('lang-display').innerText = lang.toUpperCase();
+            
+            // Update static text
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (content[lang][key]) el.innerText = content[lang][key];
+            });
+
+            // Update Lists (Intro)
+            updateIntroLists();
+
+            // Update Pyramid
+            renderPyramid();
+            
+            // Close game if open to reset text
+            closeGame();
+        }
+
+        function updateIntroLists() {
+            const listGen = document.getElementById('intro_general_list');
+            const listYouth = document.getElementById('intro_youth_list');
+            
+            listGen.innerHTML = '';
+            listYouth.innerHTML = '';
+
+            introDetailsData[lang].general.forEach((item, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left px-3 py-2 bg-blue-100 hover:bg-blue-200 rounded text-blue-900 text-sm font-semibold transition flex items-center";
+                btn.innerHTML = `<i class="fas fa-caret-right mr-2"></i> ${item.title}`;
+                btn.onclick = () => showIntroModal(item.title, item.text);
+                listGen.appendChild(btn);
+            });
+
+            introDetailsData[lang].youth.forEach((item, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left px-3 py-2 bg-green-100 hover:bg-green-200 rounded text-green-900 text-sm font-semibold transition flex items-center";
+                btn.innerHTML = `<i class="fas fa-caret-right mr-2"></i> ${item.title}`;
+                btn.onclick = () => showIntroModal(item.title, item.text);
+                listYouth.appendChild(btn);
+            });
+        }
+
+        // --- MODAL LOGIC ---
+        function showIntroModal(title, text) {
+            const modal = document.getElementById('info-modal');
+            const content = document.getElementById('info-modal-content');
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = text;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('info-modal');
+            const content = document.getElementById('info-modal-content');
+            
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            content.classList.remove('scale-100');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            // Nav styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-700', 'text-white');
+                if (btn.id !== 'btn-activities') btn.classList.add('text-slate-300');
+            });
+            if(tabId !== 'activities') {
+                 document.getElementById('btn-'+tabId).classList.add('bg-slate-700', 'text-white');
+                 document.getElementById('btn-'+tabId).classList.remove('text-slate-300');
+            }
+            if(tabId === 'bloom') renderPyramid();
+        }
+
+        // --- BLOOM LOGIC ---
+        function toggleTaxonomy() {
+            currentTaxonomy = currentTaxonomy === 'bloom' ? 'anderson' : 'bloom';
+            const btn = document.getElementById('btn-version-text');
+            const title = document.getElementById('taxonomy-title');
+            
+            if (currentTaxonomy === 'anderson') {
+                btn.innerText = content[lang].btn_bloom;
+                title.innerText = "Taxonomie d'Anderson & Krathwohl (2001)";
+                // Show Popup for Anderson
+                showIntroModal("Anderson vs Bloom", 
+                    lang === 'fr' 
+                    ? "Anderson & Krathwohl (2001) ont révisé la taxonomie pour le 21ème siècle. Deux changements majeurs : 1) Utilisation de verbes (processus actifs) au lieu de noms. 2) La 'Création' passe au sommet de la pyramide, au-dessus de l'Évaluation, reflétant l'importance de l'innovation."
+                    : "Anderson & Krathwohl (2001) revised the taxonomy for the 21st century. Two major changes: 1) Use of verbs (active processes) instead of nouns. 2) 'Creating' moves to the top, above Evaluating, reflecting the importance of innovation."
+                );
+            } else {
+                btn.innerText = content[lang].btn_anderson;
+                title.innerText = content[lang].bloom_taxonomy || "Taxonomie de Bloom (1956)";
+            }
+            renderPyramid();
+            document.getElementById('bloom-content').classList.add('hidden');
+            document.getElementById('bloom-empty-state').classList.remove('hidden');
+        }
+
+        function renderPyramid() {
+            const container = document.getElementById('pyramid-container');
+            container.innerHTML = '';
+            const data = currentTaxonomy === 'bloom' ? bloomData[lang].original : bloomData[lang].anderson;
+
+            data.forEach((item, index) => {
+                const width = 100 - (index * 10) + "%"; 
+                const div = document.createElement('div');
+                div.className = `bloom-step ${item.color} text-white font-bold p-3 rounded shadow-sm flex justify-between items-center px-4`;
+                div.style.width = width;
+                div.style.marginLeft = "auto";
+                div.style.marginRight = "auto";
+                div.innerHTML = `<span>${item.level}. ${item.name}</span> <i class="fas fa-chevron-right opacity-50"></i>`;
+                div.onclick = () => showBloomDetail(item, div);
+                container.appendChild(div);
+            });
+        }
+
+        function showBloomDetail(item, element) {
+            document.getElementById('bloom-empty-state').classList.add('hidden');
+            document.getElementById('bloom-content').classList.remove('hidden');
+            document.querySelectorAll('.bloom-step').forEach(el => el.classList.remove('active-step'));
+            element.classList.add('active-step');
+
+            document.getElementById('detail-badge').className = `w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl shadow ${item.color}`;
+            document.getElementById('detail-badge').innerText = item.level;
+            document.getElementById('detail-title').innerText = item.name;
+            document.getElementById('detail-desc').innerText = item.desc;
+            document.getElementById('detail-example').innerText = item.example;
+            
+            document.getElementById('bloom-detail-card').style.borderColor = getComputedStyle(element).backgroundColor;
+
+            const verbsContainer = document.getElementById('detail-verbs');
+            verbsContainer.innerHTML = '';
+            item.verbs.forEach(verb => {
+                const span = document.createElement('span');
+                span.className = "bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs border border-slate-200";
+                span.innerText = verb;
+                verbsContainer.appendChild(span);
+            });
+        }
+
+        // --- GAME LOGIC ENGINE ---
+
+        const gameArea = document.getElementById('game-area');
+        const gameContent = document.getElementById('game-content');
+        const scoreDisplay = document.getElementById('score-display');
+        const titleDisplay = document.getElementById('game-title-display');
+
+        function startGame(id) {
+            currentGameId = id;
+            currentScore = 0;
+            currentRound = 0;
+            
+            // Prepare and shuffle data based on game ID
+            if(id === 1) currentDrData = [...drData[lang]].sort(() => Math.random() - 0.5);
+            if(id === 2) currentBloomData = [...bloomGameData[lang]].sort(() => Math.random() - 0.5);
+            if(id === 3) currentMagerData = [...magerGameData[lang]].sort(() => Math.random() - 0.5);
+            if(id === 4) currentMissingData = [...missingData[lang]].sort(() => Math.random() - 0.5);
+
+            gameArea.classList.remove('hidden');
+            scoreDisplay.innerText = `Score: 0/10`;
+            
+            // Set Title
+            let tKey = `game${id}_title`;
+            titleDisplay.innerText = content[lang][tKey];
+
+            gameArea.scrollIntoView({behavior: 'smooth'});
+            renderRound();
+        }
+
+        function closeGame() {
+            gameArea.classList.add('hidden');
+            document.getElementById('activities').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function nextRound(points) {
+            if(points) currentScore++;
+            currentRound++;
+            scoreDisplay.innerText = `Score: ${currentScore}/10`;
+            
+            if (currentRound >= 10) {
+                showEndScreen();
+            } else {
+                renderRound();
+            }
+        }
+
+        function showEndScreen() {
+            gameContent.innerHTML = `
+                <div class="text-center animate-fadeIn">
+                    <i class="fas fa-trophy text-6xl text-yellow-500 mb-6"></i>
+                    <h3 class="text-3xl font-bold mb-2">${content[lang].game_end_title}</h3>
+                    <p class="text-2xl mb-8">Score Final: <span class="text-primary font-bold">${currentScore}/10</span></p>
+                    <button onclick="startGame(${currentGameId})" class="bg-primary text-white px-8 py-3 rounded-full hover:bg-blue-600 font-bold transition">
+                        ${content[lang].game_replay}
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderRound() {
+            gameContent.innerHTML = '';
+            if (currentGameId === 1) renderDrObjective();
+            if (currentGameId === 2) renderBloomMaster();
+            if (currentGameId === 3) renderMagerDetective();
+            if (currentGameId === 4) renderMissingLink();
+        }
+
+        // --- GAME 1: Dr Objective ---
+        function renderDrObjective() {
+            const data = currentDrData[currentRound];
+            // Shuffle options with valid one
+            let opts = [...data.options, data.valid].sort(() => Math.random() - 0.5);
+
+            let html = `
+                <div class="w-full max-w-2xl animate-fadeIn">
+                    <div class="bg-red-50 p-6 rounded-xl border border-red-200 mb-8 flex items-center gap-4">
+                        <i class="fas fa-virus text-4xl text-red-500"></i>
+                        <div>
+                            <h4 class="font-bold text-red-800 text-lg">Objectif Malade :</h4>
+                            <p class="text-2xl font-mono text-dark bg-white px-2 py-1 rounded">"${data.sick}"</p>
+                        </div>
+                    </div>
+                    <p class="mb-4 text-center font-bold text-gray-600">Quel est l'objectif bien formulé (3C) ?</p>
+                    <div class="grid gap-4">
+            `;
+            
+            opts.forEach(opt => {
+                const isCorrect = opt === data.valid;
+                // Use index/boolean for handler to avoid string escaping issues
+                html += `<button onclick="handleDrChoice(this, ${isCorrect})" class="w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-blue-400 bg-white hover:bg-blue-50 transition font-medium text-sm md:text-base">
+                    ${opt}
+                </button>`;
+            });
+
+            html += `</div></div>`;
+            gameContent.innerHTML = html;
+        }
+
+        window.handleDrChoice = (btn, isCorrect) => {
+            // Disable all buttons
+            const parent = btn.parentElement;
+            Array.from(parent.children).forEach(b => b.disabled = true);
+
+            if(isCorrect) {
+                btn.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                btn.innerHTML += ` <i class="fas fa-check float-right mt-1"></i>`;
+            } else {
+                btn.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                btn.innerHTML += ` <i class="fas fa-times float-right mt-1"></i>`;
+            }
+
+            setTimeout(() => nextRound(isCorrect), 1200);
+        };
+
+        // --- GAME 2: Bloom Master (Visual Pyramid) ---
+        function renderBloomMaster() {
+            const data = currentBloomData[currentRound];
+            
+            // Buttons Ordered 1-6
+            const buttons = [
+                { id: 1, name: "1. Connaissance/Se Rappeler", col: "bg-red-400" },
+                { id: 2, name: "2. Compréhension", col: "bg-orange-400" },
+                { id: 3, name: "3. Application", col: "bg-yellow-400" },
+                { id: 4, name: "4. Analyse", col: "bg-green-400" },
+                { id: 5, name: "5. Synthèse/Créer", col: "bg-blue-400" },
+                { id: 6, name: "6. Évaluation", col: "bg-purple-400" }
+            ];
+
+            let buttonsHtml = '';
+            buttons.forEach(btn => {
+                buttonsHtml += `<button onclick="handleBloom(this, ${btn.id}, ${data.level})" class="p-3 ${btn.col} text-white rounded hover:opacity-80 transition font-bold relative group shadow-md text-sm md:text-base">${btn.name}</button>`;
+            });
+
+            let html = `
+                <div class="w-full max-w-3xl animate-fadeIn text-center">
+                    <div class="bg-blue-50 p-6 rounded-xl mb-8 shadow-inner">
+                        <h4 class="text-gray-500 uppercase text-sm font-bold tracking-wider mb-2">Tâche / Task</h4>
+                        <p class="text-3xl font-bold text-dark">"${data.task}"</p>
+                    </div>
+                    
+                    <p class="mb-4 text-gray-500">Quel est le niveau Bloom ?</p>
+                    
+                    <div class="grid grid-cols-2 gap-3 max-w-lg mx-auto">
+                        ${buttonsHtml}
+                    </div>
+                </div>
+            `;
+            gameContent.innerHTML = html;
+        }
+
+        window.handleBloom = (btn, choice, answer) => {
+            // Disable all
+            const parent = btn.parentElement;
+            Array.from(parent.children).forEach(b => b.disabled = true);
+
+            const isCorrect = choice === answer;
+            
+            if(isCorrect) {
+                btn.classList.remove('opacity-80');
+                btn.classList.add('ring-4', 'ring-green-400', 'scale-105');
+            } else {
+                btn.classList.add('opacity-50', 'ring-4', 'ring-red-400');
+            }
+
+            // Get explanation
+            const expl = currentBloomData[currentRound].explanation;
+            showFeedback(isCorrect, answer, expl);
+        }
+
+        function showFeedback(isCorrect, answer, explanation = null) {
+             let msg = isCorrect ? content[lang].feedback_correct : content[lang].feedback_wrong;
+             
+             if (!isCorrect) {
+                 if (typeof answer === 'number') {
+                     msg += ` (Niveau ${answer})`;
+                 } else {
+                     msg += `<br><span class="text-lg text-dark">Réponse : ${answer}</span>`;
+                 }
+                 
+                 if (explanation) {
+                     msg += `<br><div class="text-sm font-normal mt-2 text-slate-600 italic border-t pt-2 border-slate-200">"${explanation}"</div>`;
+                 }
+             }
+
+             const overlay = document.createElement('div');
+             overlay.className = `fixed inset-0 flex items-center justify-center z-50 bg-black/50`;
+             // Ensure text-center and max-width for long explanations
+             overlay.innerHTML = `<div class="bg-white p-6 rounded-xl text-2xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'} shadow-2xl transform scale-100 animate-bounce text-center max-w-md mx-4">${msg}</div>`;
+             
+             // Longer timeout for reading explanation
+             const duration = (!isCorrect && explanation) ? 3000 : 1200;
+
+             document.body.appendChild(overlay);
+
+             setTimeout(() => {
+                 overlay.remove();
+                 nextRound(isCorrect);
+             }, duration);
+        }
+
+        // --- GAME 3: Mager Detective ---
+        function renderMagerDetective() {
+            const data = currentMagerData[currentRound];
+            // Shuffle options
+            let opts = [data.ans, ...data.dummies].sort(() => Math.random() - 0.5);
+
+            // Store options on DOM element to avoid quote escaping hell
+            const optsContainer = document.createElement('div');
+            optsContainer.className = "grid gap-3";
+            
+            opts.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border-2 border-slate-200 p-4 rounded-lg hover:bg-slate-50 font-bold text-lg transition";
+                btn.innerText = opt;
+                btn.onclick = () => handleMager(btn, opt, data.ans);
+                optsContainer.appendChild(btn);
+            });
+
+            gameContent.innerHTML = '';
+            const wrapper = document.createElement('div');
+            wrapper.className = "w-full max-w-2xl animate-fadeIn text-center";
+            
+            wrapper.innerHTML = `
+                <h4 class="text-xl text-primary font-bold mb-4">${data.q}</h4>
+                <div class="bg-slate-800 text-white p-6 rounded-xl text-xl mb-8 font-serif leading-loose">
+                    "${data.text.replace(/\([A-Z]+\)/g, '')}"
+                </div>
+            `;
+            wrapper.appendChild(optsContainer);
+            gameContent.appendChild(wrapper);
+        }
+
+        window.handleMager = (btn, choice, correct) => {
+            const isCorrect = choice === correct;
+            // Disable buttons
+            const parent = btn.parentElement;
+            Array.from(parent.children).forEach(b => b.disabled = true);
+
+            if(isCorrect) {
+                btn.classList.add('bg-green-100', 'border-green-500');
+            } else {
+                btn.classList.add('bg-red-100', 'border-red-500');
+            }
+            // Use same explicit feedback as Bloom
+            showFeedback(isCorrect, correct);
+        }
+
+        // --- GAME 4: The Missing Link ---
+        function renderMissingLink() {
+            const data = currentMissingData[currentRound];
+            const types = ["Comportement", "Condition", "Critère"];
+            if (lang === 'en') { types[0]="Behavior"; types[1]="Condition"; types[2]="Criteria"; }
+
+            let html = `
+                <div class="w-full max-w-2xl animate-fadeIn text-center">
+                    <div class="bg-purple-50 p-6 rounded-xl mb-8 border border-purple-200">
+                        <i class="fas fa-link text-4xl text-purple-400 mb-4"></i>
+                        <p class="text-xl font-bold text-slate-700">"${data.text}"</p>
+                    </div>
+                    
+                    <p class="mb-4 text-gray-500 font-bold uppercase tracking-widest">${content[lang].game4_desc}</p>
+                    
+                    <div class="grid grid-cols-3 gap-4">
+            `;
+            
+            types.forEach(t => {
+                let match = t === data.type;
+                html += `<button onclick="handleMissing(this, ${match})" class="h-32 bg-white border-2 border-slate-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition flex flex-col items-center justify-center gap-2 group">
+                    <i class="fas ${t.startsWith('C') ? (t.includes('rit')?'fa-ruler-combined':'fa-map-signs') : 'fa-running'} text-2xl text-slate-400 group-hover:text-purple-600"></i>
+                    <span class="font-bold text-lg">${t}</span>
+                </button>`;
+            });
+
+            html += `</div>
+                <div id="missing-feedback" class="mt-6 hidden font-bold text-purple-600 p-4 bg-purple-100 rounded-lg">
+                    Réponse : ${data.missing}
+                </div>
+            </div>`;
+            gameContent.innerHTML = html;
+        }
+
+        window.handleMissing = (btn, isCorrect) => {
+            document.querySelectorAll('#game-content button').forEach(b => b.disabled = true);
+            
+            if(isCorrect) {
+                btn.classList.add('border-green-500', 'bg-green-50');
+            } else {
+                btn.classList.add('border-red-500', 'bg-red-50');
+            }
+            
+            document.getElementById('missing-feedback').classList.remove('hidden');
+            
+            setTimeout(() => nextRound(isCorrect), 2500); // Longer timeout to read feedback
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            updateIntroLists();
+            renderPyramid();
+        });
+
+    </script>
+</body>
+</html>
