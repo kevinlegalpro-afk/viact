@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Boussole de l'Impact - Impact Compass</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        /* Transitions */
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .nav-item.active {
+            color: #2563eb;
+            background-color: #eff6ff;
+            border-bottom: 2px solid #2563eb;
+        }
+    </style>
+</head>
+<body class="text-slate-800 bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 fixed top-0 w-full z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <!-- Logo & Title -->
+                <div class="flex items-center gap-3">
+                    <i class="fa-regular fa-compass text-3xl text-blue-600 animate-pulse"></i>
+                    <span class="font-bold text-xl tracking-tight hidden md:block" data-key="navTitle">La Boussole de l'Impact</span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-1 items-center">
+                    <button onclick="switchView('intro')" id="nav-intro" class="nav-item active px-4 py-2 rounded-t-md text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                        <i class="fa-solid fa-compass mr-2"></i><span data-key="tabCompass">La Boussole</span>
+                    </button>
+                    <button onclick="switchView('practice')" id="nav-practice" class="nav-item px-4 py-2 rounded-t-md text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                        <i class="fa-solid fa-list-check mr-2"></i><span data-key="tabPractice">Pratique & Quiz</span>
+                    </button>
+                    <button onclick="switchView('compare')" id="nav-compare" class="nav-item px-4 py-2 rounded-t-md text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                        <i class="fa-solid fa-scale-balanced mr-2"></i><span data-key="tabCompare">Obj vs Ind</span>
+                    </button>
+                    <button onclick="switchView('kirkpatrick')" id="nav-kirkpatrick" class="nav-item px-4 py-2 rounded-t-md text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                        <i class="fa-solid fa-layer-group mr-2"></i><span data-key="tabKirk">Kirkpatrick</span>
+                    </button>
+                </div>
+
+                <!-- Language Switcher -->
+                <div class="flex items-center">
+                    <div class="bg-slate-100 p-1 rounded-full flex ml-4">
+                        <button onclick="setLanguage('fr')" id="btn-fr" class="px-3 py-1 rounded-full text-xs font-bold transition-all bg-white shadow-md text-blue-600">FR</button>
+                        <button onclick="setLanguage('en')" id="btn-en" class="px-3 py-1 rounded-full text-xs font-bold transition-all text-slate-500 hover:text-blue-600">EN</button>
+                    </div>
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden ml-4 text-slate-500 hover:text-blue-600 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100 shadow-lg fixed top-16 w-full z-40">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button onclick="switchView('intro')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-50">
+                    <i class="fa-solid fa-compass mr-2 w-6"></i><span data-key="tabCompass">La Boussole</span>
+                </button>
+                <button onclick="switchView('practice')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-50">
+                    <i class="fa-solid fa-list-check mr-2 w-6"></i><span data-key="tabPractice">Pratique & Quiz</span>
+                </button>
+                <button onclick="switchView('compare')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-50">
+                    <i class="fa-solid fa-scale-balanced mr-2 w-6"></i><span data-key="tabCompare">Obj vs Ind</span>
+                </button>
+                <button onclick="switchView('kirkpatrick')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-50">
+                    <i class="fa-solid fa-layer-group mr-2 w-6"></i><span data-key="tabKirk">Kirkpatrick</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow pt-24 pb-10 px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- VIEW 1: INTRO & BOUSSOLE -->
+            <section id="view-intro" class="fade-in space-y-8">
+                <!-- Mini Hero -->
+                <div class="text-center py-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
+                    <span class="inline-block py-1 px-3 rounded-full bg-white text-blue-600 text-xs font-bold uppercase tracking-wider mb-3 shadow-sm" data-key="heroBadge">Module E-Learning</span>
+                    <h1 class="text-3xl md:text-5xl font-extrabold mb-4 text-slate-800">
+                        <span data-key="heroTitle">Naviguez du Besoin à l'Impact</span>
+                    </h1>
+                    <p class="text-slate-500 max-w-2xl mx-auto" data-key="heroDesc">
+                        Pour piloter un projet jeunesse, il vous faut trois types d'aiguilles sur votre boussole.
+                    </p>
+                </div>
+
+                <!-- Cards Grid -->
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Output -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 card-hover relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                             <i class="fa-solid fa-list-check text-9xl text-blue-600"></i>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h3 class="text-lg font-bold">Output</h3>
+                        <p class="text-xs font-bold text-blue-600 mb-2 uppercase" data-key="outputSubtitle">Indicateurs de Réalisation</p>
+                        <p class="text-slate-600 text-sm mb-4" data-key="outputDesc">Ce que vous avez concrètement produit ou livré. Le niveau basique.</p>
+                        <div class="p-3 bg-slate-50 rounded border-l-4 border-blue-500 text-xs italic text-slate-500">
+                            Ex: "3 ateliers numériques réalisés"
+                        </div>
+                    </div>
+
+                    <!-- Outcome -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 card-hover relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                             <i class="fa-solid fa-lightbulb text-9xl text-teal-500"></i>
+                        </div>
+                        <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center text-teal-600 mb-4">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-lg font-bold">Outcome</h3>
+                        <p class="text-xs font-bold text-teal-600 mb-2 uppercase" data-key="outcomeSubtitle">Indicateurs de Résultat</p>
+                        <p class="text-slate-600 text-sm mb-4" data-key="outcomeDesc">Ce que les participants ont appris ou changé immédiatement.</p>
+                        <div class="p-3 bg-slate-50 rounded border-l-4 border-teal-500 text-xs italic text-slate-500">
+                            Ex: "80% savent configurer un wallet"
+                        </div>
+                    </div>
+
+                    <!-- Impact -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 card-hover relative overflow-hidden group">
+                         <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                             <i class="fa-solid fa-earth-europe text-9xl text-indigo-500"></i>
+                        </div>
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 mb-4">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <h3 class="text-lg font-bold">Impact</h3>
+                        <p class="text-xs font-bold text-indigo-600 mb-2 uppercase" data-key="impactSubtitle">Indicateurs d'Impact</p>
+                        <p class="text-slate-600 text-sm mb-4" data-key="impactDesc">Le changement profond à long terme sur la société.</p>
+                        <div class="p-3 bg-slate-50 rounded border-l-4 border-indigo-500 text-xs italic text-slate-500">
+                            Ex: "+20% d'engagement citoyen"
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center mt-8">
+                     <button onclick="switchView('practice')" class="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2 text-sm">
+                        <span data-key="nextStep">Passer à la pratique</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+
+            <!-- VIEW 2: PRATIQUE (EXAMPLES + QUIZ) -->
+            <section id="view-practice" class="hidden fade-in h-full">
+                <!-- Examples Container -->
+                <div class="bg-slate-900 rounded-2xl p-6 md:p-8 text-white shadow-xl mb-12">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold" data-key="examplesTitle">Mise en Pratique : Exemples</h2>
+                            <p class="text-slate-400 text-sm" data-key="examplesSubtitle">Sélectionnez un projet pour voir la décomposition.</p>
+                        </div>
+                        <div class="flex bg-slate-800 p-1 rounded-lg">
+                            <button onclick="showProject('p1')" id="tab-p1" class="px-3 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white transition-all mr-1">
+                                <i class="fa-solid fa-laptop-code md:mr-1"></i> <span class="hidden md:inline">Numérique</span>
+                            </button>
+                            <button onclick="showProject('p2')" id="tab-p2" class="px-3 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white transition-all mr-1">
+                                <i class="fa-solid fa-leaf md:mr-1"></i> <span class="hidden md:inline">Écologie</span>
+                            </button>
+                            <button onclick="showProject('p3')" id="tab-p3" class="px-3 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white transition-all">
+                                <i class="fa-solid fa-heart md:mr-1"></i> <span class="hidden md:inline">Mentorat</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Project Content -->
+                    <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                        <div id="project-p1" class="project-content transition-opacity duration-300">
+                            <h3 class="text-xl font-bold mb-6 text-blue-400 flex items-center gap-2"><i class="fa-solid fa-laptop-code"></i> <span data-key="p1Title">Atelier "Code ta Ville"</span></h3>
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-blue-400 mb-2">Output</div><p class="text-slate-300 text-sm">5 sessions de coding. 45 jeunes présents.</p></div>
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-teal-400 mb-2">Outcome</div><p class="text-slate-300 text-sm">90% savent créer une page HTML. 70% veulent continuer.</p></div>
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-indigo-400 mb-2">Impact</div><p class="text-slate-300 text-sm">Hausse des inscriptions en filière info. Réduction fracture numérique.</p></div>
+                            </div>
+                        </div>
+                        <div id="project-p2" class="project-content hidden transition-opacity duration-300">
+                            <h3 class="text-xl font-bold mb-6 text-green-400 flex items-center gap-2"><i class="fa-solid fa-leaf"></i> <span data-key="p2Title">Projet "Quartier Vert"</span></h3>
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-blue-400 mb-2">Output</div><p class="text-slate-300 text-sm">3 composteurs installés. 200 flyers distribués.</p></div>
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-teal-400 mb-2">Outcome</div><p class="text-slate-300 text-sm">50 familles utilisent le compost. Compréhension cycle carbone.</p></div>
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-indigo-400 mb-2">Impact</div><p class="text-slate-300 text-sm">-15% ordures ménagères. Quartier plus propre.</p></div>
+                            </div>
+                        </div>
+                        <div id="project-p3" class="project-content hidden transition-opacity duration-300">
+                            <h3 class="text-xl font-bold mb-6 text-pink-400 flex items-center gap-2"><i class="fa-solid fa-hand-holding-heart"></i> <span data-key="p3Title">Projet "Mentorat"</span></h3>
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-blue-400 mb-2">Output</div><p class="text-slate-300 text-sm">20 mentors formés. 200h de mentorat.</p></div>
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-teal-400 mb-2">Outcome</div><p class="text-slate-300 text-sm">Confiance en soi (+3pts). Compétence écoute active.</p></div>
+                                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700"><div class="text-xs font-bold uppercase text-indigo-400 mb-2">Impact</div><p class="text-slate-300 text-sm">Baisse décrochage scolaire. Solidarité intergénérationnelle.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW QUIZ SECTION -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg border-t-4 border-yellow-400">
+                    <h3 class="text-2xl font-bold mb-4 flex items-center gap-2 text-slate-800">
+                        <i class="fa-solid fa-puzzle-piece text-yellow-500"></i>
+                        <span data-key="quizTitle">Exercice : À vous de jouer !</span>
+                    </h3>
+                    <p class="mb-8 text-slate-600" data-key="quizDesc">Le système vous posera 10 questions aléatoires tirées d'une banque de 15 situations.</p>
+
+                    <!-- Quiz UI -->
+                    <div id="quiz-container" class="max-w-3xl mx-auto">
+                        <!-- End Screen -->
+                        <div id="quiz-end" class="hidden text-center py-10">
+                            <i class="fa-solid fa-trophy text-6xl text-yellow-400 mb-4 animate-bounce"></i>
+                            <h4 class="text-2xl font-bold mb-2">Terminé !</h4>
+                            <p class="text-xl mb-6">Votre score : <span id="final-score" class="font-bold text-blue-600"></span>/10</p>
+                            <button onclick="restartQuiz()" class="px-6 py-2 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-colors">Nouvelle partie (Questions aléatoires)</button>
+                        </div>
+
+                        <!-- Question Screen -->
+                        <div id="quiz-active">
+                            <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-8 text-center min-h-[120px] flex items-center justify-center">
+                                <p id="question-text" class="text-xl font-medium text-slate-800">Loading...</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <button onclick="checkAnswer('output')" class="btn-option group py-4 px-6 rounded-lg bg-white border-2 border-blue-100 text-blue-600 hover:bg-blue-50 font-bold transition-all hover:shadow-md">
+                                    <span class="block text-xs uppercase text-slate-400 group-hover:text-blue-400 mb-1">C'est une</span>
+                                    Réalisation (Output)
+                                </button>
+                                <button onclick="checkAnswer('outcome')" class="btn-option group py-4 px-6 rounded-lg bg-white border-2 border-teal-100 text-teal-600 hover:bg-teal-50 font-bold transition-all hover:shadow-md">
+                                    <span class="block text-xs uppercase text-slate-400 group-hover:text-teal-400 mb-1">C'est un</span>
+                                    Résultat (Outcome)
+                                </button>
+                                <button onclick="checkAnswer('impact')" class="btn-option group py-4 px-6 rounded-lg bg-white border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50 font-bold transition-all hover:shadow-md">
+                                    <span class="block text-xs uppercase text-slate-400 group-hover:text-indigo-400 mb-1">C'est un</span>
+                                    Impact
+                                </button>
+                            </div>
+
+                            <!-- Feedback -->
+                            <div id="quiz-feedback" class="hidden mb-6 p-4 rounded-lg text-center font-medium"></div>
+
+                            <div class="flex justify-between items-center text-sm text-slate-400 border-t border-slate-100 pt-4">
+                                <span id="quiz-progress">Question 1 / 10</span>
+                                <button onclick="nextQuestion()" id="next-btn" class="hidden px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors">
+                                    Suivant <i class="fa-solid fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- VIEW 3: COMPARAISON -->
+            <section id="view-compare" class="hidden fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800" data-key="objVsIndTitle">Objectifs vs Indicateurs</h2>
+                    <p class="text-slate-500 text-sm" data-key="objVsIndIntro">Distinguer la destination (Objectif) du tableau de bord (Indicateur).</p>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-4 items-stretch justify-center max-w-5xl mx-auto">
+                    <!-- Objectif -->
+                    <div class="flex-1 bg-white p-6 rounded-xl shadow-sm border-t-4 border-blue-500 flex flex-col">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i class="fa-solid fa-crosshairs"></i></div>
+                            <h3 class="text-lg font-bold" data-key="objTitle">L'Objectif</h3>
+                        </div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">L'Intention (Futur)</p>
+                        <p class="text-slate-600 text-sm flex-grow mb-4" data-key="objDef">Déclaration d'intention. Ce que le jeune sera capable de faire.</p>
+                        <div class="bg-blue-50 p-3 rounded text-sm text-blue-800 italic border border-blue-100">
+                            <span data-key="objEx">"Les participants seront capables de concevoir un budget."</span>
+                        </div>
+                    </div>
+
+                    <!-- VS Circle -->
+                    <div class="flex items-center justify-center">
+                        <div class="bg-slate-800 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-md text-sm">VS</div>
+                    </div>
+
+                    <!-- Indicateur -->
+                    <div class="flex-1 bg-white p-6 rounded-xl shadow-sm border-t-4 border-teal-500 flex flex-col">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600"><i class="fa-solid fa-ruler-combined"></i></div>
+                            <h3 class="text-lg font-bold" data-key="indTitle">L'Indicateur</h3>
+                        </div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">La Preuve (Constat)</p>
+                        <p class="text-slate-600 text-sm flex-grow mb-4" data-key="indDef">Mesure observable prouvant que l'objectif est atteint.</p>
+                        <div class="bg-teal-50 p-3 rounded text-sm text-teal-800 italic border border-teal-100">
+                            <span data-key="indEx">"85% des budgets respectent les règles."</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- VIEW 4: KIRKPATRICK -->
+            <section id="view-kirkpatrick" class="hidden fade-in">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800" data-key="kirkTitle">Le Modèle de Kirkpatrick</h2>
+                        <p class="text-slate-500 text-sm mb-4" data-key="kirkDesc">La référence pour évaluer l'efficacité d'une formation.</p>
+                        
+                        <!-- NEW CONTEXT BOX -->
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-8 max-w-3xl mx-auto text-center text-sm text-blue-800 flex items-start justify-center gap-2">
+                            <i class="fa-solid fa-circle-info mt-1"></i>
+                            <span data-key="kirkContext">Le modèle (Donald Kirkpatrick, 1959) a été créé pour prouver que la valeur d'une formation ne s'arrête pas à la satisfaction ("Happy sheet"). Il incite à mesurer le transfert des acquis et l'impact réel.</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-8 items-center justify-center">
+                        <!-- Pyramid Buttons -->
+                        <div class="flex flex-col items-center justify-center space-y-1 w-full md:w-auto">
+                            <button onclick="showKirk('k4')" class="w-full md:w-32 h-16 bg-indigo-600 text-white rounded-t-lg hover:bg-indigo-500 transition-all shadow-md flex items-center justify-center flex-col focus:outline-none focus:ring-2 focus:ring-indigo-300 active:scale-95">
+                                <span class="font-bold">4. Results</span>
+                            </button>
+                            <button onclick="showKirk('k3')" class="w-full md:w-48 h-12 bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-md flex items-center justify-center flex-col focus:outline-none focus:ring-2 focus:ring-blue-300 active:scale-95">
+                                <span class="font-bold text-sm">3. Behavior</span>
+                            </button>
+                            <button onclick="showKirk('k2')" class="w-full md:w-64 h-12 bg-teal-500 text-white hover:bg-teal-400 transition-all shadow-md flex items-center justify-center flex-col focus:outline-none focus:ring-2 focus:ring-teal-300 active:scale-95">
+                                <span class="font-bold text-sm">2. Learning</span>
+                            </button>
+                            <button onclick="showKirk('k1')" class="w-full md:w-80 h-12 bg-emerald-500 text-white rounded-b-lg hover:bg-emerald-400 transition-all shadow-md flex items-center justify-center flex-col focus:outline-none focus:ring-2 focus:ring-emerald-300 active:scale-95">
+                                <span class="font-bold text-sm">1. Reaction</span>
+                            </button>
+                        </div>
+
+                        <!-- Info Panel -->
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 w-full md:max-w-md min-h-[280px] flex flex-col justify-center shadow-inner relative">
+                            <!-- Default Text -->
+                            <div id="kirk-default" class="text-center text-slate-400">
+                                <i class="fa-solid fa-hand-pointer text-2xl mb-3 animate-bounce"></i>
+                                <p class="text-sm" data-key="kirkPrompt">Cliquez sur un niveau pour le détail.</p>
+                                <p class="text-xs mt-4 text-blue-500 font-semibold" data-key="kirkExampleTitle">Fil rouge : Formation "Gestion de Conflits"</p>
+                            </div>
+
+                            <!-- Dynamic Content (Updated with Cohesive Story) -->
+                            <div id="kirk-k1" class="hidden animate-fadeIn">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xl font-bold text-emerald-600">Niveau 1 : Réaction</h3>
+                                    <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded" data-key="k1Sub">Satisfaction</span>
+                                </div>
+                                <p class="text-slate-600 text-sm mb-4" data-key="k1Text">Les participants ont-ils apprécié la formation ?</p>
+                                <div class="text-xs text-slate-500 border-t pt-2 border-emerald-200 space-y-2">
+                                    <div><i class="fa-solid fa-wrench mr-1"></i> <strong>Outil :</strong> Questionnaire à chaud.</div>
+                                    <div class="bg-white p-2 rounded border border-emerald-100 text-emerald-800">
+                                        <i class="fa-solid fa-quote-left mr-1"></i> <strong>Exemple :</strong> 
+                                        <span class="italic">"95% des jeunes travailleurs trouvent les méthodes applicables à leur quotidien."</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="kirk-k2" class="hidden animate-fadeIn">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xl font-bold text-teal-600">Niveau 2 : Apprentissage</h3>
+                                    <span class="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded" data-key="k2Sub">Savoirs</span>
+                                </div>
+                                <p class="text-slate-600 text-sm mb-4" data-key="k2Text">Quelles connaissances ou compétences ont été acquises ?</p>
+                                <div class="text-xs text-slate-500 border-t pt-2 border-teal-200 space-y-2">
+                                    <div><i class="fa-solid fa-wrench mr-1"></i> <strong>Outil :</strong> Mise en situation / Jeu de rôle.</div>
+                                    <div class="bg-white p-2 rounded border border-teal-100 text-teal-800">
+                                        <i class="fa-solid fa-quote-left mr-1"></i> <strong>Exemple :</strong> 
+                                        <span class="italic">"Le stagiaire sait différencier l'empathie de la sympathie lors d'une simulation."</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="kirk-k3" class="hidden animate-fadeIn">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xl font-bold text-blue-600">Niveau 3 : Comportement</h3>
+                                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded" data-key="k3Sub">Transfert</span>
+                                </div>
+                                <p class="text-slate-600 text-sm mb-4" data-key="k3Text">Appliquent-ils les acquis sur le terrain ?</p>
+                                <div class="text-xs text-slate-500 border-t pt-2 border-blue-200 space-y-2">
+                                    <div><i class="fa-solid fa-wrench mr-1"></i> <strong>Outil :</strong> Observation à froid (3 mois).</div>
+                                    <div class="bg-white p-2 rounded border border-blue-100 text-blue-800">
+                                        <i class="fa-solid fa-quote-left mr-1"></i> <strong>Exemple :</strong> 
+                                        <span class="italic">"L'animateur organise désormais systématiquement des temps de parole régulés lors des tensions."</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="kirk-k4" class="hidden animate-fadeIn">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xl font-bold text-indigo-600">Niveau 4 : Résultats</h3>
+                                    <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded" data-key="k4Sub">Impact</span>
+                                </div>
+                                <p class="text-slate-600 text-sm mb-4" data-key="k4Text">Quel impact final sur l'organisation ou la société ?</p>
+                                <div class="text-xs text-slate-500 border-t pt-2 border-indigo-200 space-y-2">
+                                    <div><i class="fa-solid fa-wrench mr-1"></i> <strong>Outil :</strong> Statistiques annuelles.</div>
+                                    <div class="bg-white p-2 rounded border border-indigo-100 text-indigo-800">
+                                        <i class="fa-solid fa-quote-left mr-1"></i> <strong>Exemple :</strong> 
+                                        <span class="italic">"Baisse de 30% des exclusions temporaires de jeunes du centre sur l'année suivante."</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+    
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
+        <p>© 2024 - Formation Travailleurs Jeunesse. Module interactif.</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // --- DATA & TRANSLATIONS ---
+        const translations = {
+            fr: {
+                navTitle: "La Boussole de l'Impact",
+                tabCompass: "La Boussole", tabPractice: "Pratique & Quiz", tabCompare: "Obj vs Ind", tabKirk: "Kirkpatrick",
+                heroTitle: "Naviguez du Besoin à l'Impact",
+                heroDesc: "Pour piloter un projet jeunesse, il vous faut trois types d'aiguilles.",
+                outputSubtitle: "Réalisation", outputDesc: "Ce que vous avez produit (Le plus basique).",
+                outcomeSubtitle: "Résultat", outcomeDesc: "Ce que les participants ont appris/acquis.",
+                impactSubtitle: "Impact", impactDesc: "Changement à long terme sur la société.",
+                nextStep: "Voir les exemples concrets",
+                examplesTitle: "Mise en Pratique : Exemples", examplesSubtitle: "Sélectionnez un projet pour voir les détails.",
+                p1Title: 'Atelier "Code ta Ville"', p2Title: 'Projet "Quartier Vert"', p3Title: 'Projet "Mentorat"',
+                quizTitle: "Exercice : À vous de jouer !", quizDesc: "Le système vous posera 10 questions aléatoires tirées d'une banque de 15 situations.",
+                objVsIndTitle: "Objectifs vs Indicateurs", objVsIndIntro: "Ne confondez pas la destination et le GPS.",
+                objTitle: "L'Objectif", objDef: "L'intention. Ce qu'on vise pour le futur.", objEx: '"Savoir faire un budget."',
+                indTitle: "L'Indicateur", indDef: "La preuve observable de la réussite.", indEx: '"85% de budgets valides."',
+                kirkTitle: "Modèle de Kirkpatrick", kirkDesc: "Les 4 niveaux d'évaluation de formation.",
+                kirkContext: "Le modèle (Donald Kirkpatrick, 1959) a été créé pour prouver que la valeur d'une formation ne s'arrête pas à la satisfaction ('Happy sheet'). Il incite à mesurer le transfert des acquis et l'impact réel.",
+                kirkPrompt: "Cliquez sur la pyramide.",
+                kirkExampleTitle: 'Fil rouge : Formation "Gestion de Conflits"',
+                k1Sub: "Satisfaction", k1Text: "Ont-ils aimé la formation ?",
+                k2Sub: "Savoirs", k2Text: "Qu'ont-ils appris ?",
+                k3Sub: "Transfert", k3Text: "L'utilisent-ils au travail ?",
+                k4Sub: "Impact", k4Text: "Quel changement pour l'organisation ?"
+            },
+            en: {
+                navTitle: "The Impact Compass",
+                tabCompass: "The Compass", tabPractice: "Practice & Quiz", tabCompare: "Obj vs Ind", tabKirk: "Kirkpatrick",
+                heroTitle: "Navigate from Need to Impact",
+                heroDesc: "To pilot a youth project, you need three types of needles.",
+                outputSubtitle: "Output", outputDesc: "What you produced (Basic level).",
+                outcomeSubtitle: "Outcome", outcomeDesc: "What participants learned/gained.",
+                impactSubtitle: "Impact", impactDesc: "Long term change on society.",
+                nextStep: "See concrete examples",
+                examplesTitle: "Practical Application: Examples", examplesSubtitle: "Select a project to see details.",
+                p1Title: '"Code Your City"', p2Title: '"Green Neighborhood"', p3Title: '"Mentoring"',
+                quizTitle: "Exercise: Your Turn!", quizDesc: "The system will ask you 10 random questions from a pool of 15 situations.",
+                objVsIndTitle: "Objectives vs Indicators", objVsIndIntro: "Don't confuse the destination with the GPS.",
+                objTitle: "Objective", objDef: "Intent. What we aim for in the future.", objEx: '"Know how to budget."',
+                indTitle: "Indicator", indDef: "Observable proof of success.", indEx: '"85% valid budgets."',
+                kirkTitle: "Kirkpatrick Model", kirkDesc: "The 4 levels of training evaluation.",
+                kirkContext: "The model (Donald Kirkpatrick, 1959) was created to prove training value goes beyond satisfaction ('Happy sheet'). It pushes to measure transfer of learning and real impact.",
+                kirkPrompt: "Click the pyramid.",
+                kirkExampleTitle: 'Storyline: "Conflict Management" Training',
+                k1Sub: "Satisfaction", k1Text: "Did they like it?",
+                k2Sub: "Knowledge", k2Text: "What did they learn?",
+                k3Sub: "Transfer", k3Text: "Do they use it at work?",
+                k4Sub: "Impact", k4Text: "What change for the org?"
+            }
+        };
+
+        const questionsData = {
+            fr: [
+                { text: "50 jeunes ont signé la feuille de présence.", type: "output", feedback: "C'est une réalisation (Output) : le nombre de participants." },
+                { text: "Les participants se sentent plus légitimes pour postuler à un emploi.", type: "outcome", feedback: "C'est un résultat (Outcome) : changement d'attitude/confiance." },
+                { text: "Baisse du chômage des jeunes de 5% dans la région sur 3 ans.", type: "impact", feedback: "C'est un impact : changement sociétal à long terme." },
+                { text: "Création d'un jardin partagé au centre ville.", type: "output", feedback: "C'est une réalisation (Output) : un produit livrable." },
+                { text: "Les jeunes utilisent les techniques de CNV pour résoudre leurs conflits.", type: "outcome", feedback: "C'est un résultat (Outcome) : usage d'une compétence." },
+                { text: "Distribution de 100 paniers repas.", type: "output", feedback: "C'est une réalisation (Output) : action concrète chiffrable." },
+                { text: "Les jeunes savent nommer les institutions européennes.", type: "outcome", feedback: "C'est un résultat (Outcome) : acquisition de connaissances." },
+                { text: "Augmentation de la participation aux élections locales (+10%).", type: "impact", feedback: "C'est un impact : changement démocratique durable." },
+                { text: "3 vidéos YouTube produites par le groupe.", type: "output", feedback: "C'est une réalisation (Output) : livrable tangible." },
+                { text: "Les participants ont obtenu leur certificat de secourisme.", type: "outcome", feedback: "C'est un résultat (Outcome) : validation de compétence." },
+                { text: "Réduction des déchets sauvages dans le parc communal.", type: "impact", feedback: "C'est un impact : amélioration de l'environnement." },
+                { text: "15 réunions de comité de pilotage tenues.", type: "output", feedback: "C'est une réalisation (Output) : activité réalisée." },
+                { text: "Les jeunes se déclarent plus tolérants envers les autres cultures.", type: "outcome", feedback: "C'est un résultat (Outcome) : changement de valeur/attitude." },
+                { text: "Meilleure cohésion sociale dans le quartier sur 5 ans.", type: "impact", feedback: "C'est un impact : changement social profond." },
+                { text: "Les jeunes ont amélioré leur niveau d'anglais (A2 vers B1).", type: "outcome", feedback: "C'est un résultat (Outcome) : progression de compétence." }
+            ],
+            en: [
+                { text: "50 young people signed the attendance sheet.", type: "output", feedback: "Output: a concrete deliverable." },
+                { text: "Participants feel more confident applying for jobs.", type: "outcome", feedback: "Outcome: change in attitude/confidence." },
+                { text: "5% decrease in youth unemployment over 3 years.", type: "impact", feedback: "Impact: long-term societal change." },
+                { text: "Creation of a shared community garden.", type: "output", feedback: "Output: a tangible deliverable." },
+                { text: "Youth use NVC techniques to resolve conflicts.", type: "outcome", feedback: "Outcome: skill usage." },
+                { text: "Distribution of 100 food baskets.", type: "output", feedback: "Output: concrete action." },
+                { text: "Youth can name European institutions.", type: "outcome", feedback: "Outcome: knowledge acquisition." },
+                { text: "Increase in local election turnout (+10%).", type: "impact", feedback: "Impact: democratic change." },
+                { text: "3 YouTube videos produced by the group.", type: "output", feedback: "Output: tangible product." },
+                { text: "Participants obtained their First Aid certificate.", type: "outcome", feedback: "Outcome: skill validation." },
+                { text: "Reduction of litter in the public park.", type: "impact", feedback: "Impact: environmental improvement." },
+                { text: "15 steering committee meetings held.", type: "output", feedback: "Output: activity performed." },
+                { text: "Youth declare themselves more tolerant of other cultures.", type: "outcome", feedback: "Outcome: attitude change." },
+                { text: "Better social cohesion in the neighborhood over 5 years.", type: "impact", feedback: "Impact: deep social change." },
+                { text: "Youth improved their English level (A2 to B1).", type: "outcome", feedback: "Outcome: skill progression." }
+            ]
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentLang = 'fr';
+        let currentQIndex = 0;
+        let score = 0;
+        let currentQuestions = []; // Holds the selected questions
+        
+        // --- VIEW SWITCHING ---
+        function switchView(viewId) {
+            // Hide all views
+            ['intro', 'practice', 'compare', 'kirkpatrick'].forEach(id => {
+                document.getElementById(`view-${id}`).classList.add('hidden');
+                // Remove active state
+                const btn = document.getElementById(`nav-${id}`);
+                if(btn) {
+                    btn.classList.remove('active', 'text-blue-600', 'bg-blue-50', 'border-b-2', 'border-blue-600');
+                    btn.classList.add('text-slate-600');
+                    btn.style.color = ""; btn.style.backgroundColor = ""; btn.style.borderBottom = "";
+                }
+            });
+
+            // Show target view
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            
+            // Set Active Nav
+            const activeBtn = document.getElementById(`nav-${viewId}`);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            // Close mobile menu
+            document.getElementById('mobile-menu').classList.add('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // --- LANGUAGE ---
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (translations[lang][key]) el.textContent = translations[lang][key];
+            });
+            
+            const btnFr = document.getElementById('btn-fr');
+            const btnEn = document.getElementById('btn-en');
+            const activeClass = "bg-white shadow-md text-blue-600";
+            const inactiveClass = "text-slate-500 hover:text-blue-600";
+            
+            if (lang === 'fr') {
+                btnFr.className = `px-3 py-1 rounded-full text-xs font-bold transition-all ${activeClass}`;
+                btnEn.className = `px-3 py-1 rounded-full text-xs font-bold transition-all ${inactiveClass}`;
+            } else {
+                btnEn.className = `px-3 py-1 rounded-full text-xs font-bold transition-all ${activeClass}`;
+                btnFr.className = `px-3 py-1 rounded-full text-xs font-bold transition-all ${inactiveClass}`;
+            }
+            restartQuiz(); // Restart quiz in new lang
+        }
+
+        // --- PROJECT TABS ---
+        function showProject(pid) {
+            ['p1', 'p2', 'p3'].forEach(id => {
+                document.getElementById(`project-${id}`).classList.add('hidden');
+                document.getElementById(`tab-${id}`).className = "px-3 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white transition-all mr-1";
+            });
+            document.getElementById(`project-${pid}`).classList.remove('hidden');
+            document.getElementById(`tab-${pid}`).className = "px-3 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white transition-all mr-1";
+        }
+
+        // --- KIRKPATRICK ---
+        function showKirk(level) {
+            document.getElementById('kirk-default').classList.add('hidden');
+            ['k1', 'k2', 'k3', 'k4'].forEach(k => document.getElementById(`kirk-${k}`).classList.add('hidden'));
+            document.getElementById(`kirk-${level}`).classList.remove('hidden');
+        }
+
+        // --- QUIZ LOGIC (RANDOMIZED) ---
+        
+        // Fisher-Yates Shuffle
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function restartQuiz() {
+            currentQIndex = 0;
+            score = 0;
+            
+            // Clone and shuffle the full question pool, then take first 10
+            const allQuestions = [...questionsData[currentLang]];
+            currentQuestions = shuffleArray(allQuestions).slice(0, 10);
+            
+            document.getElementById('quiz-end').classList.add('hidden');
+            document.getElementById('quiz-active').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = currentQuestions[currentQIndex];
+            document.getElementById('question-text').textContent = q.text;
+            document.getElementById('quiz-feedback').classList.add('hidden');
+            document.getElementById('quiz-progress').textContent = `Question ${currentQIndex + 1} / ${currentQuestions.length}`;
+            
+            // Enable buttons
+            document.querySelectorAll('.btn-option').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'bg-red-100', 'bg-green-100', 'border-red-500', 'border-green-500');
+                btn.classList.add('bg-white');
+            });
+            document.getElementById('next-btn').classList.add('hidden');
+        }
+
+        function checkAnswer(userChoice) {
+            const q = currentQuestions[currentQIndex];
+            const feedbackEl = document.getElementById('quiz-feedback');
+            const nextBtn = document.getElementById('next-btn');
+            
+            // Disable all buttons
+            document.querySelectorAll('.btn-option').forEach(btn => btn.disabled = true);
+
+            if (userChoice === q.type) {
+                // Correct
+                score++;
+                feedbackEl.textContent = "✅ Correct ! " + q.feedback;
+                feedbackEl.className = "mb-6 p-4 rounded-lg text-center font-medium bg-green-100 text-green-800 border border-green-200 block";
+            } else {
+                // Incorrect
+                feedbackEl.textContent = "❌ " + q.feedback;
+                feedbackEl.className = "mb-6 p-4 rounded-lg text-center font-medium bg-red-100 text-red-800 border border-red-200 block";
+            }
+
+            nextBtn.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQIndex++;
+            if (currentQIndex < currentQuestions.length) {
+                loadQuestion();
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('quiz-active').classList.add('hidden');
+            document.getElementById('quiz-end').classList.remove('hidden');
+            document.getElementById('final-score').textContent = score;
+        }
+
+        // Initial Load
+        setLanguage('fr');
+        switchView('intro');
+        // restartQuiz is called by setLanguage
+    </script>
+</body>
+</html>
