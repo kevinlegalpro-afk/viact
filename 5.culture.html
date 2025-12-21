@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Module : Vi-Act</title>
+    <!-- Tailwind CSS pour le style rapide et responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Polices et Reset */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden; /* Empêche le scroll global pour l'effet App */
+            background-color: #f3f4f6;
+        }
+
+        /* Animations de transition */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Style spécifique pour l'Iceberg */
+        .iceberg-container {
+            position: relative;
+            width: 100%;
+            height: 550px; /* Agrandissement vertical pour loger tous les points */
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 25%, #006994 25%, #001e3b 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .water-line {
+            position: absolute;
+            top: 25%;
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.5);
+            z-index: 10;
+        }
+
+        .iceberg-shape {
+            position: absolute;
+            left: 50%;
+            top: 10%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 100px solid transparent;
+            border-right: 120px solid transparent;
+            border-bottom: 500px solid rgba(255, 255, 255, 0.9);
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+            z-index: 5;
+        }
+        
+        .iceberg-item {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 6px; /* Très compact pour la densité */
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 20;
+            white-space: nowrap;
+        }
+
+        .iceberg-item:hover {
+            transform: scale(1.2);
+            background: #fff;
+            color: #2563EB;
+            z-index: 100; /* Toujours au dessus au survol */
+        }
+
+        /* Scrollbar custom */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Tooltip style */
+        .tooltip {
+            visibility: hidden;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 6px 10px;
+            position: absolute;
+            z-index: 110;
+            bottom: 130%; 
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            width: max-content;
+            max-width: 220px;
+            font-size: 0.75rem;
+            pointer-events: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1f2937 transparent transparent transparent;
+        }
+
+        .iceberg-item:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Pulse animation for the info button */
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800 h-screen w-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white shadow-md z-50 flex-none h-16 flex items-center justify-between px-6">
+        <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-globe text-blue-600 text-xl"></i>
+            <h1 class="text-lg font-bold text-gray-700 tracking-wide uppercase" id="nav-title">MODULE Vi-Act</h1>
+        </div>
+        
+        <!-- Navigation Dots (Progress) -->
+        <div class="flex space-x-2" id="nav-dots">
+            <!-- Injecté par JS -->
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center space-x-4">
+            <button id="lang-btn" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 hover:bg-blue-200 transition">
+                EN 🇬🇧
+            </button>
+            <span class="text-xs text-gray-400">v1.3</span>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex relative overflow-hidden bg-gray-50">
+        
+        <!-- Sidebar Navigation (Desktop/Landscape) -->
+        <nav class="w-16 md:w-64 bg-white border-r border-gray-200 flex-none flex flex-col justify-center space-y-2 p-2 hidden md:flex">
+            <button onclick="goToSlide(0)" class="nav-btn p-3 rounded-lg text-left hover:bg-blue-50 transition flex items-center space-x-3 text-gray-600 active-nav" data-slide="0">
+                <i class="fa-solid fa-house w-6 text-center"></i>
+                <span class="text-sm font-medium hidden md:inline" id="menu-home">Accueil</span>
+            </button>
+            <button onclick="goToSlide(1)" class="nav-btn p-3 rounded-lg text-left hover:bg-blue-50 transition flex items-center space-x-3 text-gray-600" data-slide="1">
+                <i class="fa-solid fa-book-open w-6 text-center"></i>
+                <span class="text-sm font-medium hidden md:inline" id="menu-def">Définition</span>
+            </button>
+            <button onclick="goToSlide(2)" class="nav-btn p-3 rounded-lg text-left hover:bg-blue-50 transition flex items-center space-x-3 text-gray-600" data-slide="2">
+                <i class="fa-solid fa-cogs w-6 text-center"></i>
+                <span class="text-sm font-medium hidden md:inline" id="menu-system">Le Système</span>
+            </button>
+            <button onclick="goToSlide(3)" class="nav-btn p-3 rounded-lg text-left hover:bg-blue-50 transition flex items-center space-x-3 text-gray-600" data-slide="3">
+                <i class="fa-regular fa-snowflake w-6 text-center"></i>
+                <span class="text-sm font-medium hidden md:inline" id="menu-iceberg">L'Iceberg</span>
+            </button>
+            <button onclick="goToSlide(4)" class="nav-btn p-3 rounded-lg text-left hover:bg-blue-50 transition flex items-center space-x-3 text-gray-600" data-slide="4">
+                <i class="fa-solid fa-hands-holding-child w-6 text-center"></i>
+                <span class="text-sm font-medium hidden md:inline" id="menu-youth">Travailleur Jeunesse</span>
+            </button>
+        </nav>
+
+        <!-- Slide Container -->
+        <div id="content-area" class="flex-grow relative p-4 md:p-8 overflow-y-auto custom-scroll flex items-center justify-center">
+            
+            <!-- SLIDE 1: ACCUEIL -->
+            <section id="slide-0" class="slide w-full max-w-5xl mx-auto text-center fade-in">
+                <div class="bg-white p-10 rounded-2xl shadow-xl border border-gray-100 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-indigo-600"></div>
+                    <i class="fa-solid fa-earth-americas text-6xl text-blue-500 mb-6 animate-bounce"></i>
+                    <h1 class="text-5xl md:text-6xl font-bold text-gray-800 mb-4 tracking-tight" id="home-title">Culture</h1>
+                    <p class="text-xl text-gray-500 mb-8 max-w-2xl mx-auto" id="home-subtitle">Un voyage au cœur de ce qui nous rassemble et nous distingue.</p>
+                    <button onclick="goToSlide(1)" class="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:bg-blue-700 hover:scale-105 transition transform flex items-center mx-auto space-x-2">
+                        <span id="btn-start">Commencer le module</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- SLIDE 2: DÉFINITION -->
+            <section id="slide-1" class="slide w-full max-w-6xl mx-auto hidden fade-in h-full flex flex-col justify-center">
+                <!-- Augmentation significative de la marge haute (mt-16) pour descendre le titre -->
+                <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-2 border-gray-200 mt-16 md:mt-12" id="def-title">Qu'est-ce que la Culture ?</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
+                    <!-- Left: Definition -->
+                    <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500 flex flex-col justify-center">
+                        <i class="fa-solid fa-quote-left text-4xl text-blue-100 mb-2"></i>
+                        <p class="text-lg md:text-xl italic text-gray-700 leading-relaxed mb-4" id="def-text">
+                            "Un ensemble complexe qui inclut les connaissances, les croyances, l'art, la morale, le droit, les coutumes et toutes les autres habitudes acquises par l'homme en tant que membre de la société."
+                        </p>
+                        <p class="text-right text-sm text-gray-400 font-medium">— E.B. Tylor</p>
+                    </div>
+
+                    <!-- Right: Interactive Cards -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="group bg-indigo-50 p-4 rounded-xl hover:bg-indigo-100 transition cursor-help relative">
+                            <i class="fa-solid fa-key text-indigo-500 text-2xl mb-2"></i>
+                            <h3 class="font-bold text-indigo-900" id="kw-1-title">Mots Clés</h3>
+                            <p class="text-sm text-indigo-700 mt-1" id="kw-1-text">Valeurs, Croyances, Traditions, Langue</p>
+                        </div>
+                        <div class="group bg-emerald-50 p-4 rounded-xl hover:bg-emerald-100 transition cursor-help relative">
+                            <i class="fa-solid fa-paint-brush text-emerald-500 text-2xl mb-2"></i>
+                            <h3 class="font-bold text-emerald-900" id="kw-2-title">Expressions</h3>
+                            <p class="text-sm text-emerald-700 mt-1" id="kw-2-text">Arts, Gastronomie, Langue, Habitat</p>
+                        </div>
+                        <div class="group bg-amber-50 p-4 rounded-xl hover:bg-amber-100 transition cursor-help relative">
+                            <i class="fa-solid fa-scale-balanced text-amber-500 text-2xl mb-2"></i>
+                            <h3 class="font-bold text-amber-900" id="kw-3-title">Normes</h3>
+                            <p class="text-sm text-amber-700 mt-1" id="kw-3-text">Lois, Politesse, Coutumes, Interdits</p>
+                        </div>
+                        <div class="group bg-rose-50 p-4 rounded-xl hover:bg-rose-100 transition cursor-help relative">
+                            <i class="fa-solid fa-users text-rose-500 text-2xl mb-2"></i>
+                            <h3 class="font-bold text-rose-900" id="kw-4-title">Groupe</h3>
+                            <p class="text-sm text-rose-700 mt-1" id="kw-4-text">Appartenance, Identité, Transmission</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Button -->
+                <div class="mt-6 flex justify-end">
+                    <button onclick="goToSlide(2)" class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2 group">
+                        <span class="btn-next-text">Suivant</span> 
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- SLIDE 3: LE SYSTÈME -->
+            <section id="slide-2" class="slide w-full max-w-6xl mx-auto hidden fade-in h-full flex flex-col">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 flex-grow">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6" id="sys-title">Un Système de Repères</h2>
+
+                    <div class="flex flex-col md:flex-row gap-8 items-center">
+                        <!-- Graphic/Concept -->
+                        <div class="w-full md:w-1/3 flex flex-col gap-4">
+                            <div class="bg-gray-100 p-4 rounded-lg text-center">
+                                <span class="block text-sm text-gray-500 uppercase tracking-wide mb-1" id="sys-q-1">Qu'est-ce qui est...</span>
+                                <div class="font-bold text-xl text-blue-600">NORMAL ?</div>
+                            </div>
+                            <div class="bg-gray-100 p-4 rounded-lg text-center">
+                                <span class="block text-sm text-gray-500 uppercase tracking-wide mb-1" id="sys-q-2">Qu'est-ce qui est...</span>
+                                <div class="font-bold text-xl text-green-600">POLI ?</div>
+                            </div>
+                            <div class="bg-gray-100 p-4 rounded-lg text-center">
+                                <span class="block text-sm text-gray-500 uppercase tracking-wide mb-1" id="sys-q-3">Qu'est-ce qui est...</span>
+                                <div class="font-bold text-xl text-purple-600">EFFICACE ?</div>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="w-full md:w-2/3 space-y-6">
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                                <h3 class="font-bold text-lg text-blue-900 mb-2" id="sys-multi-title">La culture est multiple</h3>
+                                <p class="text-gray-700 text-sm md:text-base" id="sys-multi-text">
+                                    Nationale, régionale, familiale, organisationnelle, professionnelle, générationnelle... Nous naviguons constamment entre ces strates.
+                                </p>
+                            </div>
+
+                            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                                <h3 class="font-bold text-lg text-yellow-900 mb-2" id="sys-inv-title">Souvent invisible</h3>
+                                <p class="text-gray-700 text-sm md:text-base" id="sys-inv-text">
+                                    Comme l'air que nous respirons, on ne la remarque vraiment que lorsqu'elle manque ou qu'elle diffère brusquement.
+                                </p>
+                            </div>
+
+                            <!-- Punchline -->
+                            <div class="mt-8 text-center transform hover:scale-105 transition duration-300">
+                                <div class="inline-block bg-gradient-to-r from-gray-800 to-black text-white px-8 py-4 rounded-full shadow-2xl relative">
+                                    <i class="fa-solid fa-lightbulb text-yellow-400 absolute -top-3 -left-3 text-3xl"></i>
+                                    <p class="text-lg md:text-xl font-bold tracking-wide" id="sys-punchline">
+                                        La culture, c’est “le mode d’emploi implicite” d’un groupe.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Next Button -->
+                <div class="mt-6 flex justify-end">
+                    <button onclick="goToSlide(3)" class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2 group">
+                        <span class="btn-next-text">Suivant</span> 
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- SLIDE 4: L'ICEBERG -->
+            <section id="slide-3" class="slide w-full max-w-6xl mx-auto hidden fade-in h-full flex flex-col">
+                <div class="flex justify-between items-end mb-4 mt-2">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800" id="ice-title">Le Modèle de l'Iceberg</h2>
+                        <p class="text-sm text-gray-500 mt-1" id="ice-subtitle">Explorez ce qui est caché sous la surface.</p>
+                    </div>
+                    <button onclick="toggleModal('iceberg-modal')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg pulse transition" title="Info">
+                        <i class="fa-solid fa-question text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Iceberg Visualization -->
+                <div class="iceberg-container relative group">
+                    <!-- Percentages -->
+                    <div class="absolute left-4 top-4 bg-white/80 px-3 py-1 rounded-lg text-xs font-bold text-blue-800 z-50 shadow backdrop-blur">
+                        <span id="ice-pct-vis">10-20% VISIBLE</span>
+                    </div>
+                    <div class="absolute left-4 bottom-4 bg-white/80 px-3 py-1 rounded-lg text-xs font-bold text-blue-900 z-50 shadow backdrop-blur">
+                        <span id="ice-pct-inv">80-90% INVISIBLE</span>
+                    </div>
+
+                    <!-- Water Surface -->
+                    <div class="water-line"></div>
+
+                    <!-- The Iceberg Shape -->
+                    <div class="iceberg-shape"></div>
+
+                    <!-- Visible Elements (Top) -->
+                    <div class="iceberg-item" style="top: 8%; left: 45%;" data-key="ice-lang"><span id="txt-lang">Langue</span><span class="tooltip" id="tip-lang">Les mots, les accents, le ton.</span></div>
+                    <div class="iceberg-item" style="top: 12%; left: 55%;" data-key="ice-food"><span id="txt-food">Cuisine</span><span class="tooltip" id="tip-food">Ingrédients, manières de table, horaires.</span></div>
+                    <div class="iceberg-item" style="top: 15%; left: 40%;" data-key="ice-art"><span id="txt-art">Arts</span><span class="tooltip" id="tip-art">Musique, littérature, danse.</span></div>
+                    <div class="iceberg-item" style="top: 5%; left: 52%;" data-key="ice-dress"><span id="txt-dress">Vêtements</span><span class="tooltip" id="tip-dress">Styles, codes vestimentaires traditionnels.</span></div>
+                    <div class="iceberg-item" style="top: 18%; left: 50%;" data-key="ice-fest"><span id="txt-fest">Fêtes</span><span class="tooltip" id="tip-fest">Festivals, célébrations, jours fériés.</span></div>
+
+                    <!-- Invisible Elements (Deep) - Placed strategically -->
+                    <div class="iceberg-item bg-blue-50" style="top: 35%; left: 35%;" data-key="ice-comm"><span id="txt-comm">Communication</span><span class="tooltip" id="tip-comm">Directe vs Indirecte, implicite.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 45%; left: 60%;" data-key="ice-time"><span id="txt-time">Temps</span><span class="tooltip" id="tip-time">Ponctualité, vision linéaire ou cyclique.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 55%; left: 45%;" data-key="ice-values"><span id="txt-values">Valeurs</span><span class="tooltip" id="tip-values">Le bien/le mal, le juste/l'injuste.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 65%; left: 25%;" data-key="ice-hier"><span id="txt-hier">Hiérarchie</span><span class="tooltip" id="tip-hier">Respect de l'autorité, distance au pouvoir.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 75%; left: 70%;" data-key="ice-gender"><span id="txt-gender">Rôles de genre</span><span class="tooltip" id="tip-gender">Attentes envers hommes/femmes.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 85%; left: 50%;" data-key="ice-logic"><span id="txt-logic">Logique</span><span class="tooltip" id="tip-logic">Façon de raisonner et d'apprendre.</span></div>
+                    
+                    <div class="iceberg-item bg-blue-50" style="top: 30%; left: 65%;" data-key="ice-space"><span id="txt-space">Espace Perso</span><span class="tooltip" id="tip-space">Distance physique lors d'une conversation.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 40%; left: 20%;" data-key="ice-eye"><span id="txt-eye">Contact Visuel</span><span class="tooltip" id="tip-eye">Regarder dans les yeux : respect ou défi ?</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 60%; left: 75%;" data-key="ice-emotion"><span id="txt-emotion">Émotions</span><span class="tooltip" id="tip-emotion">Montrer ou cacher ses sentiments.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 90%; left: 35%;" data-key="ice-lead"><span id="txt-lead">Leadership</span><span class="tooltip" id="tip-lead">Décision participative ou directive.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 80%; left: 15%;" data-key="ice-friend"><span id="txt-friend">Amitié</span><span class="tooltip" id="tip-friend">Degré d'engagement et de loyauté.</span></div>
+
+                    <!-- NEW ITEMS REQUESTED -->
+                    <div class="iceberg-item bg-blue-50" style="top: 50%; left: 10%;" data-key="ice-animals"><span id="txt-animals">Animaux</span><span class="tooltip" id="tip-animals">Animal de compagnie vs utilitaire.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 92%; left: 65%;" data-key="ice-sin"><span id="txt-sin">Péché</span><span class="tooltip" id="tip-sin">Définition du mal moral et religieux.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 70%; left: 85%;" data-key="ice-courtship"><span id="txt-courtship">Séduction</span><span class="tooltip" id="tip-courtship">Codes de la drague et du mariage.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 45%; left: 80%;" data-key="ice-insanity"><span id="txt-insanity">Folie</span><span class="tooltip" id="tip-insanity">Perception de la santé mentale.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 55%; left: 5%;" data-key="ice-clean"><span id="txt-clean">Propreté</span><span class="tooltip" id="tip-clean">Hygiène, pureté, saleté.</span></div>
+                    <div class="iceberg-item bg-blue-50" style="top: 95%; left: 20%;" data-key="ice-validity"><span id="txt-validity">Validité</span><span class="tooltip" id="tip-validity">Comment on prouve la vérité.</span></div>
+
+                </div>
+
+                <p class="text-center text-xs text-gray-400 mt-2 italic">Inspiré par E.T. Hall (1976)</p>
+                
+                <!-- Next Button -->
+                <div class="mt-2 flex justify-end">
+                    <button onclick="goToSlide(4)" class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2 group">
+                        <span class="btn-next-text">Suivant</span> 
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: TRAVAILLEUR JEUNESSE -->
+            <section id="slide-4" class="slide w-full max-w-6xl mx-auto hidden fade-in">
+                <!-- Nouveau Titre de Section -->
+                <div class="text-center mb-6">
+                    <span class="text-blue-600 font-bold tracking-widest text-sm uppercase" id="yw-supertitle">TRAVAILLEUR JEUNESSE</span>
+                    <h2 class="text-3xl font-bold text-gray-800 mt-2" id="yw-title">Pourquoi s'y intéresser ?</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Card 1 -->
+                    <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition duration-300 border-t-4 border-orange-400">
+                        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-puzzle-piece text-orange-500 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2" id="yw-c1-title">Décoder les comportements</h3>
+                        <p class="text-gray-600 text-sm" id="yw-c1-text">
+                            Un jeune qui ne regarde pas dans les yeux n'est pas forcément irrespectueux. Comprendre les codes culturels évite les malentendus et les jugements hâtifs.
+                        </p>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition duration-300 border-t-4 border-teal-400">
+                        <div class="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-hand-holding-heart text-teal-500 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2" id="yw-c2-title">Créer un espace sûr</h3>
+                        <p class="text-gray-600 text-sm" id="yw-c2-text">
+                            Reconnaître l'identité culturelle des jeunes renforce leur sentiment d'appartenance et leur confiance. C'est la base de l'inclusion réelle.
+                        </p>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition duration-300 border-t-4 border-purple-400">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-bridge-water text-purple-500 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2" id="yw-c3-title">Gérer les conflits</h3>
+                        <p class="text-gray-600 text-sm" id="yw-c3-text">
+                            La plupart des conflits dans les groupes multiculturels naissent d'interprétations divergentes. Le modèle de l'iceberg est un outil de médiation puissant.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-gray-100 rounded-lg p-4 flex items-start space-x-3 justify-between items-center">
+                    <div class="flex items-start space-x-3">
+                        <i class="fa-solid fa-user-pen text-gray-500 mt-1"></i>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold" id="yw-creator">Pensé et créé par :</p>
+                            <p class="text-sm text-gray-800">L'équipe pédagogique</p>
+                        </div>
+                    </div>
+                    <!-- Back to Home Button -->
+                    <button onclick="goToSlide(0)" class="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> <span class="btn-home-text">Retour Accueil</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-2 px-6 flex justify-between items-center text-xs text-gray-500 z-10">
+        <div>© Kévin Le Gal 2025</div>
+        <div id="footer-text">Module éducatif interactif</div>
+    </footer>
+
+    <!-- MODAL ICEBERG EXPLICATION -->
+    <div id="iceberg-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative">
+            <button onclick="toggleModal('iceberg-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+                <i class="fa-solid fa-times text-2xl"></i>
+            </button>
+            <h3 class="text-2xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-info-circle"></i> <span id="modal-title">Comprendre ce modèle</span>
+            </h3>
+            <div class="space-y-3 text-gray-600 text-sm leading-relaxed" id="modal-content">
+                <p>L'analogie de l'iceberg nous rappelle que dans une rencontre interculturelle, nous ne voyons que <strong>10%</strong> de la réalité de l'autre.</p>
+                <p>Le danger est de juger la partie immergée (valeurs, croyances) en se basant uniquement sur la partie visible (comportements).</p>
+                <p><strong>Exemple :</strong> On peut juger quelqu'un de "malpoli" (visible) parce qu'il ne dit pas bonjour, alors que dans sa culture, on ne dérange pas un supérieur (valeur de hiérarchie/invisible).</p>
+            </div>
+            <div class="mt-6 text-right">
+                <button onclick="toggleModal('iceberg-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition" id="modal-btn">J'ai compris</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA & TRANSLATIONS ---
+        const content = {
+            fr: {
+                nav: { home: "Accueil", def: "Définition", sys: "Le Système", ice: "L'Iceberg", youth: "Travailleur Jeunesse", title: "MODULE Vi-Act" },
+                common: { next: "Suivant", backHome: "Retour Accueil" },
+                home: { title: "Culture", subtitle: "Un voyage au cœur de ce qui nous rassemble et nous distingue.", btn: "Commencer le module" },
+                def: {
+                    title: "Qu'est-ce que la Culture ?",
+                    text: "\"Un ensemble complexe qui inclut les connaissances, les croyances, l'art, la morale, le droit, les coutumes et toutes les autres habitudes acquises par l'homme en tant que membre de la société.\"",
+                    kw1t: "Mots Clés", kw1d: "Valeurs, Croyances, Traditions, Langue",
+                    kw2t: "Expressions", kw2d: "Arts, Gastronomie, Langue, Habitat",
+                    kw3t: "Normes", kw3d: "Lois, Politesse, Coutumes, Interdits",
+                    kw4t: "Groupe", kw4d: "Appartenance, Identité, Transmission"
+                },
+                sys: {
+                    title: "Un Système de Repères",
+                    q1: "Qu'est-ce qui est...", q2: "Qu'est-ce qui est...", q3: "Qu'est-ce qui est...",
+                    multiT: "La culture est multiple", multiD: "Nationale, régionale, familiale, organisationnelle, professionnelle, générationnelle... Nous naviguons constamment entre ces strates.",
+                    invT: "Souvent invisible", invD: "Comme l'air que nous respirons, on ne la remarque vraiment que lorsqu'elle manque ou qu'elle diffère brusquement.",
+                    punchline: "La culture, c’est “le mode d’emploi implicite” d’un groupe."
+                },
+                ice: {
+                    title: "Le Modèle de l'Iceberg", subtitle: "Explorez ce qui est caché sous la surface.",
+                    vis: "10-20% VISIBLE", inv: "80-90% INVISIBLE",
+                    items: {
+                        lang: {t: "Langue", d: "Les mots, les accents, le ton."},
+                        food: {t: "Cuisine", d: "Ingrédients, manières de table."},
+                        art: {t: "Arts", d: "Musique, littérature, danse."},
+                        dress: {t: "Vêtements", d: "Styles, codes vestimentaires."},
+                        fest: {t: "Fêtes", d: "Festivals, célébrations, jours fériés."},
+                        comm: {t: "Communication", d: "Directe vs Indirecte, implicite."},
+                        time: {t: "Temps", d: "Ponctualité, vision linéaire ou cyclique."},
+                        values: {t: "Valeurs", d: "Le bien/le mal, le juste/l'injuste."},
+                        hier: {t: "Hiérarchie", d: "Respect de l'autorité, distance au pouvoir."},
+                        gender: {t: "Rôles de genre", d: "Attentes sociales liées au genre."},
+                        logic: {t: "Logique", d: "Façon de raisonner et d'apprendre."},
+                        space: {t: "Espace Perso", d: "Distance physique lors d'une conversation."},
+                        eye: {t: "Contact Visuel", d: "Regarder dans les yeux : respect ou défi ?"},
+                        emotion: {t: "Émotions", d: "Montrer ou cacher ses sentiments."},
+                        lead: {t: "Leadership", d: "Décision participative ou directive."},
+                        friend: {t: "Amitié", d: "Degré d'engagement et de loyauté."},
+                        // New items
+                        animals: {t: "Animaux", d: "Animal de compagnie vs utilitaire."},
+                        sin: {t: "Péché", d: "Définition du mal moral et religieux."},
+                        courtship: {t: "Séduction", d: "Codes de la drague et du mariage."},
+                        insanity: {t: "Folie", d: "Perception de la santé mentale."},
+                        clean: {t: "Propreté", d: "Hygiène, pureté, saleté."},
+                        validity: {t: "Validité", d: "Comment on prouve la vérité."}
+                    },
+                    modal: {
+                        title: "Comprendre ce modèle",
+                        btn: "J'ai compris",
+                        c1: "L'analogie de l'iceberg nous rappelle que dans une rencontre interculturelle, nous ne voyons que <strong>10%</strong> de la réalité de l'autre.",
+                        c2: "Le danger est de juger la partie immergée (valeurs, croyances) en se basant uniquement sur la partie visible (comportements).",
+                        c3: "<strong>Exemple :</strong> On peut juger quelqu'un de 'malpoli' (visible) parce qu'il ne dit pas bonjour, alors que dans sa culture, on ne dérange pas un supérieur (valeur de hiérarchie/invisible)."
+                    }
+                },
+                yw: {
+                    supertitle: "TRAVAILLEUR JEUNESSE",
+                    title: "Pourquoi s'y intéresser ?",
+                    c1t: "Décoder les comportements", c1d: "Un jeune qui ne regarde pas dans les yeux n'est pas forcément irrespectueux. Comprendre les codes culturels évite les malentendus.",
+                    c2t: "Créer un espace sûr", c2d: "Reconnaître l'identité culturelle des jeunes renforce leur sentiment d'appartenance et leur confiance. C'est la base de l'inclusion.",
+                    c3t: "Gérer les conflits", c3d: "La plupart des conflits naissent d'interprétations divergentes. Le modèle de l'iceberg est un outil de médiation puissant.",
+                    creator: "Pensé et créé par :", footer: "Module éducatif interactif"
+                }
+            },
+            en: {
+                nav: { home: "Home", def: "Definition", sys: "The System", ice: "The Iceberg", youth: "Youth Worker", title: "Vi-Act MODULE" },
+                common: { next: "Next", backHome: "Back to Home" },
+                home: { title: "Culture", subtitle: "A journey into what brings us together and what sets us apart.", btn: "Start Module" },
+                def: {
+                    title: "What is Culture?",
+                    text: "\"That complex whole which includes knowledge, belief, art, morals, law, custom and any other capabilities and habits acquired by man as a member of society.\"",
+                    kw1t: "Keywords", kw1d: "Values, Beliefs, Customs, Language",
+                    kw2t: "Expressions", kw2d: "Arts, Gastronomy, Language, Housing",
+                    kw3t: "Norms", kw3d: "Laws, Politeness, Customs, Taboos",
+                    kw4t: "Group", kw4d: "Belonging, Identity, Transmission"
+                },
+                sys: {
+                    title: "A Reference System",
+                    q1: "What is considered...", q2: "What is considered...", q3: "What is considered...",
+                    multiT: "Culture is multiple", multiD: "National, regional, family, organizational, professional, generational... We constantly navigate between these layers.",
+                    invT: "Often invisible", invD: "Like the air we breathe, we only really notice it when it is missing or when it differs sharply.",
+                    punchline: "Culture is a group's “implicit operating manual”."
+                },
+                ice: {
+                    title: "The Iceberg Model", subtitle: "Explore what lies beneath the surface.",
+                    vis: "10-20% VISIBLE", inv: "80-90% INVISIBLE",
+                    items: {
+                        lang: {t: "Language", d: "Words, accents, tone."},
+                        food: {t: "Cuisine", d: "Ingredients, table manners."},
+                        art: {t: "Arts", d: "Music, literature, dance."},
+                        dress: {t: "Clothing", d: "Styles, dress codes."},
+                        fest: {t: "Festivals", d: "Celebrations, holidays."},
+                        comm: {t: "Communication", d: "Direct vs Indirect, unspoken."},
+                        time: {t: "Time", d: "Punctuality, linear/cyclical view."},
+                        values: {t: "Values", d: "Right/wrong, fairness."},
+                        hier: {t: "Hierarchy", d: "Power distance, respect."},
+                        gender: {t: "Gender Roles", d: "Social expectations regarding gender."},
+                        logic: {t: "Logic", d: "Ways of reasoning and learning."},
+                        space: {t: "Personal Space", d: "Physical distance during conversation."},
+                        eye: {t: "Eye Contact", d: "Eye contact: respect or challenge?"},
+                        emotion: {t: "Emotions", d: "Showing or hiding feelings."},
+                        lead: {t: "Leadership", d: "Participatory or directive decisions."},
+                        friend: {t: "Friendship", d: "Degree of commitment and loyalty."},
+                        // New items
+                        animals: {t: "Animals", d: "Pets vs utility, status."},
+                        sin: {t: "Concept of Sin", d: "Definition of moral and religious wrong."},
+                        courtship: {t: "Courtship", d: "Dating rules, marriage expectations."},
+                        insanity: {t: "Insanity", d: "Perception of mental illness."},
+                        clean: {t: "Cleanliness", d: "Hygiene standards, purity."},
+                        validity: {t: "Validity", d: "What counts as proof or truth."}
+                    },
+                    modal: {
+                        title: "Understanding the Model",
+                        btn: "Got it",
+                        c1: "The iceberg analogy reminds us that in an intercultural encounter, we only see <strong>10%</strong> of the other's reality.",
+                        c2: "The danger is judging the submerged part (values, beliefs) based solely on the visible part (behaviors).",
+                        c3: "<strong>Example:</strong> Someone might be judged as 'rude' (visible) for not saying hello, whereas in their culture, one does not disturb a superior (hierarchy value/invisible)."
+                    }
+                },
+                yw: {
+                    supertitle: "YOUTH WORKER",
+                    title: "Why is it important?",
+                    c1t: "Decoding Behaviors", c1d: "A youth avoiding eye contact isn't necessarily disrespectful. Understanding cultural codes prevents misunderstandings.",
+                    c2t: "Creating Safe Spaces", c2d: "Recognizing youth's cultural identity strengthens their sense of belonging and confidence. It's the foundation of inclusion.",
+                    c3t: "Managing Conflicts", c3d: "Most conflicts arise from divergent interpretations. The iceberg model is a powerful mediation tool.",
+                    creator: "Thought and created by:", footer: "Interactive educational module"
+                }
+            }
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentLang = 'fr';
+        let currentSlide = 0;
+        const totalSlides = 5;
+
+        // --- FUNCTIONS ---
+
+        function updateContent() {
+            const t = content[currentLang];
+            
+            // App Title
+            document.getElementById('nav-title').textContent = t.nav.title;
+
+            // Nav
+            document.getElementById('menu-home').textContent = t.nav.home;
+            document.getElementById('menu-def').textContent = t.nav.def;
+            document.getElementById('menu-system').textContent = t.nav.sys;
+            document.getElementById('menu-iceberg').textContent = t.nav.ice;
+            document.getElementById('menu-youth').textContent = t.nav.youth;
+
+            // Common Buttons
+            document.querySelectorAll('.btn-next-text').forEach(el => el.textContent = t.common.next);
+            document.querySelectorAll('.btn-home-text').forEach(el => el.textContent = t.common.backHome);
+
+            // Home
+            document.getElementById('home-title').textContent = t.home.title;
+            document.getElementById('home-subtitle').textContent = t.home.subtitle;
+            document.getElementById('btn-start').textContent = t.home.btn;
+
+            // Definition (UPDATED)
+            document.getElementById('def-title').textContent = t.def.title;
+            document.getElementById('def-text').textContent = t.def.text;
+            document.getElementById('kw-1-title').textContent = t.def.kw1t; document.getElementById('kw-1-text').textContent = t.def.kw1d;
+            document.getElementById('kw-2-title').textContent = t.def.kw2t; document.getElementById('kw-2-text').textContent = t.def.kw2d;
+            document.getElementById('kw-3-title').textContent = t.def.kw3t; document.getElementById('kw-3-text').textContent = t.def.kw3d;
+            document.getElementById('kw-4-title').textContent = t.def.kw4t; document.getElementById('kw-4-text').textContent = t.def.kw4d;
+
+            // System
+            document.getElementById('sys-title').textContent = t.sys.title;
+            document.getElementById('sys-q-1').textContent = t.sys.q1;
+            document.getElementById('sys-q-2').textContent = t.sys.q2;
+            document.getElementById('sys-q-3').textContent = t.sys.q3;
+            document.getElementById('sys-multi-title').textContent = t.sys.multiT; document.getElementById('sys-multi-text').textContent = t.sys.multiD;
+            document.getElementById('sys-inv-title').textContent = t.sys.invT; document.getElementById('sys-inv-text').textContent = t.sys.invD;
+            document.getElementById('sys-punchline').textContent = t.sys.punchline;
+
+            // Iceberg
+            document.getElementById('ice-title').textContent = t.ice.title;
+            document.getElementById('ice-subtitle').textContent = t.ice.subtitle;
+            document.getElementById('ice-pct-vis').textContent = t.ice.vis;
+            document.getElementById('ice-pct-inv').textContent = t.ice.inv;
+            
+            // Iceberg Items & Tooltips
+            // Add new items to list
+            const items = ['lang', 'food', 'art', 'dress', 'fest', 'comm', 'time', 'values', 'hier', 'gender', 'logic', 'space', 'eye', 'emotion', 'lead', 'friend', 'animals', 'sin', 'courtship', 'insanity', 'clean', 'validity'];
+            
+            items.forEach(k => {
+                const elTxt = document.getElementById(`txt-${k}`);
+                const elTip = document.getElementById(`tip-${k}`);
+                if(elTxt) elTxt.textContent = t.ice.items[k].t;
+                if(elTip) elTip.textContent = t.ice.items[k].d;
+            });
+
+            // Modal
+            document.getElementById('modal-title').textContent = t.ice.modal.title;
+            document.getElementById('modal-btn').textContent = t.ice.modal.btn;
+            const mContent = document.getElementById('modal-content');
+            mContent.innerHTML = `<p>${t.ice.modal.c1}</p><p>${t.ice.modal.c2}</p><p>${t.ice.modal.c3}</p>`;
+
+            // Youth Worker
+            document.getElementById('yw-supertitle').textContent = t.yw.supertitle;
+            document.getElementById('yw-title').textContent = t.yw.title;
+            document.getElementById('yw-c1-title').textContent = t.yw.c1t; document.getElementById('yw-c1-text').textContent = t.yw.c1d;
+            document.getElementById('yw-c2-title').textContent = t.yw.c2t; document.getElementById('yw-c2-text').textContent = t.yw.c2d;
+            document.getElementById('yw-c3-title').textContent = t.yw.c3t; document.getElementById('yw-c3-text').textContent = t.yw.c3d;
+            document.getElementById('yw-creator').textContent = t.yw.creator;
+            document.getElementById('footer-text').textContent = t.yw.footer;
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            const btn = document.getElementById('lang-btn');
+            
+            if(currentLang === 'en') {
+                btn.textContent = 'FR 🇫🇷';
+                document.documentElement.lang = 'en';
+            } else {
+                btn.textContent = 'EN 🇬🇧';
+                document.documentElement.lang = 'fr';
+            }
+            updateContent();
+        }
+
+        function goToSlide(index) {
+            // Hide all
+            document.querySelectorAll('.slide').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('bg-blue-100', 'text-blue-700', 'font-bold');
+                el.classList.add('text-gray-600');
+            });
+
+            // Show target
+            const target = document.getElementById(`slide-${index}`);
+            target.classList.remove('hidden');
+            
+            // Update Active Nav
+            const activeNav = document.querySelector(`.nav-btn[data-slide="${index}"]`);
+            if(activeNav) {
+                activeNav.classList.remove('text-gray-600');
+                activeNav.classList.add('bg-blue-100', 'text-blue-700', 'font-bold');
+            }
+
+            // Update Dots
+            updateDots(index);
+            currentSlide = index;
+        }
+
+        function updateDots(index) {
+            const container = document.getElementById('nav-dots');
+            container.innerHTML = '';
+            for(let i=0; i<totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = `h-2 w-2 rounded-full transition-all duration-300 ${i === index ? 'bg-blue-600 w-6' : 'bg-gray-300'}`;
+                container.appendChild(dot);
+            }
+        }
+
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // --- INITIALIZATION ---
+        document.getElementById('lang-btn').addEventListener('click', toggleLang);
+        
+        // Initial setup
+        updateContent();
+        goToSlide(0);
+
+    </script>
+</body>
+</html>
