@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Youth Worker Training Module V8 (Fixed)</title>
+    
+    <!-- React & DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            overflow: hidden; 
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .bg-pattern {
+            background-image: radial-gradient(#312e81 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- ICONS ---
+        const Icons = {
+            Target: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+            CheckList: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>,
+            Time: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            Action: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+            Book: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+            Grid: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>,
+            X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Info: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>,
+            ArrowDown: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>,
+            Sun: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>,
+            Users: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        };
+
+        // --- CONTENT ---
+        const CONTENT = {
+            fr: {
+                tabs: ["Structure Pédagogique", "Boîte à Idées & Outils"],
+                cascade: {
+                    title: "La Cascade Éducative",
+                    intro: "Descendez la cascade. Notez bien : Une Session contient plusieurs Activités, qui utilisent diverses Méthodes.",
+                    toggleText: "Voir un exemple concret (Fil Rouge)",
+                    steps: [
+                        { 
+                            id: 1, 
+                            title: "LE BUT (AIM)", 
+                            subtitle: "L'étoile polaire", 
+                            icon: "Target", 
+                            color: "bg-rose-600", 
+                            border: "border-rose-500", 
+                            definition: "L'intention générale et abstraite. La vision sociétale à long terme.",
+                            keyPoints: ["Vision politique/sociale", "Non mesurable", "Donne le sens"],
+                            example: {
+                                title: "Projet : 'Media Detectives'",
+                                text: "But : 'Développer l'esprit critique des jeunes face à la désinformation en ligne.' (C'est un idéal citoyen, une vision à long terme)."
+                            }
+                        },
+                        { 
+                            id: 2, 
+                            title: "LES OBJECTIFS", 
+                            subtitle: "Les marches de l'escalier", 
+                            icon: "CheckList", 
+                            color: "bg-orange-600", 
+                            border: "border-orange-500", 
+                            definition: "La traduction opérationnelle du But en compétences S.M.A.R.T.",
+                            keyPoints: ["Spécifique & Mesurable", "Centré sur l'apprenant", "Vérifiable"],
+                            example: {
+                                title: "Objectifs de la séance",
+                                text: "À la fin, ils sauront : 1. Distinguer un fait d'une opinion. 2. Vérifier la source d'une image. (C'est vérifiable)."
+                            }
+                        },
+                        { 
+                            id: 3, 
+                            title: "LA SESSION", 
+                            subtitle: "Le Conteneur Temporel", 
+                            icon: "Time", 
+                            color: "bg-amber-500", 
+                            border: "border-amber-500", 
+                            definition: "Un bloc de temps (ex: 90 min) qui contient une SÉQUENCE d'activités cohérentes (Intro -> Cœur -> Conclusion).",
+                            keyPoints: ["Contient PLUSIEURS activités", "A un flux narratif (Flow)", "Adapté au biorythme"],
+                            example: {
+                                title: "Session : 'Info ou Intox ?' (90 min)",
+                                text: "Flow: 1. Welcome (10') -> 2. Icebreaker (10') -> 3. Main Simulation (50') -> 4. Debriefing (20')."
+                            }
+                        },
+                        { 
+                            id: 4, 
+                            title: "LES ACTIVITÉS", 
+                            subtitle: "Les étapes de la session", 
+                            icon: "Action", 
+                            color: "bg-emerald-600", 
+                            border: "border-emerald-500", 
+                            definition: "Les exercices spécifiques DANS la session. On enchaîne souvent : Icebreaker -> Activité Principale -> Évaluation.",
+                            keyPoints: ["Plusieurs par session", "Participatif", "Outil, pas une fin"],
+                            example: {
+                                title: "Focus sur l'Activité Principale",
+                                text: "Au milieu de la session, on joue à 'La Rédaction'. (Mais avant il y a eu un Icebreaker, et après il y aura un Debrief)."
+                            }
+                        },
+                        { 
+                            id: 5, 
+                            title: "LES MÉTHODES", 
+                            subtitle: "La boîte à outils technique", 
+                            icon: "Book", 
+                            color: "bg-blue-600", 
+                            border: "border-blue-500", 
+                            definition: "Les techniques utilisées pour animer ces activités. Une session riche varie les méthodes.",
+                            keyPoints: ["Une méthode par activité", "Varier : Jeu, Débat, Travail de groupe", "Adapté au style d'apprentissage"],
+                            example: {
+                                title: "Mix de Méthodes",
+                                text: "Pour l'Icebreaker : Méthode kinesthésique (mouvement). Pour la Rédaction : Apprentissage coopératif (petits groupes)."
+                            }
+                        }
+                    ]
+                },
+                toolbox: {
+                    title: "La Boîte à Idées & Outils",
+                    intro: "Une panoplie d'ingrédients pour construire votre formation. N'oubliez pas : les pauses sont aussi des outils !",
+                    btnSample: "Voir la Journée Type Détaillée",
+                    sampleDay: {
+                        title: "Journée Type : 'Démocratie & Participation'",
+                        timeline: [
+                            { 
+                                time: "09:30", type: "warmup", title: "Accueil & Inclusion", 
+                                content: "Jeu de prénoms 'Zombie' + 'Météo du jour'.",
+                                intention: "Créer un espace sûr (Safe Space) pour que la parole se libère.",
+                                objective: "Chacun connaît les prénoms et se sent à l'aise dans l'espace.",
+                                method: "Cercle debout, ludique.",
+                                actors: "Facilitateur (Mène) -> Groupe entier."
+                            },
+                            { 
+                                time: "10:00", type: "session", title: "Session 1 : Positionnement", 
+                                content: "Affirmations polémiques : 'Le vote à 16 ans', 'Le service civique obligatoire'.",
+                                intention: "Faire émerger les représentations initiales sans jugement.",
+                                objective: "Identifier ses propres préjugés.",
+                                method: "Débat Mouvant (D'accord/Pas d'accord).",
+                                actors: "Facilitateur (Propose) -> Participants (Bougent)."
+                            },
+                            { 
+                                time: "11:30", type: "break", title: "Pause Café", 
+                                content: "Café, thé, biscuits, musique d'ambiance.",
+                                intention: "Repos cognitif et liens informels.",
+                                objective: "Digérer l'information, socialiser.",
+                                method: "Temps libre.",
+                                actors: "Autonomie."
+                            },
+                            { 
+                                time: "12:00", type: "session", title: "Session 2 : Co-construction", 
+                                content: "Définition de la 'Démocratie Idéale' vs 'Réelle'.",
+                                intention: "Approfondissement par la coopération.",
+                                objective: "Produire une définition commune.",
+                                method: "World Café (Tables tournantes).",
+                                actors: "Petits groupes (4-5) en autonomie."
+                            },
+                            { 
+                                time: "13:30", type: "break", title: "Déjeuner / Lunch", 
+                                content: "Repas partagé.",
+                                intention: "Besoins physiologiques & convivialité.",
+                                objective: "Recharger les batteries.",
+                                method: "Repas.",
+                                actors: "Tous."
+                            },
+                            { 
+                                time: "15:00", type: "warmup", title: "Energizer Digestif", 
+                                content: "'Pony Express' or 'Evolution' game.",
+                                intention: "Relancer l'attention après la digestion.",
+                                objective: "Réveiller les corps.",
+                                method: "Jeu idiot et rapide.",
+                                actors: "Un volontaire (Empowerment)."
+                            },
+                            { 
+                                time: "15:15", type: "session", title: "Session 3 : La Simulation", 
+                                content: "Scénario : 'Conseil Municipal de Crise'. Budget à couper.",
+                                intention: "Vivre une expérience émotionnelle pour ancrer le savoir.",
+                                objective: "Ressentir les mécanismes de négociation.",
+                                method: "Jeu de Rôle / Simulation.",
+                                actors: "Pax (Acteurs) -> Facilitateur (Observateur)."
+                            },
+                            { 
+                                time: "17:00", type: "reflection", title: "Debriefing & Réflexion", 
+                                content: "Retour sur la Simulation : Émotions -> Faits -> Analyse.",
+                                intention: "Méta-cognition.",
+                                objective: "Connecter le jeu à la réalité.",
+                                method: "Cycle de Kolb.",
+                                actors: "Facilitateur (Questionne) -> Groupe."
+                            },
+                            { 
+                                time: "18:00", type: "closing", title: "Clôture", 
+                                content: "Mot de la fin + Programme du lendemain.",
+                                intention: "Valider la journée.",
+                                objective: "Sortie en douceur.",
+                                method: "Cercle de fermeture.",
+                                actors: "Tour de table."
+                            }
+                        ]
+                    },
+                    categories: [
+                        { 
+                            title: "1. SOCIAL & INCLUSION", 
+                            color: "bg-purple-600", 
+                            items: [
+                                { name: "Icebreakers Classiques", details: "Human Bingo, 2 Vérités 1 Mensonge." },
+                                { name: "Speed Dating", details: "Questions tournantes (30 sec) pour se rencontrer vite." },
+                                { name: "Privilege Walk", details: "Prendre conscience des inégalités sociales en avançant/reculant." },
+                                { name: "Chinese Portraits", details: "'Si j'étais un animal...' pour se présenter autrement." },
+                                { name: "Mapping", details: "Se placer sur une carte imaginaire (D'où je viens, où j'ai voyagé)." }
+                            ] 
+                        },
+                        { 
+                            title: "2. DIGITAL & TECH", 
+                            color: "bg-blue-600", 
+                            items: [
+                                { name: "Kahoot / Mentimeter", details: "Sondages et quiz en direct via smartphone. Très engageant." },
+                                { name: "ActionBound", details: "Créer un rallye numérique (chasse au trésor) avec GPS." },
+                                { name: "Stop Motion", details: "Créer une vidéo image par image avec le téléphone." },
+                                { name: "Canva Collab", details: "Créer des affiches/visuels en temps réel à plusieurs." },
+                                { name: "QR Code Hunt", details: "Cacher des indices/questions derrière des QR codes." }
+                            ] 
+                        },
+                        { 
+                            title: "3. OUTDOOR & EXPLORATION", 
+                            color: "bg-emerald-600", 
+                            items: [
+                                { name: "City Bound", details: "Défis en ville (ex: échanger un trombone contre plus gros)." },
+                                { name: "Vox Pop", details: "Aller interviewer des passants dans la rue sur le sujet." },
+                                { name: "Photo Rallye", details: "Prendre des photos répondant à des thèmes précis." },
+                                { name: "Walk & Talk", details: "Débattre en marchant par binômes (très efficace)." },
+                                { name: "Land Art", details: "Créer une œuvre éphémère avec des éléments naturels." }
+                            ] 
+                        },
+                        { 
+                            title: "4. CHALLENGES & DYNAMIQUE", 
+                            color: "bg-pink-600", 
+                            items: [
+                                { name: "Marshmallow Challenge", details: "Construire la tour la plus haute avec des spaghettis." },
+                                { name: "Egg Drop", details: "Protéger un œuf d'une chute de 3m avec peu de matériel." },
+                                { name: "Mission Impossible", details: "30 défis à réaliser par le groupe en 20 minutes." },
+                                { name: "Escape Game", details: "Résoudre des énigmes pour ouvrir une boîte/sortir." },
+                                { name: "Energizers Physiques", details: "Ninja, Evolution, Le chef d'orchestre." }
+                            ] 
+                        },
+                        { 
+                            title: "5. DÉBAT & INTEL. COLLECTIVE", 
+                            color: "bg-orange-600", 
+                            items: [
+                                { name: "World Café", details: "Conversations tournantes par petits groupes." },
+                                { name: "Fishbowl", details: "Cercle de chaises au centre, les autres observent et entrent." },
+                                { name: "Débat Mouvant", details: "Se positionner physiquement dans l'espace." },
+                                { name: "Porteur de Parole", details: "Affichage dans l'espace public pour recueillir des avis." },
+                                { name: "Abba Debate", details: "Argumenter pour A, puis pour B (changer de camp)." }
+                            ] 
+                        },
+                        { 
+                            title: "6. SIMULATION & JEU DE RÔLE", 
+                            color: "bg-red-600", 
+                            items: [
+                                { name: "Albatros", details: "Comprendre les mécanismes d'exclusion culturelle." },
+                                { name: "Jeu des Chaises", details: "Répartition des richesses mondiales (inégalités)." },
+                                { name: "Théâtre Forum", details: "Jouer une scène d'oppression et la changer." },
+                                { name: "Tribunal Fictif", details: "Juger un cas éthique complexe avec avocats/juges." }
+                            ] 
+                        },
+                        { 
+                            title: "7. RÉFLEXION & CLÔTURE", 
+                            color: "bg-teal-600", 
+                            items: [
+                                { name: "Dixit Cards", details: "Utiliser des images métaphoriques pour s'exprimer." },
+                                { name: "Lettre à soi-même", details: "S'écrire une lettre reçue 6 mois plus tard." },
+                                { name: "Feedback Sandwich", details: "Positif / À améliorer / Positif." },
+                                { name: "Rivière de vie", details: "Dessiner son parcours d'apprentissage." },
+                                { name: "Youthpass", details: "Auto-évaluation des 8 compétences clés." }
+                            ] 
+                        },
+                        { 
+                            title: "8. PAUSES & INFORMEL", 
+                            color: "bg-slate-600", 
+                            items: [
+                                { name: "Pause Café (Coffee Break)", details: "L'outil pédagogique n°1. C'est là que le lien social se consolide." },
+                                { name: "Temps Libre", details: "Laisser le cerveau respirer. L'ennui peut être créatif." },
+                                { name: "Repas Interculturel", details: "Partage festif de nourriture. Créateur de lien fort." },
+                                { name: "Soirée Libre", details: "Lâcher prise, jeux de société en autonomie, musique." },
+                                { name: "Balade", details: "Sortir du lieu formel pour discuter librement." }
+                            ] 
+                        }
+                    ]
+                }
+            },
+            en: {
+                tabs: ["Pedagogical Structure", "Ideas & Tools Box"],
+                cascade: {
+                    title: "The Educational Cascade",
+                    intro: "Go down the waterfall. Note: A Session contains multiple Activities, using various Methods.",
+                    toggleText: "See Concrete Example (Thread)",
+                    steps: [
+                        { 
+                            id: 1, 
+                            title: "THE AIM", 
+                            subtitle: "The North Star", 
+                            icon: "Target", 
+                            color: "bg-rose-600", 
+                            border: "border-rose-500", 
+                            definition: "The general, abstract intention. The long-term societal vision.",
+                            keyPoints: ["Political/Social Vision", "Not measurable", "Provides meaning"],
+                            example: {
+                                title: "Project: 'Media Detectives'",
+                                text: "Aim: 'Develop critical thinking skills in youth regarding online disinformation.' (Long term vision)."
+                            }
+                        },
+                        { 
+                            id: 2, 
+                            title: "OBJECTIVES", 
+                            subtitle: "The Stair Steps", 
+                            icon: "CheckList", 
+                            color: "bg-orange-600", 
+                            border: "border-orange-500", 
+                            definition: "Operational translation of the Aim into S.M.A.R.T. competences.",
+                            keyPoints: ["Specific & Measurable", "Learner-centered", "Verifiable"],
+                            example: {
+                                title: "Session Objectives",
+                                text: "By the end, youth will: 1. Distinguish fact from opinion. 2. Verify an image source. (Verifiable)."
+                            }
+                        },
+                        { 
+                            id: 3, 
+                            title: "THE SESSION", 
+                            subtitle: "The Time Container", 
+                            icon: "Time", 
+                            color: "bg-amber-500", 
+                            border: "border-amber-500", 
+                            definition: "A block of time (e.g., 90 min) containing a SEQUENCE of activities (Intro -> Core -> Conclusion).",
+                            keyPoints: ["Contains MULTIPLE activities", "Has a narrative flow", "Adapted to biorhythm"],
+                            example: {
+                                title: "Session: 'Fact or Fake?' (90 min)",
+                                text: "Flow: 1. Welcome (10') -> 2. Icebreaker (10') -> 3. Main Simulation (50') -> 4. Debriefing (20')."
+                            }
+                        },
+                        { 
+                            id: 4, 
+                            title: "THE ACTIVITIES", 
+                            subtitle: "Steps within Session", 
+                            icon: "Action", 
+                            color: "bg-emerald-600", 
+                            border: "border-emerald-500", 
+                            definition: "Specific exercises WITHIN the session. We usually link: Icebreaker -> Main Activity -> Evaluation.",
+                            keyPoints: ["Several per session", "Participatory", "Tool, not an end"],
+                            example: {
+                                title: "Focus on Main Activity",
+                                text: "In the middle, we play 'The Newsroom'. (But before there was an Icebreaker, and after a Debrief)."
+                            }
+                        },
+                        { 
+                            id: 5, 
+                            title: "THE METHODS", 
+                            subtitle: "The Technical Toolkit", 
+                            icon: "Book", 
+                            color: "bg-blue-600", 
+                            border: "border-blue-500", 
+                            definition: "Techniques used to facilitate these activities. A rich session mixes methods.",
+                            keyPoints: ["One method per activity", "Vary: Game, Debate, Group work", "Adapted to learning style"],
+                            example: {
+                                title: "Mix of Methods",
+                                text: "For Icebreaker: Kinesthetic (movement). For Newsroom: Cooperative learning (small groups)."
+                            }
+                        }
+                    ]
+                },
+                toolbox: {
+                    title: "The Ideas & Tools Box",
+                    intro: "A full set of ingredients. Don't forget: Breaks are tools too!",
+                    btnSample: "See Detailed Sample Day",
+                    sampleDay: {
+                        title: "Sample Day: 'Democracy & Participation'",
+                        timeline: [
+                            { 
+                                time: "09:30", type: "warmup", title: "Welcome & Inclusion", 
+                                content: "Zombie Name Game + Weather Report.",
+                                intention: "Create a Safe Space for sharing.",
+                                objective: "Everyone knows names and feels comfortable.",
+                                method: "Standing circle, dynamic.",
+                                actors: "Facilitator (Leads) -> Whole Group."
+                            },
+                            { 
+                                time: "10:00", type: "session", title: "Session 1: Positioning", 
+                                content: "Controversial statements: 'Voting at 16', 'Mandatory Service'.",
+                                intention: "Surface initial representations without judgment.",
+                                objective: "Participants identify their own bias.",
+                                method: "Moving Debate (Move in space).",
+                                actors: "Facilitator (Statements) -> Pax (Move)."
+                            },
+                            { 
+                                time: "11:30", type: "break", title: "Coffee Break", 
+                                content: "Coffee, tea, cookies, background music.",
+                                intention: "Cognitive rest & informal bonding.",
+                                objective: "Digest info, socialize.",
+                                method: "Free time.",
+                                actors: "Full autonomy."
+                            },
+                            { 
+                                time: "12:00", type: "session", title: "Session 2: Group Work", 
+                                content: "Defining 'Ideal Democracy' vs 'Real Democracy'.",
+                                intention: "Deepening through cooperation.",
+                                objective: "Produce a common definition.",
+                                method: "World Café (Rotating tables).",
+                                actors: "Small groups (4-5) -> Facilitator."
+                            },
+                            { 
+                                time: "13:30", type: "break", title: "Lunch Break", 
+                                content: "Shared meal.",
+                                intention: "Physiological needs.",
+                                objective: "Recharge.",
+                                method: "Meal.",
+                                actors: "Everyone."
+                            },
+                            { 
+                                time: "15:00", type: "warmup", title: "Digestive Energizer", 
+                                content: "'Pony Express' or 'Evolution' game.",
+                                intention: "Boost energy after lunch.",
+                                objective: "Wake up bodies, laugh together.",
+                                method: "Silly fast game.",
+                                actors: "A volunteer leads (Empowerment)."
+                            },
+                            { 
+                                time: "15:15", type: "session", title: "Session 3: Simulation", 
+                                content: "Scenario: 'Crisis Town Council'. Budget cuts needed.",
+                                intention: "Live an emotional experience to anchor learning.",
+                                objective: "Feel negotiation mechanisms.",
+                                method: "Role Play / Simulation.",
+                                actors: "Pax (Actors) -> Facilitator (Observer)."
+                            },
+                            { 
+                                time: "17:00", type: "reflection", title: "Debriefing & Reflection", 
+                                content: "Simulation review: Emotions -> Facts -> Analysis.",
+                                intention: "Meta-cognition.",
+                                objective: "Connect emotion to reality.",
+                                method: "Kolb Cycle.",
+                                actors: "Facilitator (Questions) -> Group."
+                            },
+                            { 
+                                time: "18:00", type: "closing", title: "Closing", 
+                                content: "Final words + Tomorrow's program.",
+                                intention: "Validate the day.",
+                                objective: "Smooth exit.",
+                                method: "Closing Circle.",
+                                actors: "Round table."
+                            }
+                        ]
+                    },
+                    categories: [
+                        { 
+                            title: "1. SOCIAL & INCLUSION", 
+                            color: "bg-purple-600", 
+                            items: [
+                                { name: "Classic Icebreakers", details: "Human Bingo, 2 Truths 1 Lie." },
+                                { name: "Speed Dating", details: "Rotating questions (30 sec) to meet fast." },
+                                { name: "Privilege Walk", details: "Awareness of social inequality by stepping fwd/back." },
+                                { name: "Chinese Portraits", details: "'If I were an animal...' to introduce differently." },
+                                { name: "Mapping", details: "Placing oneself on an imaginary map (Origins, travels)." }
+                            ] 
+                        },
+                        { 
+                            title: "2. DIGITAL & TECH", 
+                            color: "bg-blue-600", 
+                            items: [
+                                { name: "Kahoot / Mentimeter", details: "Live polls & quizzes via smartphone. Engaging." },
+                                { name: "ActionBound", details: "Create a digital rally (treasure hunt) with GPS." },
+                                { name: "Stop Motion", details: "Create frame-by-frame video with phones." },
+                                { name: "Canva Collab", details: "Create visuals together in real-time." },
+                                { name: "QR Code Hunt", details: "Hide clues/questions behind QR codes." }
+                            ] 
+                        },
+                        { 
+                            title: "3. OUTDOOR & EXPLORATION", 
+                            color: "bg-emerald-600", 
+                            items: [
+                                { name: "City Bound", details: "City challenges (e.g., trade a paperclip for bigger)." },
+                                { name: "Vox Pop", details: "Interviewing passers-by on the street." },
+                                { name: "Photo Rally", details: "Taking photos matching specific themes." },
+                                { name: "Walk & Talk", details: "Debating while walking in pairs (very effective)." },
+                                { name: "Land Art", details: "Create ephemeral art with natural elements." }
+                            ] 
+                        },
+                        { 
+                            title: "4. CHALLENGES & DYNAMICS", 
+                            color: "bg-pink-600", 
+                            items: [
+                                { name: "Marshmallow Challenge", details: "Build tallest tower with spaghetti." },
+                                { name: "Egg Drop", details: "Protect an egg from 3m drop with limited supplies." },
+                                { name: "Mission Impossible", details: "30 challenges for the group in 20 minutes." },
+                                { name: "Escape Game", details: "Solve riddles to open a box/exit." },
+                                { name: "Physical Energizers", details: "Ninja, Evolution, The Conductor." }
+                            ] 
+                        },
+                        { 
+                            title: "5. DEBATE & COLLECTIVE INTEL", 
+                            color: "bg-orange-600", 
+                            items: [
+                                { name: "World Café", details: "Rotating conversations in small groups." },
+                                { name: "Fishbowl", details: "Inner circle of chairs, others observe and jump in." },
+                                { name: "Moving Debate", details: "Positioning physically in space." },
+                                { name: "Silent Floor", details: "Writing opinions on large paper on the floor." },
+                                { name: "Abba Debate", details: "Argue for A, then for B (switch sides)." }
+                            ] 
+                        },
+                        { 
+                            title: "6. SIMULATION & ROLE PLAY", 
+                            color: "bg-red-600", 
+                            items: [
+                                { name: "Albatros", details: "Understanding cultural exclusion mechanisms." },
+                                { name: "Chair Game", details: "Global wealth distribution (Inequalities)." },
+                                { name: "Forum Theatre", details: "Acting an oppression scene and changing it." },
+                                { name: "Mock Trial", details: "Judging a complex ethical case with lawyers/judges." }
+                            ] 
+                        },
+                        { 
+                            title: "7. REFLECTION & CLOSING", 
+                            color: "bg-teal-600", 
+                            items: [
+                                { name: "Dixit Cards", details: "Using metaphorical images to express feelings." },
+                                { name: "Letter to Self", details: "Writing a letter received 6 months later." },
+                                { name: "Feedback Sandwich", details: "Positive / To Improve / Positive." },
+                                { name: "River of Life", details: "Drawing one's learning journey." },
+                                { name: "Youthpass", details: "Self-assessment of 8 key competences." }
+                            ] 
+                        },
+                        { 
+                            title: "8. BREAKS & INFORMAL", 
+                            color: "bg-slate-600", 
+                            items: [
+                                { name: "Coffee Break", details: "The #1 pedagogical tool. Where real bonding happens." },
+                                { name: "Free Time", details: "Letting the brain breathe. Boredom can be creative." },
+                                { name: "Meals (Lunch/Dinner)", details: "Conviviality and informal cultural sharing." },
+                                { name: "Intercultural Night", details: "Festive sharing of food/music. Valuing backgrounds." },
+                                { name: "Informal Walk", details: "Walking without purpose to talk freely." }
+                            ] 
+                        }
+                    ]
+                }
+            }
+        };
+
+        // --- COMPONENTS ---
+
+        const Modal = ({ isOpen, onClose, data }) => {
+            if (!isOpen || !data) return null;
+            const Icon = Icons[data.icon];
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" onClick={onClose}>
+                    <div className={`relative w-full max-w-2xl bg-[#1e293b] rounded-2xl border-l-8 ${data.border} shadow-2xl text-white overflow-hidden`} onClick={e => e.stopPropagation()}>
+                        <div className={`p-6 ${data.color} flex items-center gap-4`}>
+                            <div className="bg-white/20 p-3 rounded-full"><Icon /></div>
+                            <div>
+                                <h3 className="text-3xl font-bold">{data.title}</h3>
+                                <p className="text-white/90 text-lg italic">{data.subtitle}</p>
+                            </div>
+                            <button onClick={onClose} className="ml-auto bg-black/20 hover:bg-black/40 p-2 rounded-full transition-colors"><Icons.X /></button>
+                        </div>
+                        <div className="p-8 max-h-[70vh] overflow-y-auto custom-scroll">
+                            <div className="mb-6">
+                                <h4 className="text-indigo-400 font-bold uppercase tracking-wider text-sm mb-2">Définition</h4>
+                                <p className="text-lg leading-relaxed text-gray-100 border-l-4 border-gray-600 pl-4">{data.definition}</p>
+                            </div>
+                            <div className="mb-6">
+                                <h4 className="text-indigo-400 font-bold uppercase tracking-wider text-sm mb-2">Points Clés</h4>
+                                <ul className="space-y-2">
+                                    {data.keyPoints.map((pt, i) => (
+                                        <li key={i} className="flex items-start gap-2 text-gray-300">
+                                            <div className="min-w-[6px] h-[6px] rounded-full bg-indigo-500 mt-2"></div>
+                                            {pt}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="p-4 bg-slate-800 text-right border-t border-slate-700">
+                            <button onClick={onClose} className="px-6 py-2 bg-white text-slate-900 font-bold rounded-lg hover:bg-gray-200 transition-colors">OK</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const DayView = ({ schedule, onClose }) => {
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in" onClick={onClose}>
+                    <div className="relative w-full max-w-6xl h-[95vh] bg-[#0f172a] rounded-3xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                         <div className="p-6 bg-slate-800 border-b border-slate-700 flex justify-between items-center shrink-0">
+                            <h2 className="text-2xl font-bold text-indigo-400 flex items-center gap-3">
+                                <Icons.Sun /> {schedule.title}
+                            </h2>
+                            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full"><Icons.X /></button>
+                        </div>
+                        
+                        <div className="flex-grow overflow-y-auto custom-scroll p-6 relative">
+                            <div className="absolute left-20 md:left-24 top-0 bottom-0 w-0.5 bg-slate-700"></div>
+
+                            {schedule.timeline.map((slot, i) => (
+                                <div key={i} className="flex gap-4 md:gap-6 mb-8 relative group">
+                                    <div className="w-14 md:w-16 text-right font-mono text-indigo-300 font-bold pt-1 text-sm md:text-base">{slot.time}</div>
+                                    <div className={`w-4 h-4 rounded-full mt-1.5 md:mt-2 absolute left-[4.5rem] md:left-[5.6rem] border-2 border-[#0f172a] 
+                                        ${slot.type === 'break' ? 'bg-amber-500' : 
+                                          slot.type === 'warmup' ? 'bg-pink-500' : 
+                                          slot.type === 'closing' ? 'bg-purple-500' :
+                                          slot.type === 'reflection' ? 'bg-teal-500' : 'bg-blue-500'} 
+                                        z-10`}></div>
+                                    
+                                    <div className={`flex-grow p-5 rounded-xl border border-slate-700 hover:border-slate-500 transition-all bg-slate-800/40 ml-4 md:ml-0`}>
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+                                            <h3 className={`font-bold text-xl 
+                                                ${slot.type === 'break' ? 'text-amber-400' : 'text-white'}`}>
+                                                {slot.title}
+                                            </h3>
+                                            {slot.content && (
+                                                <span className="bg-slate-700/80 px-3 py-1 rounded text-sm text-indigo-200 border border-indigo-500/30">
+                                                    📌 {slot.content}
+                                                </span>
+                                            )}
+                                        </div>
+                                        
+                                        {/* Detailed Pedagogical Info Grid */}
+                                        {slot.type !== 'break' ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4 border-t border-slate-700/50 pt-4">
+                                                <div className="space-y-1">
+                                                    <span className="text-indigo-400 font-bold uppercase text-[10px] tracking-wider">🧠 Intention</span>
+                                                    <p className="text-slate-300">{slot.intention}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <span className="text-emerald-400 font-bold uppercase text-[10px] tracking-wider">🎯 Objectif</span>
+                                                    <p className="text-slate-300">{slot.objective}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <span className="text-blue-400 font-bold uppercase text-[10px] tracking-wider">🛠 Méthode</span>
+                                                    <p className="text-slate-300">{slot.method}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <span className="text-pink-400 font-bold uppercase text-[10px] tracking-wider">👥 Acteurs</span>
+                                                    <p className="text-slate-300">{slot.actors}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col gap-2">
+                                                <p className="text-slate-300 italic">{slot.intention}</p>
+                                                <div className="flex gap-2 mt-2">
+                                                    <span className="px-2 py-1 rounded bg-slate-700/50 text-xs text-slate-400">{slot.method}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const CascadeView = ({ data }) => {
+            const [selected, setSelected] = useState(null);
+            const [showExample, setShowExample] = useState(false);
+
+            return (
+                <div className="h-full flex flex-col p-4 md:p-8 animate-fade-in overflow-y-auto custom-scroll">
+                    <div className="text-center mb-6">
+                        <h2 className="text-4xl font-extrabold text-white mb-2">{data.title}</h2>
+                        <p className="text-gray-400 max-w-2xl mx-auto">{data.intro}</p>
+                        
+                        <button 
+                            onClick={() => setShowExample(!showExample)}
+                            className={`mt-4 px-6 py-2 rounded-full border transition-all flex items-center gap-2 mx-auto
+                                ${showExample ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-transparent border-slate-600 text-slate-400 hover:border-white'}`}
+                        >
+                            <span className={`w-3 h-3 rounded-full ${showExample ? 'bg-white animate-pulse' : 'bg-slate-500'}`}></span>
+                            {data.toggleText}
+                        </button>
+                    </div>
+
+                    <div className="flex-grow flex flex-col items-center gap-3 relative pb-20">
+                        <div className={`absolute top-0 bottom-0 w-1 transition-colors duration-500 -z-10 rounded ${showExample ? 'bg-indigo-900' : 'bg-gray-800'}`}></div>
+
+                        {data.steps.map((step, index) => {
+                            const Icon = Icons[step.icon];
+                            const scale = 1 - (index * 0.03);
+                            
+                            const displayTitle = showExample ? step.example.title : step.title;
+                            const displayDesc = showExample ? step.example.text : step.definition;
+                            const displaySub = showExample ? "Exemple Concret" : step.subtitle;
+                            
+                            return (
+                                <div key={step.id} className="relative w-full max-w-3xl flex justify-center">
+                                    <button 
+                                        onClick={() => !showExample && setSelected(step)}
+                                        className={`
+                                            relative w-full md:w-4/5 p-5 rounded-2xl 
+                                            flex items-center gap-6 text-left transition-all duration-500
+                                            ${showExample 
+                                                ? 'bg-slate-800 border-2 border-indigo-500 shadow-indigo-900/20' 
+                                                : `${step.color} shadow-lg card-hover border border-white/10`}
+                                        `}
+                                        style={{ transform: `scale(${scale})` }}
+                                    >
+                                        <div className={`p-4 rounded-xl shadow-inner transition-colors duration-500 ${showExample ? 'bg-indigo-900 text-indigo-300' : 'bg-black/20 text-white'}`}>
+                                            <Icon />
+                                        </div>
+                                        <div className="flex-grow">
+                                            <h3 className={`font-bold text-2xl mb-1 ${showExample ? 'text-indigo-300' : 'text-white'}`}>{displayTitle}</h3>
+                                            <p className={`text-sm md:text-base leading-snug ${showExample ? 'text-gray-300' : 'text-white/80'}`}>
+                                                {displayDesc}
+                                            </p>
+                                        </div>
+                                        {!showExample && (
+                                            <div className="bg-white/20 p-2 rounded-full"><Icons.Info /></div>
+                                        )}
+                                    </button>
+                                    
+                                    {index < data.steps.length - 1 && (
+                                        <div className="absolute -bottom-5 text-gray-500 z-0 bg-[#0f172a] p-1 rounded-full border border-gray-700">
+                                            <Icons.ArrowDown />
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    
+                    <Modal isOpen={!!selected} onClose={() => setSelected(null)} data={selected} />
+                </div>
+            );
+        };
+
+        const ToolboxView = ({ data }) => {
+            const [showDay, setShowDay] = useState(false);
+
+            return (
+                <div className="h-full p-4 md:p-8 animate-fade-in overflow-y-auto custom-scroll relative">
+                    <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div>
+                            <h2 className="text-3xl font-bold text-white mb-1">{data.title}</h2>
+                            <p className="text-gray-400">{data.intro}</p>
+                        </div>
+                        <button 
+                            onClick={() => setShowDay(true)}
+                            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg flex items-center gap-2 transform hover:scale-105 transition-all"
+                        >
+                            <Icons.Sun /> {data.btnSample}
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-24">
+                        {data.categories.map((cat, idx) => (
+                            <div key={idx} className="glass-panel rounded-2xl overflow-hidden flex flex-col h-full hover:border-white/40 transition-all duration-300">
+                                <div className={`${cat.color} p-3 text-center border-b border-white/10`}>
+                                    <h3 className="font-bold text-white text-sm uppercase tracking-wider">{cat.title}</h3>
+                                </div>
+                                <div className="p-4 flex-grow space-y-4 bg-slate-900/30">
+                                    {cat.items.map((item, i) => (
+                                        <div key={i} className="group cursor-help">
+                                            <div className="text-base font-bold text-gray-100 group-hover:text-indigo-300 transition-colors flex items-center gap-2">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${cat.color}`}></div>
+                                                {item.name}
+                                            </div>
+                                            <div className="text-xs text-slate-400 pl-3.5 mt-1 leading-relaxed border-l border-slate-700 group-hover:border-indigo-500 group-hover:text-slate-300 transition-colors">
+                                                {item.details}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {showDay && <DayView schedule={data.sampleDay} onClose={() => setShowDay(false)} />}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState('fr');
+            const [activeTab, setActiveTab] = useState(0);
+            const text = CONTENT[lang];
+
+            return (
+                <div className="flex h-screen w-screen bg-slate-900 text-slate-100 overflow-hidden bg-pattern">
+                    <nav className="fixed bottom-0 w-full md:relative md:w-24 md:h-full bg-slate-900/90 backdrop-blur border-t md:border-t-0 md:border-r border-slate-700 z-50 flex md:flex-col justify-center items-center py-2 md:py-6 gap-6 md:gap-10 shadow-2xl">
+                        {text.tabs.map((t, i) => (
+                            <button 
+                                key={i}
+                                onClick={() => setActiveTab(i)}
+                                className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-300 ${activeTab === i ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/50 scale-110' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
+                            >
+                                {i === 0 && <Icons.Target />}
+                                {i === 1 && <Icons.Grid />}
+                                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:block">{i === 0 ? 'Cascade' : 'Toolbox'}</span>
+                            </button>
+                        ))}
+                        <div className="w-10 h-0.5 bg-slate-700 hidden md:block my-2"></div>
+                        <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="w-12 h-12 rounded-full border-2 border-slate-600 flex items-center justify-center text-xl hover:bg-slate-800 hover:border-white transition-all">
+                            {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
+                        </button>
+                    </nav>
+
+                    <main className="flex-grow relative h-full w-full p-4 md:p-8 pb-24 md:pb-8 overflow-hidden flex items-center justify-center">
+                        <div className="w-full h-full max-w-[1600px] glass-panel rounded-3xl overflow-hidden shadow-2xl relative border border-white/5">
+                            {activeTab === 0 && <CascadeView data={text.cascade} />}
+                            {activeTab === 1 && <ToolboxView data={text.toolbox} />}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
