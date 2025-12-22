@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur d'Études de Cas - Inclusion Numérique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .reveal-anim {
+            animation: reveal 0.4s ease-out forwards;
+        }
+        @keyframes reveal {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #4f46e5, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Custom Select Styling */
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center p-4 md:p-8 text-slate-800">
+
+    <!-- Language Toggle Fixed Top Right -->
+    <div class="fixed top-4 right-4 z-50">
+        <button onclick="toggleLanguage()" class="bg-white px-4 py-2 rounded-full shadow-md font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-2">
+            <i data-lucide="languages" class="w-4 h-4"></i>
+            <span id="lang-btn-text">Switch to English</span>
+        </button>
+    </div>
+
+    <main class="w-full max-w-4xl mx-auto">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-10">
+            <div class="inline-flex items-center justify-center p-3 bg-white rounded-2xl shadow-sm mb-4">
+                <i data-lucide="monitor-smartphone" class="w-8 h-8 text-indigo-600 mr-2"></i>
+                <i data-lucide="users" class="w-8 h-8 text-purple-600"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text tracking-tight" id="main-title">
+                Générateur d'Études de Cas
+            </h1>
+            <p class="text-lg text-slate-600 max-w-2xl mx-auto" id="main-subtitle">
+                Entrez votre mois de naissance pour découvrir le scénario d'accessibilité sur lequel vous allez travailler aujourd'hui.
+            </p>
+        </header>
+
+        <!-- Input Section -->
+        <section class="glass-panel rounded-3xl p-8 mb-8 text-center max-w-lg mx-auto transform transition-all hover:scale-[1.01]">
+            <label for="month-select" class="block text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3" id="label-month">
+                Votre mois de naissance
+            </label>
+            <div class="relative max-w-xs mx-auto">
+                <select id="month-select" class="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-xl shadow-sm bg-gray-50 border cursor-pointer hover:bg-white transition-colors">
+                    <option value="" disabled selected id="opt-default">Choisir un mois...</option>
+                    <option value="1" id="opt-1">Janvier</option>
+                    <option value="2" id="opt-2">Février</option>
+                    <option value="3" id="opt-3">Mars</option>
+                    <option value="4" id="opt-4">Avril</option>
+                    <option value="5" id="opt-5">Mai</option>
+                    <option value="6" id="opt-6">Juin</option>
+                    <option value="7" id="opt-7">Juillet</option>
+                    <option value="8" id="opt-8">Août</option>
+                    <option value="9" id="opt-9">Septembre</option>
+                    <option value="10" id="opt-10">Octobre</option>
+                    <option value="11" id="opt-11">Novembre</option>
+                    <option value="12" id="opt-12">Décembre</option>
+                </select>
+            </div>
+            
+            <button onclick="revealCase()" class="mt-6 w-full sm:w-auto bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 transition-all flex items-center justify-center gap-2 mx-auto">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                <span id="btn-generate">Générer mon cas</span>
+            </button>
+        </section>
+
+        <!-- Result Section (Hidden by default) -->
+        <div id="result-container" class="hidden">
+            <article class="glass-panel rounded-3xl overflow-hidden border-t-4 border-indigo-500 shadow-2xl fade-in">
+                <!-- Case Header -->
+                <div class="bg-slate-50 p-6 md:p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-indigo-100 text-indigo-700 mb-2" id="case-badge">
+                            Cas d'étude
+                        </span>
+                        <h2 id="case-title" class="text-2xl md:text-3xl font-bold text-slate-800">
+                            <!-- Title injected via JS -->
+                        </h2>
+                    </div>
+                    <div class="p-3 bg-white rounded-full shadow-sm">
+                        <i id="case-icon" data-lucide="accessibility" class="w-8 h-8 text-indigo-600"></i>
+                    </div>
+                </div>
+
+                <!-- Case Body -->
+                <div class="p-6 md:p-8 grid md:grid-cols-2 gap-8">
+                    <!-- Context -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="eye" class="w-5 h-5 text-blue-500"></i>
+                            <span id="lbl-situation">La Situation</span>
+                        </h3>
+                        <p id="case-description" class="text-slate-600 leading-relaxed text-lg">
+                            <!-- Description injected via JS -->
+                        </p>
+                    </div>
+
+                    <!-- Stakes (Now Interactive) -->
+                    <div class="bg-indigo-50 rounded-2xl p-6 space-y-4 border border-indigo-100">
+                        <h3 class="text-lg font-semibold text-indigo-900 flex items-center gap-2">
+                            <i data-lucide="lightbulb" class="w-5 h-5 text-indigo-600"></i>
+                            <span id="lbl-stakes">Indices & Pistes</span>
+                        </h3>
+                        <p class="text-sm text-indigo-600/70 mb-2" id="lbl-instruction">Cliquez pour révéler les enjeux</p>
+                        <ul id="case-stakes" class="space-y-3">
+                            <!-- List items injected via JS -->
+                        </ul>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+    </main>
+
+    <footer class="mt-12 text-center text-slate-500 text-sm">
+        <p>© <span id="year">2025</span> - <span id="footer-txt">Créé par Kévin Le Gal</span></p>
+    </footer>
+
+    <script>
+        // Data Structure with French and English content
+        const cases = [
+            {
+                id: 1,
+                icon: "wifi-off",
+                fr: {
+                    title: "Accès numérique limité",
+                    subtitle: "Basse connexion / Matériel partagé",
+                    desc: "Un groupe de participant·es suit la formation depuis des zones rurales. Certain·es n’ont qu’un téléphone, d’autres partagent un ordinateur à plusieurs, et la connexion coupe régulièrement. Les supports sont lourds (vidéos, tableaux interactifs) et l’accès aux documents demande plusieurs comptes.",
+                    stakes: ["Accessibilité numérique", "Équité d’accès", "Frustration & Décrochage"]
+                },
+                en: {
+                    title: "Limited Digital Access",
+                    subtitle: "Low connection / Shared devices",
+                    desc: "A group of participants joins from rural areas. Some only have a phone, others share a computer, and the connection drops frequently. Materials are heavy (videos, interactive boards) and accessing documents requires multiple accounts.",
+                    stakes: ["Digital Accessibility", "Equity of Access", "Frustration & Dropout"]
+                }
+            },
+            {
+                id: 2,
+                icon: "ear-off",
+                fr: {
+                    title: "Handicap / Fatigue auditive",
+                    subtitle: "Sans sous-titres",
+                    desc: "Une participante signale qu’elle comprend mieux avec des supports écrits et que l’audio prolongé la fatigue. Les séquences prévues reposent surtout sur l’oral (consignes dites vite, discussions longues), sans sous-titres ni résumé structuré.",
+                    stakes: ["Accessibilité sensorielle", "Charge cognitive", "Participation équitable"]
+                },
+                en: {
+                    title: "Auditory Impairment / Fatigue",
+                    subtitle: "No subtitles",
+                    desc: "A participant indicates she understands better with written materials and that prolonged audio fatigues her. The planned sequences rely mainly on oral communication (fast instructions, long discussions), without subtitles or structured summaries.",
+                    stakes: ["Sensory Accessibility", "Cognitive Load", "Equitable Participation"]
+                }
+            },
+            {
+                id: 3,
+                icon: "book-open",
+                fr: {
+                    title: "Dyslexie / Difficultés de lecture",
+                    subtitle: "Documents denses",
+                    desc: "Un participant indique qu’il a du mal avec les textes longs. La formation utilise des documents très chargés : petites polices, paragraphes serrés, vocabulaire technique, consignes écrites en blocs.",
+                    stakes: ["Accessibilité des supports", "Risque d’humiliation", "Perte d’autonomie"]
+                },
+                en: {
+                    title: "Dyslexia / Reading Difficulties",
+                    subtitle: "Dense documents",
+                    desc: "A participant indicates difficulty with long texts. The training uses very crowded documents: small fonts, tight paragraphs, technical vocabulary, and instructions written in large blocks.",
+                    stakes: ["Material Accessibility", "Risk of Humiliation", "Loss of Autonomy"]
+                }
+            },
+            {
+                id: 4,
+                icon: "globe",
+                fr: {
+                    title: "Barrière linguistique",
+                    subtitle: "Niveau de langue hétérogène",
+                    desc: "Le groupe est multiculturel. Certaines personnes comprennent le sujet mais ont un vocabulaire limité dans la langue de formation. Les activités demandent de produire vite, de reformuler des concepts, et de participer à des échanges rapides.",
+                    stakes: ["Inclusion linguistique", "Rythme d'apprentissage", "Accès au sens"]
+                },
+                en: {
+                    title: "Language Barrier",
+                    subtitle: "Heterogeneous language levels",
+                    desc: "The group is multicultural. Some people understand the subject but have limited vocabulary in the training language. Activities require quick production, concept reformulation, and participation in rapid exchanges.",
+                    stakes: ["Linguistic Inclusion", "Learning Pace", "Access to Meaning"]
+                }
+            },
+            {
+                id: 5,
+                icon: "calendar-clock",
+                fr: {
+                    title: "Contraintes religieuses / culturelles",
+                    subtitle: "Horaires, repas, contenus",
+                    desc: "La formation dure une journée. Une partie du groupe a des contraintes de prière, de jeûne, ou des règles alimentaires. Le programme prévoit un timing fixe sans alternatives, et certains contenus/exemples peuvent être culturellement sensibles.",
+                    stakes: ["Respect des réalités", "Risque d’exclusion implicite", "Dignité"]
+                },
+                en: {
+                    title: "Religious / Cultural Constraints",
+                    subtitle: "Schedules, meals, content",
+                    desc: "The training lasts a day. Part of the group has prayer, fasting, or dietary constraints. The schedule is fixed without alternatives, and some content/examples may be culturally sensitive.",
+                    stakes: ["Respect for Realities", "Implicit Exclusion Risk", "Dignity"]
+                }
+            },
+            {
+                id: 6,
+                icon: "user-check",
+                fr: {
+                    title: "Genre / Prénom d’usage",
+                    subtitle: "Identité et respect",
+                    desc: "Une personne communique en amont un prénom d’usage différent de celui affiché sur la plateforme. Elle demande aussi une attention sur les pronoms. Rien n’est prévu dans le dispositif (badges, affichage, règles d’introduction).",
+                    stakes: ["Respect de l'identité", "Sécurité psychologique", "Prévention des micro-agressions"]
+                },
+                en: {
+                    title: "Gender / Chosen Name",
+                    subtitle: "Identity and respect",
+                    desc: "A person communicates beforehand a chosen name different from the one displayed on the platform. They also request attention to pronouns. Nothing is planned in the setup (badges, display names, introduction rules).",
+                    stakes: ["Respect for Identity", "Psychological Safety", "Micro-aggression Prevention"]
+                }
+            },
+            {
+                id: 7,
+                icon: "battery-low",
+                fr: {
+                    title: "Handicap moteur / Douleurs",
+                    subtitle: "Rythme et pauses",
+                    desc: "Une participante explique qu’elle ne peut pas rester longtemps assise, qu’elle a besoin de pauses courtes et régulières, et qu’elle peut être amenée à s’absenter brièvement. La formation prévoit de longues séquences sans respiration.",
+                    stakes: ["Rythme adapté", "Flexibilité", "Droit au retrait & Accessibilité"]
+                },
+                en: {
+                    title: "Motor Disability / Pain",
+                    subtitle: "Pace and breaks",
+                    desc: "A participant explains she cannot sit for long periods, needs short regular breaks, and may need to step away briefly. The training plans long sequences without breaks.",
+                    stakes: ["Adapted Pace", "Flexibility", "Right to Withdraw & Accessibility"]
+                }
+            },
+            {
+                id: 8,
+                icon: "mic-off",
+                fr: {
+                    title: "Anxiété sociale / Prise de parole",
+                    subtitle: "Pression du groupe",
+                    desc: "Plusieurs participant·es indiquent en amont qu’ils n’aiment pas parler devant un grand groupe ou qu’ils ont besoin de temps pour formuler. Le design prévoit beaucoup de restitution en plénière et des activités où “il faut oser”.",
+                    stakes: ["Sécurité psychologique", "Diversité des modes d’expression", "Participation réelle"]
+                },
+                en: {
+                    title: "Social Anxiety / Public Speaking",
+                    subtitle: "Group pressure",
+                    desc: "Several participants indicate they dislike speaking in front of large groups or need time to formulate thoughts. The design plans for many plenary sessions and activities requiring immediate boldness.",
+                    stakes: ["Psychological Safety", "Diversity of Expression", "Real Participation"]
+                }
+            },
+            {
+                id: 9,
+                icon: "brain-circuit",
+                fr: {
+                    title: "Neurodiversité / Surcharge",
+                    subtitle: "Trop d’infos d’un coup",
+                    desc: "Le module enchaîne plusieurs outils, plusieurs consignes, et des transitions rapides. Une personne dit qu’elle perd le fil, qu’elle a besoin de structure et d’une vue d’ensemble claire (étapes, objectifs, temps).",
+                    stakes: ["Clarté & Structure", "Design universel", "Prévention du décrochage"]
+                },
+                en: {
+                    title: "Neurodiversity / Overload",
+                    subtitle: "Too much info at once",
+                    desc: "The module links multiple tools, instructions, and rapid transitions. A person says they lose track and need structure and a clear overview (steps, objectives, timing).",
+                    stakes: ["Clarity & Structure", "Universal Design", "Dropout Prevention"]
+                }
+            },
+            {
+                id: 10,
+                icon: "home",
+                fr: {
+                    title: "Précarité / Contraintes matérielles",
+                    subtitle: "Injustice invisible",
+                    desc: "Certain·es participant·es n’ont pas d’espace calme, pas de casque, pas de webcam, ou doivent gérer des obligations familiales. Le dispositif valorise implicitement ceux qui ont “les bons outils” (caméra, micro, environnement silencieux).",
+                    stakes: ["Équité", "Prévention des jugements", "Adaptation réaliste"]
+                },
+                en: {
+                    title: "Precariousness / Material Constraints",
+                    subtitle: "Invisible injustice",
+                    desc: "Some participants lack a quiet space, headset, webcam, or handle family obligations. The setup implicitly values those with 'the right tools' (camera, mic, silent environment).",
+                    stakes: ["Equity", "Judgment Prevention", "Realistic Adaptation"]
+                }
+            },
+            {
+                id: 11,
+                icon: "shield-alert",
+                fr: {
+                    title: "Thème sensible / Trauma",
+                    subtitle: "Approche “trauma-informed”",
+                    desc: "Le sujet de la formation touche à des vécus potentiellement difficiles (violences, discriminations...). Des participant·es peuvent être concerné·es personnellement. La formation n’a prévu ni cadre de sécurité, ni possibilité de retrait.",
+                    stakes: ["Sécurité émotionnelle", "Éthique", "Protection des personnes"]
+                },
+                en: {
+                    title: "Sensitive Theme / Trauma",
+                    subtitle: "Trauma-informed approach",
+                    desc: "The training topic touches on potentially difficult experiences (violence, discrimination...). Participants may be personally affected. The training lacks a safety framework or withdrawal options.",
+                    stakes: ["Emotional Safety", "Ethics", "Protection of Persons"]
+                }
+            },
+            {
+                id: 12,
+                icon: "eye-off",
+                fr: {
+                    title: "Déficience visuelle / daltonisme",
+                    subtitle: "Supports peu lisibles",
+                    desc: "Une partie des participant·es signale des difficultés de lecture liées à une déficience visuelle, une forte fatigue visuelle ou du daltonisme. Or, la formation s’appuie sur des supports très visuels : textes en petite taille, contrastes faibles, informations codées par couleur (post-its, catégories), captures d’écran non décrites, et consignes présentes uniquement dans des images.",
+                    stakes: ["Accessibilité des contenus", "Équité de participation", "Prévention de l’exclusion silencieuse", "Autonomie des participant·es"]
+                },
+                en: {
+                    title: "Visual Impairment / Color Blindness",
+                    subtitle: "Poorly readable materials",
+                    desc: "Some participants report reading difficulties linked to visual impairment, visual fatigue, or color blindness. However, the training relies on highly visual materials: small text, low contrast, color-coded info, undescribed screenshots, and instructions only available within images.",
+                    stakes: ["Content Accessibility", "Participation Equity", "Prevention of Silent Exclusion", "Participant Autonomy"]
+                }
+            }
+        ];
+
+        // UI Text Translations
+        const uiText = {
+            fr: {
+                title: "Générateur d'Études de Cas",
+                subtitle: "Entrez votre mois de naissance pour découvrir le scénario d'accessibilité sur lequel vous allez travailler aujourd'hui.",
+                labelMonth: "Votre mois de naissance",
+                defaultOpt: "Choisir un mois...",
+                btnGenerate: "Générer mon cas",
+                lblSituation: "La Situation",
+                lblStakes: "Indices & Pistes",
+                lblInstruction: "Cliquez pour révéler les enjeux",
+                clueLabel: "Piste",
+                caseBadge: "Cas d'étude",
+                langBtn: "Switch to English",
+                footerTxt: "Créé par Kévin Le Gal",
+                months: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+            },
+            en: {
+                title: "Case Study Generator",
+                subtitle: "Enter your birth month to discover the accessibility scenario you will be working on today.",
+                labelMonth: "Your Birth Month",
+                defaultOpt: "Choose a month...",
+                btnGenerate: "Generate my Case",
+                lblSituation: "The Situation",
+                lblStakes: "Clues & Hints",
+                lblInstruction: "Click to reveal the stakes",
+                clueLabel: "Clue",
+                caseBadge: "Case Study",
+                langBtn: "Passer en Français",
+                footerTxt: "Created by Kévin Le Gal",
+                months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+            }
+        };
+
+        // State
+        let currentLang = 'fr';
+        let currentMonth = null;
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            updateUI();
+            if (currentMonth) {
+                renderCase(currentMonth);
+            }
+        }
+
+        function updateUI() {
+            const t = uiText[currentLang];
+            
+            // Static text updates
+            document.getElementById('main-title').textContent = t.title;
+            document.getElementById('main-subtitle').textContent = t.subtitle;
+            document.getElementById('label-month').textContent = t.labelMonth;
+            document.getElementById('opt-default').textContent = t.defaultOpt;
+            document.getElementById('btn-generate').textContent = t.btnGenerate;
+            document.getElementById('lbl-situation').textContent = t.lblSituation;
+            document.getElementById('lbl-stakes').textContent = t.lblStakes;
+            document.getElementById('lbl-instruction').textContent = t.lblInstruction;
+            document.getElementById('case-badge').textContent = t.caseBadge;
+            document.getElementById('lang-btn-text').textContent = t.langBtn;
+            document.getElementById('footer-txt').textContent = t.footerTxt;
+
+            // Update select options
+            const select = document.getElementById('month-select');
+            for(let i=0; i<12; i++) {
+                select.options[i+1].textContent = t.months[i];
+            }
+        }
+
+        function revealCase() {
+            const select = document.getElementById('month-select');
+            const resultContainer = document.getElementById('result-container');
+            const val = select.value;
+
+            if (!val) {
+                // Shake animation for error
+                select.parentElement.classList.add('animate-pulse');
+                setTimeout(() => select.parentElement.classList.remove('animate-pulse'), 500);
+                return;
+            }
+
+            currentMonth = parseInt(val);
+            renderCase(currentMonth);
+
+            // Reveal animation
+            resultContainer.classList.remove('hidden');
+            // Reset animation
+            const article = resultContainer.querySelector('article');
+            article.classList.remove('fade-in');
+            void article.offsetWidth; // trigger reflow
+            article.classList.add('fade-in');
+            
+            // Scroll to result smoothly
+            setTimeout(() => {
+                resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function renderCase(monthIndex) {
+            // Arrays are 0-indexed, months are 1-12. Case 1 is Index 0.
+            // Logic: Month 1 = Case 1 (Index 0)
+            const caseData = cases[monthIndex - 1];
+            const content = caseData[currentLang];
+
+            // Update content
+            document.getElementById('case-title').innerHTML = `${content.title} <br><span class="text-lg font-normal text-slate-500">${content.subtitle}</span>`;
+            document.getElementById('case-description').textContent = content.desc;
+            
+            // Update Icon
+            const iconEl = document.getElementById('case-icon');
+            iconEl.setAttribute('data-lucide', caseData.icon);
+            
+            // Update Stakes List (Interactive Buttons)
+            const listEl = document.getElementById('case-stakes');
+            listEl.innerHTML = '';
+            
+            content.stakes.forEach((stake, index) => {
+                const li = document.createElement('li');
+                li.className = "group";
+                
+                // Button Element
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-white p-3 rounded-xl border border-indigo-100 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex items-center justify-between group-hover:bg-indigo-50";
+                btn.innerHTML = `
+                    <span class="font-semibold text-indigo-600 flex items-center gap-2">
+                        <i data-lucide="help-circle" class="w-4 h-4"></i>
+                        ${uiText[currentLang].clueLabel} ${index + 1}
+                    </span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-transform"></i>
+                `;
+                
+                // Content Element (Hidden)
+                const revealedDiv = document.createElement('div');
+                revealedDiv.className = "hidden p-3 bg-indigo-100 text-indigo-900 rounded-xl border border-indigo-200 reveal-anim";
+                revealedDiv.innerHTML = `<span class="font-medium flex items-start gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-indigo-600 shrink-0 mt-0.5"></i>${stake}</span>`;
+
+                // Click Event
+                btn.onclick = () => {
+                    btn.classList.add('hidden');
+                    revealedDiv.classList.remove('hidden');
+                    // Re-render icons for new content
+                    lucide.createIcons();
+                };
+
+                li.appendChild(btn);
+                li.appendChild(revealedDiv);
+                listEl.appendChild(li);
+            });
+
+            lucide.createIcons(); // Refresh icons for main structure
+        }
+    </script>
+</body>
+</html>
