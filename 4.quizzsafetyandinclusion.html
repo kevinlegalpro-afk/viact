@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quizz: Sécurité et inclusion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .option-card { transition: all 0.2s ease; }
+        .option-card:hover:not(.disabled) { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .option-selected { border-color: #3b82f6; background-color: #eff6ff; ring: 2px solid #3b82f6; }
+        .option-correct { border-color: #10b981 !important; background-color: #d1fae5 !important; color: #065f46; }
+        .option-wrong { border-color: #ef4444 !important; background-color: #fee2e2 !important; color: #991b1b; }
+        .fade-in { animation: fadeIn 0.4s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom scrollbar for long texts */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">Q</div>
+                <span class="font-bold text-lg tracking-tight text-slate-700 hidden sm:block" id="nav-title">Quizz: Sécurité et inclusion</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="setLanguage('fr')" class="px-3 py-1 rounded text-sm font-semibold transition-colors" id="btn-fr">FR</button>
+                <div class="h-4 w-px bg-slate-300"></div>
+                <button onclick="setLanguage('en')" class="px-3 py-1 rounded text-sm font-semibold transition-colors" id="btn-en">EN</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden min-h-[600px] flex flex-col relative" id="quiz-container">
+            
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-100 h-2">
+                <div class="bg-blue-600 h-2 transition-all duration-500 ease-out" id="progress-bar" style="width: 0%"></div>
+            </div>
+
+            <!-- Start Screen -->
+            <div id="start-screen" class="p-8 md:p-12 flex flex-col items-center justify-center text-center flex-grow fade-in">
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6 text-blue-600">
+                    <i class="fas fa-clipboard-check text-3xl"></i>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold mb-4 text-slate-800" id="start-title">Quizz: Sécurité et inclusion</h1>
+                <p class="text-lg text-slate-600 mb-8 max-w-lg" id="start-desc">
+                    12 questions pour tester vos réflexes sur la sécurité, l'inclusion, le low-bandwidth et le RGPD.
+                </p>
+                <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transform transition hover:scale-105 flex items-center gap-2">
+                    <span id="start-btn">Commencer le Quiz</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Question Screen -->
+            <div id="question-screen" class="hidden flex-col flex-grow fade-in">
+                <!-- Header part of question -->
+                <div class="p-6 md:p-8 border-b border-slate-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-bold tracking-wider text-blue-600 uppercase bg-blue-50 px-2 py-1 rounded" id="category-tag">Catégorie</span>
+                        <span class="text-sm font-medium text-slate-400">Question <span id="current-q-num">1</span>/12</span>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 leading-tight" id="question-text">
+                        Question text goes here...
+                    </h2>
+                    <p id="multi-hint" class="text-sm text-slate-500 mt-2 italic hidden">
+                        <i class="fas fa-check-double mr-1"></i> <span id="multi-text">Plusieurs réponses possibles</span>
+                    </p>
+                </div>
+
+                <!-- Options Area -->
+                <div class="p-6 md:p-8 bg-slate-50 flex-grow overflow-y-auto">
+                    <div class="grid gap-3" id="options-container">
+                        <!-- Options generated by JS -->
+                    </div>
+
+                    <!-- Feedback Area (Hidden initially) -->
+                    <div id="feedback-area" class="hidden mt-6 p-5 rounded-xl border-l-4">
+                        <div class="flex items-start gap-3">
+                            <div id="feedback-icon" class="mt-1"></div>
+                            <div>
+                                <h3 class="font-bold text-lg" id="feedback-title">Correct!</h3>
+                                <div class="text-slate-700 mt-2 leading-relaxed" id="feedback-text">
+                                    Explanation...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer / Controls -->
+                <div class="p-4 border-t border-slate-200 bg-white flex justify-end items-center gap-4">
+                    <button id="validate-btn" onclick="checkAnswer()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 px-6 rounded-lg shadow transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        Valider
+                    </button>
+                    <button id="next-btn" onclick="nextQuestion()" class="hidden bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition flex items-center gap-2">
+                        <span>Suivant</span> <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Screen -->
+            <div id="result-screen" class="hidden p-8 md:p-12 flex-col items-center justify-center text-center flex-grow fade-in">
+                <div class="relative mb-6">
+                    <svg class="w-32 h-32 transform -rotate-90">
+                        <circle cx="64" cy="64" r="56" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-200" />
+                        <circle id="score-circle" cx="64" cy="64" r="56" stroke="currentColor" stroke-width="8" fill="transparent" class="text-blue-600" stroke-dasharray="351.86" stroke-dashoffset="351.86" style="transition: stroke-dashoffset 1s ease-out;" />
+                    </svg>
+                    <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center flex-col">
+                        <span class="text-3xl font-bold text-slate-800" id="final-score">0</span>
+                        <span class="text-xs text-slate-500 uppercase">Score</span>
+                    </div>
+                </div>
+                
+                <h2 class="text-2xl font-bold mb-2" id="result-title">Bravo !</h2>
+                <p class="text-slate-600 mb-8 max-w-md mx-auto" id="result-msg">
+                    Vous avez terminé le diagnostic.
+                </p>
+
+                <div class="bg-blue-50 p-6 rounded-xl text-left w-full mb-8 border border-blue-100">
+                    <h3 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-lightbulb"></i> <span id="takeaway-title">À retenir pour la suite :</span>
+                    </h3>
+                    <ul class="space-y-2 text-blue-900 text-sm">
+                        <li class="flex gap-2"><i class="fas fa-check mt-1 text-blue-500"></i> <span id="takeaway-1">Deux voies : standard + low-tech</span></li>
+                        <li class="flex gap-2"><i class="fas fa-check mt-1 text-blue-500"></i> <span id="takeaway-2">Cadre + intervention : inclusion et sécurité psychosociale</span></li>
+                        <li class="flex gap-2"><i class="fas fa-check mt-1 text-blue-500"></i> <span id="takeaway-3">Minimisation + transparence : données et mineurs</span></li>
+                    </ul>
+                </div>
+
+                <button onclick="restartQuiz()" class="text-slate-500 hover:text-slate-800 font-semibold underline decoration-2 underline-offset-4 transition">
+                    <span id="restart-btn">Recommencer le quiz</span>
+                </button>
+            </div>
+
+        </div>
+    </main>
+    
+    <footer class="text-center p-4 text-slate-400 text-xs">
+        &copy; 2024 Quizz: Sécurité et inclusion
+    </footer>
+
+    <script>
+        // --- DATA ---
+        const content = {
+            fr: {
+                navTitle: "Quizz: Sécurité et inclusion",
+                startTitle: "Quizz: Sécurité et inclusion",
+                startDesc: "12 questions pour tester vos réflexes sur la sécurité, l'inclusion, le low-bandwidth et le RGPD.",
+                startBtn: "Commencer le Quiz",
+                category: "Catégorie",
+                multiText: "Plusieurs réponses possibles",
+                btnValidate: "Valider",
+                btnNext: "Suivant",
+                resultTitle: "Quiz Terminé !",
+                resultMsg: "Voici votre score final. Les sujets abordés sont subtils, l'important est de comprendre les mécanismes.",
+                takeawayTitle: "3 idées \"pro\" à garder :",
+                takeaways: [
+                    "Deux voies : standard + low-tech",
+                    "Cadre + intervention : inclusion et sécurité psychosociale",
+                    "Minimisation + transparence : données et mineurs"
+                ],
+                restartBtn: "Recommencer le quiz",
+                feedbackCorrect: "Bonne réponse !",
+                feedbackPartial: "Incomplet",
+                feedbackWrong: "Pas tout à fait...",
+                feedbackMissed: "Réponses attendues : "
+            },
+            en: {
+                navTitle: "Quiz: Safety & Inclusion",
+                startTitle: "Quiz: Safety & Inclusion",
+                startDesc: "12 questions to test your reflexes on security, inclusion, low-bandwidth, and GDPR.",
+                startBtn: "Start Quiz",
+                category: "Category",
+                multiText: "Multiple answers possible",
+                btnValidate: "Submit",
+                btnNext: "Next",
+                resultTitle: "Quiz Completed!",
+                resultMsg: "Here is your final score. These topics are subtle, the goal is to understand the mechanisms.",
+                takeawayTitle: "3 \"Pro\" ideas to keep:",
+                takeaways: [
+                    "Two pathways: standard + low-tech",
+                    "Framework + intervention: inclusion and psychosocial safety",
+                    "Minimization + transparency: data and minors"
+                ],
+                restartBtn: "Restart Quiz",
+                feedbackCorrect: "Correct Answer!",
+                feedbackPartial: "Incomplete",
+                feedbackWrong: "Not quite...",
+                feedbackMissed: "Expected answers: "
+            }
+        };
+
+        const questions = [
+            {
+                id: 1,
+                cat: { fr: "Low-bandwidth", en: "Low-bandwidth" },
+                q: { 
+                    fr: "Votre activité repose sur un tableau collaboratif lourd (Miro/FigJam). Un·e participant·e vous dit : “Ma connexion saute”. Que faites-vous ?",
+                    en: "Your activity relies on a heavy collaborative board (Miro/FigJam). A participant says: 'My connection is dropping'. What do you do?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Vous lui conseillez de se reconnecter et d’essayer un autre navigateur", en: "Advise them to reconnect and try another browser" } },
+                    { id: "B", text: { fr: "Vous basculez la personne en “observateur·rice” et vous continuez tel quel", en: "Switch the person to 'observer' and continue as is" } },
+                    { id: "C", text: { fr: "Vous proposez une alternative équivalente en participation (chat / doc léger / audio) et vous adaptez la collecte de production", en: "Propose an equivalent participation alternative (chat / light doc / audio) and adapt production collection" } },
+                    { id: "D", text: { fr: "Vous annulez l’activité", en: "Cancel the activity" } }
+                ],
+                correct: ["A", "C"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> on tente d’abord une solution simple (A), puis on assure une participation équivalente via une alternative low-tech (C). L'accessibilité n'est pas un bonus, c'est du design.",
+                    en: "<strong>Key Point:</strong> Try a simple technical fix first (A), then ensure equivalent participation via a low-tech alternative (C). Accessibility is not a bonus, it is design."
+                }
+            },
+            {
+                id: 2,
+                cat: { fr: "Inclusion", en: "Inclusion" },
+                q: { 
+                    fr: "Comment formuler une consigne pour réduire l’exclusion et la charge cognitive ?",
+                    en: "How should you formulate instructions to reduce exclusion and cognitive load?"
+                },
+                options: [
+                    { id: "A", text: { fr: "“Expliquez votre point de vue en détail, vous avez 10 minutes”", en: "'Explain your point of view in detail, you have 10 minutes'" } },
+                    { id: "B", text: { fr: "“Travaillez en groupe, soyez créatifs”", en: "'Work in groups, be creative'" } },
+                    { id: "C", text: { fr: "“En 3 minutes, écrivez 1 idée, puis 1 exemple, puis 1 question. Vous pouvez répondre à l’oral ou dans le chat”", en: "'In 3 minutes, write 1 idea, then 1 example, then 1 question. You can answer orally or in the chat'" } },
+                    { id: "D", text: { fr: "“Suivez votre intuition et improvisez”", en: "'Follow your intuition and improvise'" } }
+                ],
+                correct: ["C"],
+                explanation: {
+                    fr: "<strong>Pourquoi :</strong> une consigne inclusive est structurée (étapes explicites), concrète (attendu clair), et propose plusieurs modes de participation (oral / chat).",
+                    en: "<strong>Why:</strong> Inclusive instructions are structured (explicit steps), concrete (clear deliverables), and offer multiple modes of participation (oral / chat)."
+                }
+            },
+            {
+                id: 3,
+                cat: { fr: "Sécurité en ligne", en: "Online Safety" },
+                q: { 
+                    fr: "Pendant un atelier visio, une personne tient des propos stigmatisants (“les X sont toujours…”). Quelle est la réponse la plus pro ?",
+                    en: "During a video workshop, a person makes stigmatizing remarks ('The X are always...'). What is the most professional response?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Ignorer pour ne pas “casser l’ambiance”", en: "Ignore it so as not to 'kill the vibe'" } },
+                    { id: "B", text: { fr: "Humilier publiquement la personne pour faire un exemple", en: "Publicly humiliate the person to make an example" } },
+                    { id: "C", text: { fr: "Rappeler le cadre, nommer le problème sans attaquer la personne, recadrer, puis proposer une reformulation", en: "Recall the framework, name the problem without attacking the person, reframe, then propose a reformulation" } },
+                    { id: "D", text: { fr: "Couper la visio immédiatement sans explication", en: "Cut the video call immediately without explanation" } }
+                ],
+                correct: ["C"],
+                explanation: {
+                    fr: "<strong>Script utile :</strong> “Stop. Cette formulation généralise et stigmatise. Ici, on évite les stéréotypes. Je vous propose de reformuler à partir de faits ou d’expériences personnelles.”",
+                    en: "<strong>Useful script:</strong> 'Stop. That phrasing generalizes and stigmatizes. Here, we avoid stereotypes. I suggest rephrasing based on facts or personal experiences.'"
+                }
+            },
+            {
+                id: 4,
+                cat: { fr: "Management des risques", en: "Risk Management" },
+                q: { 
+                    fr: "Quelle pratique est la plus pertinente AVANT une activité jeunesse (en ligne ou présentiel) ?",
+                    en: "Which practice is most relevant BEFORE a youth activity (online or in-person)?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Attendre qu’un incident arrive et gérer au feeling", en: "Wait for an incident to happen and handle it by feel" } },
+                    { id: "B", text: { fr: "Faire un repérage des risques majeurs probables, prévoir des mesures de prévention et clarifier qui fait quoi en cas d’urgence", en: "Identify probable major risks, plan prevention measures, and clarify who does what in an emergency" } },
+                    { id: "C", text: { fr: "Ajouter plus de contenu “théorique” pour “professionnaliser”", en: "Add more 'theoretical' content to make it 'professional'" } },
+                    { id: "D", text: { fr: "Se concentrer uniquement sur le matériel", en: "Focus only on the equipment" } }
+                ],
+                correct: ["B"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> le repérage des risques majeurs probables et les procédures associées sont une base de professionnalisme, quel que soit le format.",
+                    en: "<strong>Key Point:</strong> Identifying probable major risks and associated procedures is a professional baseline, regardless of the format."
+                }
+            },
+            {
+                id: 5,
+                cat: { fr: "Présentiel", en: "In-person" },
+                q: { 
+                    fr: "Vous organisez une excursion avec des jeunes. Lequel est un “risque majeur” à traiter en priorité ?",
+                    en: "You are organizing a field trip with youth. Which is a 'major risk' to prioritize?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Les participant·es s’ennuient", en: "Participants get bored" } },
+                    { id: "B", text: { fr: "Ciel menaçant au loin (météo pouvant évoluer en danger)", en: "Threatening sky in the distance (weather that could evolve into danger)" } },
+                    { id: "C", text: { fr: "Perte d’un·e participant·e / accident / problème médical et procédure d’urgence associée", en: "Loss of a participant / accident / medical issue and associated emergency procedure" } },
+                    { id: "D", text: { fr: "Le planning est un peu serré", en: "The schedule is a bit tight" } }
+                ],
+                correct: ["B", "C"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> Les risques pour les personnes (C) sont prioritaires. La météo (B) est aussi un risque majeur si elle peut créer un danger et doit être anticipée (repli, équipement).",
+                    en: "<strong>Key Point:</strong> Risks to people (C) are priority. Weather (B) is also a major risk if it creates danger and must be anticipated (shelter, equipment)."
+                }
+            },
+            {
+                id: 6,
+                cat: { fr: "Mineurs", en: "Minors" },
+                q: { 
+                    fr: "Cadre de communication avec des jeunes : quelle pratique protège le mieux tout le monde (participant·es et équipe d’animation) ?",
+                    en: "Communication framework with youth: which practice best protects everyone (participants and animation team)?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Centraliser les échanges dans un canal officiel (plateforme/projet), avec des règles explicites : horaires, modération, et transparence", en: "Centralize exchanges in an official channel (platform/project), with explicit rules: hours, moderation, and transparency" } },
+                    { id: "B", text: { fr: "Encourager les échanges sur des canaux personnels (messagerie privée) pour “créer du lien”", en: "Encourage exchanges on personal channels (private messaging) to 'bond'" } },
+                    { id: "C", text: { fr: "Laisser chacun·e choisir son canal de communication, sans règles", en: "Let everyone choose their communication channel, without rules" } },
+                    { id: "D", text: { fr: "Demander aux participant·es de publier leurs coordonnées personnelles visible de tou·tes", en: "Ask participants to publish their personal contact info visible to all" } }
+                ],
+                correct: ["A"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> un canal officiel, traçable et cadré (règles + modération + transparence) sécurise les participant·es et sécurise aussi l’équipe d’animation.",
+                    en: "<strong>Key Point:</strong> An official, traceable, and regulated channel (rules + moderation + transparency) secures participants and also secures the animation team."
+                }
+            },
+            {
+                id: 7,
+                cat: { fr: "RGPD", en: "GDPR" },
+                q: { 
+                    fr: "Vous créez un formulaire d’inscription. Quelle approche est la plus conforme ?",
+                    en: "You are creating a registration form. Which approach is most compliant?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Vous collectez un maximum “au cas où” (date de naissance, adresse, réseaux…)", en: "Collect as much as possible 'just in case' (DOB, address, socials...)" } },
+                    { id: "B", text: { fr: "Vous collectez seulement ce qui est nécessaire (nom/prénom, contact, besoins d’accessibilité) et vous expliquez la finalité et la durée", en: "Collect only what is necessary (name, contact, accessibility needs) and explain the purpose and duration" } },
+                    { id: "C", text: { fr: "Vous ne collectez rien et vous improvisez", en: "Collect nothing and improvise" } },
+                    { id: "D", text: { fr: "Vous demandez des informations médicales à tout le monde “pour la sécurité”", en: "Ask for medical information from everyone 'for safety'" } }
+                ],
+                correct: ["B"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> minimisation, finalité claire, durée de conservation, et prudence sur les informations potentiellement sensibles.",
+                    en: "<strong>Key Point:</strong> Minimization, clear purpose, retention period, and caution regarding potentially sensitive information."
+                }
+            },
+            {
+                id: 8,
+                cat: { fr: "RGPD", en: "GDPR" },
+                q: { 
+                    fr: "RGPD / base légale : “Il suffit de demander le consentement à tout le monde, comme ça c’est simple.” Vrai ou faux ?",
+                    en: "GDPR / Legal basis: 'Just ask for everyone's consent, that makes it simple.' True or False?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Vrai, le consentement règle tout", en: "True, consent fixes everything" } },
+                    { id: "B", text: { fr: "Faux : le consentement doit être libre, spécifique et révocable ; dans certains contextes, il n’est pas la base appropriée", en: "False: consent must be free, specific, and revocable; in some contexts, it is not the appropriate basis" } },
+                    { id: "C", text: { fr: "Vrai seulement si vous êtes une association", en: "True only if you are a non-profit" } },
+                    { id: "D", text: { fr: "Faux uniquement en présentiel", en: "False only in person" } }
+                ],
+                correct: ["B"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> le consentement n’est pas un “joker”. L’enjeu central reste aussi de limiter la collecte et d’informer clairement.",
+                    en: "<strong>Key Point:</strong> Consent is not a 'wildcard'. The central issue remains limiting collection and informing clearly."
+                }
+            },
+            {
+                id: 9,
+                cat: { fr: "Enregistrement", en: "Recording" },
+                q: { 
+                    fr: "Vous voulez enregistrer une session en ligne (voix + visages). Quelle est la meilleure pratique ?",
+                    en: "You want to record an online session (voice + faces). What is the best practice?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Enregistrer discrètement, c’est plus naturel", en: "Record discreetly, it's more natural" } },
+                    { id: "B", text: { fr: "Prévenir après coup “pour ne pas influencer”", en: "Inform afterwards 'so as not to influence'" } },
+                    { id: "C", text: { fr: "Informer avant, expliquer pourquoi, limiter l’accès, proposer une alternative (caméra off / pseudo)", en: "Inform beforehand, explain why, limit access, propose an alternative (camera off / pseudonym)" } },
+                    { id: "D", text: { fr: "Interdire toute participation si refus d’être enregistré·e", en: "Forbid participation if recording is refused" } }
+                ],
+                correct: ["C"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> transparence, choix, minimisation, et alternatives quand c’est possible.",
+                    en: "<strong>Key Point:</strong> Transparency, choice, minimization, and alternatives when possible."
+                }
+            },
+            {
+                id: 10,
+                cat: { fr: "Outils Numériques", en: "Digital Tools" },
+                q: { 
+                    fr: "Vous utilisez une plateforme externe. Quel point est le plus important à vérifier / anticiper ?",
+                    en: "You are using an external platform. What is the most important point to check/anticipate?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Qu’elle est jolie", en: "That it is pretty" } },
+                    { id: "B", text: { fr: "Qu’elle a beaucoup de fonctionnalités", en: "That it has many features" } },
+                    { id: "C", text: { fr: "Où vont les données (stockage / accès), comment limiter ce qui est collecté, et quel plan B si l’outil tombe", en: "Where data goes (storage / access), how to limit collection, and what is the Plan B if the tool fails" } },
+                    { id: "D", text: { fr: "Qu’elle est à la mode", en: "That it is trendy" } }
+                ],
+                correct: ["C"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> protection des données et résilience (plan B) priment sur le “confort” ou la mode.",
+                    en: "<strong>Key Point:</strong> Data protection and resilience (Plan B) take precedence over 'comfort' or trends."
+                }
+            },
+            {
+                id: 11,
+                cat: { fr: "Inclusion", en: "Inclusion" },
+                q: { 
+                    fr: "Inclusion : un·e participant·e ne prend jamais la parole, mais écrit beaucoup dans le chat. Quelle posture est la plus inclusive ?",
+                    en: "Inclusion: a participant never speaks, but writes a lot in the chat. Which stance is most inclusive?"
+                },
+                options: [
+                    { id: "A", text: { fr: "“Allez, parle à l’oral, sinon ce n’est pas pareil”", en: "'Come on, speak up, otherwise it's not the same'" } },
+                    { id: "B", text: { fr: "Respecter ce mode de participation, valoriser ses contributions, et proposer des formats variés", en: "Respect this mode of participation, value their contributions, and offer varied formats" } },
+                    { id: "C", text: { fr: "Ignorer le chat pour “rester fluide”", en: "Ignore the chat to 'keep it fluid'" } },
+                    { id: "D", text: { fr: "Forcer le tour de table oral", en: "Force an oral round table" } }
+                ],
+                correct: ["B"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> multiplier les voies de participation évite d’exclure des profils différents.",
+                    en: "<strong>Key Point:</strong> Multiplying participation pathways avoids excluding different profiles."
+                }
+            },
+            {
+                id: 12,
+                cat: { fr: "International", en: "International" },
+                q: { 
+                    fr: "Projets internationaux : vos participant·es viennent de plusieurs continents, avec des règles différentes. Quelle règle de pilotage est la plus sûre ?",
+                    en: "International projects: your participants come from several continents, with different rules. Which steering rule is safest?"
+                },
+                options: [
+                    { id: "A", text: { fr: "Appliquer la règle du pays où vous habitez uniquement", en: "Apply the rule of the country where you live only" } },
+                    { id: "B", text: { fr: "Appliquer la règle du pays majoritaire parmi les participant·es", en: "Apply the rule of the majority country among participants" } },
+                    { id: "C", text: { fr: "Appliquer le standard le plus protecteur/contraignant et vérifier les obligations locales quand c’est requis", en: "Apply the most protective/strict standard and verify local obligations when required" } },
+                    { id: "D", text: { fr: "Ne rien appliquer, “c’est trop compliqué”", en: "Apply nothing, 'it's too complicated'" } }
+                ],
+                correct: ["C"],
+                explanation: {
+                    fr: "<strong>Repère :</strong> en international, viser le cadre le plus protecteur est une base de prudence et de qualité, puis on complète selon les exigences locales.",
+                    en: "<strong>Key Point:</strong> Internationally, aiming for the most protective framework is a basis for caution and quality, then complete according to local requirements."
+                }
+            }
+        ];
+
+        // --- STATE & LOGIC ---
+        let currentLang = 'fr';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswers = []; // Array of option IDs
+        let isQuestionActive = true; // Prevents re-clicking after validation
+
+        // --- DOM ELEMENTS ---
+        const els = {
+            navTitle: document.getElementById('nav-title'),
+            progressBar: document.getElementById('progress-bar'),
+            startScreen: document.getElementById('start-screen'),
+            questionScreen: document.getElementById('question-screen'),
+            resultScreen: document.getElementById('result-screen'),
+            
+            startTitle: document.getElementById('start-title'),
+            startDesc: document.getElementById('start-desc'),
+            startBtn: document.getElementById('start-btn'),
+            
+            categoryTag: document.getElementById('category-tag'),
+            currQNum: document.getElementById('current-q-num'),
+            questionText: document.getElementById('question-text'),
+            multiHint: document.getElementById('multi-hint'),
+            multiText: document.getElementById('multi-text'),
+            optionsContainer: document.getElementById('options-container'),
+            
+            feedbackArea: document.getElementById('feedback-area'),
+            feedbackIcon: document.getElementById('feedback-icon'),
+            feedbackTitle: document.getElementById('feedback-title'),
+            feedbackText: document.getElementById('feedback-text'),
+            
+            validateBtn: document.getElementById('validate-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            
+            resultTitle: document.getElementById('result-title'),
+            resultMsg: document.getElementById('result-msg'),
+            finalScore: document.getElementById('final-score'),
+            scoreCircle: document.getElementById('score-circle'),
+            
+            takeawayTitle: document.getElementById('takeaway-title'),
+            takeaway1: document.getElementById('takeaway-1'),
+            takeaway2: document.getElementById('takeaway-2'),
+            takeaway3: document.getElementById('takeaway-3'),
+            restartBtn: document.getElementById('restart-btn'),
+
+            btnFr: document.getElementById('btn-fr'),
+            btnEn: document.getElementById('btn-en')
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Toggle Button Styles
+            if (lang === 'fr') {
+                els.btnFr.classList.add('bg-blue-600', 'text-white');
+                els.btnFr.classList.remove('text-slate-500');
+                els.btnEn.classList.remove('bg-blue-600', 'text-white');
+                els.btnEn.classList.add('text-slate-500');
+            } else {
+                els.btnEn.classList.add('bg-blue-600', 'text-white');
+                els.btnEn.classList.remove('text-slate-500');
+                els.btnFr.classList.remove('bg-blue-600', 'text-white');
+                els.btnFr.classList.add('text-slate-500');
+            }
+
+            // Update Static Texts
+            const c = content[lang];
+            els.navTitle.innerText = c.navTitle;
+            els.startTitle.innerText = c.startTitle;
+            els.startDesc.innerText = c.startDesc;
+            els.startBtn.innerText = c.startBtn;
+            els.categoryTag.innerText = c.category;
+            els.multiText.innerText = c.multiText;
+            els.validateBtn.innerText = c.btnValidate;
+            els.resultTitle.innerText = c.resultTitle;
+            els.resultMsg.innerText = c.resultMsg;
+            els.takeawayTitle.innerText = c.takeawayTitle;
+            els.takeaway1.innerText = c.takeaways[0];
+            els.takeaway2.innerText = c.takeaways[1];
+            els.takeaway3.innerText = c.takeaways[2];
+            els.restartBtn.innerText = c.restartBtn;
+
+            // Update Dynamic Screen Content if active
+            if (!els.questionScreen.classList.contains('hidden')) {
+                renderQuestion(false); // Re-render current question text but keep state
+                // Need to update next button text manually here if visible
+                const nextText = els.nextBtn.querySelector('span');
+                if(nextText) nextText.innerText = c.btnNext;
+                // Update feedback if visible
+                if (!els.feedbackArea.classList.contains('hidden')) {
+                    // Refresh explanation text
+                    els.feedbackText.innerHTML = questions[currentQuestionIndex].explanation[lang];
+                    // Title refresh requires knowing state, simplified for now:
+                    // Only refreshing explanation which is the main text block
+                }
+            }
+        }
+
+        function startQuiz() {
+            score = 0;
+            currentQuestionIndex = 0;
+            els.startScreen.classList.add('hidden');
+            els.questionScreen.classList.remove('hidden');
+            els.questionScreen.classList.add('flex');
+            renderQuestion();
+            updateProgressBar();
+        }
+
+        function renderQuestion(resetSelection = true) {
+            if (resetSelection) {
+                selectedAnswers = [];
+                isQuestionActive = true;
+                els.feedbackArea.classList.add('hidden');
+                els.validateBtn.classList.remove('hidden');
+                els.nextBtn.classList.add('hidden');
+                els.validateBtn.disabled = true;
+            }
+
+            const q = questions[currentQuestionIndex];
+            
+            // Text updates
+            els.currQNum.innerText = currentQuestionIndex + 1;
+            els.categoryTag.innerText = q.cat[currentLang];
+            els.questionText.innerText = q.q[currentLang];
+
+            // Multi-choice hint
+            const isMulti = q.correct.length > 1;
+            if (isMulti) els.multiHint.classList.remove('hidden');
+            else els.multiHint.classList.add('hidden');
+
+            // Options Generation
+            // If we are just switching language (resetSelection=false), we want to preserve selected classes
+            if (resetSelection) {
+                els.optionsContainer.innerHTML = '';
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = `option-card w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-blue-300 text-slate-700 font-medium relative flex items-start gap-3 group`;
+                    btn.setAttribute('data-id', opt.id);
+                    btn.onclick = () => selectOption(opt.id, isMulti);
+                    
+                    // Icon/Radio circle
+                    const iconBox = document.createElement('div');
+                    iconBox.className = `w-6 h-6 mt-0.5 rounded-full border-2 border-slate-300 flex-shrink-0 flex items-center justify-center transition-colors group-hover:border-blue-400`;
+                    // Inner dot (hidden by default)
+                    const dot = document.createElement('div');
+                    dot.className = "w-3 h-3 bg-blue-600 rounded-full hidden";
+                    iconBox.appendChild(dot);
+                    
+                    // If multi, square checkbox look
+                    if (isMulti) iconBox.classList.remove('rounded-full');
+                    if (isMulti) iconBox.classList.add('rounded-md');
+                    if (isMulti) dot.classList.remove('rounded-full');
+                    if (isMulti) dot.classList.add('rounded-sm');
+
+                    const textSpan = document.createElement('span');
+                    textSpan.className = "leading-relaxed";
+                    textSpan.innerText = opt.text[currentLang]; // Initial text
+
+                    btn.appendChild(iconBox);
+                    btn.appendChild(textSpan);
+                    els.optionsContainer.appendChild(btn);
+                });
+            } else {
+                // Just update text of existing buttons
+                const btns = els.optionsContainer.children;
+                for (let i = 0; i < btns.length; i++) {
+                     const btn = btns[i];
+                     const optId = btn.getAttribute('data-id');
+                     const optData = q.options.find(o => o.id === optId);
+                     btn.querySelector('span').innerText = optData.text[currentLang];
+                }
+            }
+        }
+
+        function selectOption(id, isMulti) {
+            if (!isQuestionActive) return;
+
+            const buttons = Array.from(els.optionsContainer.children);
+            
+            if (!isMulti) {
+                // Single Choice: Clear others
+                selectedAnswers = [id];
+                buttons.forEach(btn => {
+                    btn.classList.remove('option-selected');
+                    btn.querySelector('div div').classList.add('hidden'); // hide dot
+                    btn.querySelector('div').classList.remove('border-blue-600');
+                });
+            } else {
+                // Multi Choice: Toggle
+                if (selectedAnswers.includes(id)) {
+                    selectedAnswers = selectedAnswers.filter(aid => aid !== id);
+                } else {
+                    selectedAnswers.push(id);
+                }
+            }
+
+            // Update visuals based on selectedAnswers
+            buttons.forEach(btn => {
+                const bid = btn.getAttribute('data-id');
+                const dot = btn.querySelector('div div');
+                const box = btn.querySelector('div');
+
+                if (selectedAnswers.includes(bid)) {
+                    btn.classList.add('option-selected');
+                    dot.classList.remove('hidden');
+                    box.classList.add('border-blue-600');
+                } else if (isMulti) { // Only clear specific ones if multi
+                    btn.classList.remove('option-selected');
+                    dot.classList.add('hidden');
+                    box.classList.remove('border-blue-600');
+                }
+            });
+
+            // Enable validate button if at least one selected
+            els.validateBtn.disabled = selectedAnswers.length === 0;
+        }
+
+        function checkAnswer() {
+            isQuestionActive = false;
+            els.validateBtn.classList.add('hidden');
+            els.nextBtn.classList.remove('hidden');
+
+            const q = questions[currentQuestionIndex];
+            const correctIds = q.correct;
+            
+            // Sort arrays for comparison
+            const sortedSelected = [...selectedAnswers].sort();
+            const sortedCorrect = [...correctIds].sort();
+            
+            const isCorrect = JSON.stringify(sortedSelected) === JSON.stringify(sortedCorrect);
+            
+            if (isCorrect) score++;
+
+            // Update UI with Validation Styles
+            const buttons = Array.from(els.optionsContainer.children);
+            buttons.forEach(btn => {
+                const id = btn.getAttribute('data-id');
+                btn.classList.add('cursor-default', 'disabled'); // Disable hover effects
+                
+                // Logic for styling
+                const isSelected = selectedAnswers.includes(id);
+                const isActuallyCorrect = correctIds.includes(id);
+
+                if (isActuallyCorrect) {
+                    // Highlight correct answer green
+                    btn.classList.add('option-correct');
+                    // Add check icon
+                    const icon = document.createElement('i');
+                    icon.className = "fas fa-check text-green-700 absolute right-4 top-1/2 transform -translate-y-1/2";
+                    btn.appendChild(icon);
+                } else if (isSelected && !isActuallyCorrect) {
+                    // Highlight wrong selection red
+                    btn.classList.add('option-wrong');
+                    const icon = document.createElement('i');
+                    icon.className = "fas fa-times text-red-700 absolute right-4 top-1/2 transform -translate-y-1/2";
+                    btn.appendChild(icon);
+                }
+            });
+
+            // Show Feedback
+            showFeedback(isCorrect, q, sortedCorrect);
+        }
+
+        function showFeedback(isCorrect, q, correctIds) {
+            els.feedbackArea.classList.remove('hidden', 'bg-green-50', 'border-green-500', 'bg-red-50', 'border-red-500', 'bg-orange-50', 'border-orange-500');
+            els.feedbackText.classList.remove('text-green-800', 'text-red-800', 'text-orange-800');
+            els.feedbackIcon.innerHTML = '';
+            
+            const txt = content[currentLang];
+            let title = "";
+            let colorClass = "";
+            
+            if (isCorrect) {
+                title = txt.feedbackCorrect;
+                els.feedbackArea.classList.add('bg-green-50', 'border-green-500');
+                els.feedbackTitle.className = "font-bold text-lg text-green-800";
+                els.feedbackIcon.innerHTML = '<i class="fas fa-check-circle text-2xl text-green-600"></i>';
+            } else {
+                title = txt.feedbackWrong;
+                els.feedbackArea.classList.add('bg-red-50', 'border-red-500');
+                els.feedbackTitle.className = "font-bold text-lg text-red-800";
+                els.feedbackIcon.innerHTML = '<i class="fas fa-times-circle text-2xl text-red-600"></i>';
+                
+                // If it was partial (multi choice, got one right but missed another or picked extra)
+                if (q.correct.length > 1 && selectedAnswers.some(a => q.correct.includes(a))) {
+                     title = txt.feedbackPartial; // Or just keep "Not quite"
+                }
+            }
+
+            els.feedbackTitle.innerText = title;
+            els.feedbackText.innerHTML = q.explanation[currentLang];
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                updateProgressBar();
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function updateProgressBar() {
+            const percent = ((currentQuestionIndex) / questions.length) * 100;
+            els.progressBar.style.width = `${percent}%`;
+        }
+
+        function showResults() {
+            els.questionScreen.classList.remove('flex');
+            els.questionScreen.classList.add('hidden');
+            els.resultScreen.classList.remove('hidden');
+            els.resultScreen.classList.add('flex');
+            els.progressBar.style.width = '100%';
+
+            // Animate Score
+            els.finalScore.innerText = score + "/" + questions.length;
+            
+            // Calculate SVG Circle Dash Offset
+            // Circumference is 2 * PI * 56 ≈ 351.86
+            const circumference = 351.86;
+            const percent = score / questions.length;
+            const offset = circumference - (percent * circumference);
+            
+            // Small delay to let display render before animating
+            setTimeout(() => {
+                els.scoreCircle.style.strokeDashoffset = offset;
+                // Color coding based on score
+                if (percent < 0.5) els.scoreCircle.classList.add('text-red-500');
+                else if (percent < 0.8) els.scoreCircle.classList.add('text-yellow-500');
+                else els.scoreCircle.classList.add('text-green-500');
+            }, 100);
+        }
+
+        function restartQuiz() {
+            els.resultScreen.classList.add('hidden');
+            els.scoreCircle.style.strokeDashoffset = 351.86; // Reset circle
+            els.scoreCircle.classList.remove('text-red-500', 'text-yellow-500', 'text-green-500');
+            startQuiz();
+        }
+
+        // Initialize language
+        setLanguage('fr');
+
+    </script>
+</body>
+</html>
