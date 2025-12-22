@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Formation : La Discrimination</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel (Latest for robust parsing) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Font & Styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .animate-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom scrollbar for better look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- ICON SYSTEM (Fixed wrapping) ---
+        // Tous les éléments multiples sont regroupés dans une balise <g> (group) pour éviter les erreurs React
+        const Icons = {
+            Globe: <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9" />,
+            Brain: <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z" />,
+            Heart: <path d="M19 14c1.49-1.28 3.6-2.34 3.6-5.3 0-3-3-5.3-6.6-5.3A6.6 6.6 0 0 0 12 7.7a6.6 6.6 0 0 0-5.6-4.3c-3.6 0-6.6 2.3-6.6 5.3 0 2.96 2.1 4.02 3.6 5.3 1.8 1.54 4.5 2.9 8.6 7.6 4.1-4.7 6.8-6.06 8.6-7.6Z" />,
+            Hand: (
+                <g>
+                    <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+                    <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" />
+                    <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+                    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+                </g>
+            ),
+            AlertTriangle: (
+                <g>
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </g>
+            ),
+            Users: (
+                <g>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </g>
+            ),
+            Eye: (
+                <g>
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                    <circle cx="12" cy="12" r="3" />
+                </g>
+            ),
+            Layers: (
+                <g>
+                    <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+                    <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+                    <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+                </g>
+            ),
+            GitMerge: (
+                <g>
+                    <circle cx="18" cy="18" r="3" />
+                    <circle cx="6" cy="6" r="3" />
+                    <path d="M6 21V9a9 9 0 0 0 9 9" />
+                </g>
+            ),
+            ShieldAlert: (
+                <g>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </g>
+            ),
+            Briefcase: (
+                <g>
+                    <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </g>
+            ),
+            Info: (
+                <g>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                </g>
+            ),
+            ChevronRight: <path d="m9 18 6-6-6-6" />,
+            ChevronDown: <path d="m6 9 6 6 6-6" />,
+            Anchor: (
+                <g>
+                    <circle cx="12" cy="5" r="3" />
+                    <line x1="12" y1="22" x2="12" y2="8" />
+                    <path d="M5 12H2a10 10 0 0 0 20 0h-3" />
+                </g>
+            ),
+            BookOpen: (
+                <g>
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </g>
+            ),
+            CheckCircle2: (
+                <g>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m9 12 2 2 4-4" />
+                </g>
+            )
+        };
+
+        const Icon = ({ name, className = "w-6 h-6" }) => {
+            // Sécurité : si l'icône n'existe pas, on rend Info
+            const Path = Icons[name] || Icons.Info;
+            return (
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={className}
+                >
+                    {Path}
+                </svg>
+            );
+        };
+
+        // --- DATA CONTENT (Bilingual) ---
+        const content = {
+          fr: {
+            header: {
+              title: "Module : La Discrimination",
+              subtitle: "Comprendre pour agir | Outil pédagogique",
+              switchLang: "English"
+            },
+            tabs: {
+              concept: "1. Le Processus (S-P-D)",
+              forms: "2. Les Formes & Pièges",
+              law: "3. Les Critères & Valeurs"
+            },
+            spd: {
+              instruction: "Sélectionnez une étape dans la liste de gauche pour voir les détails à droite.",
+              storyTitle: "Fil Rouge : L'engrenage en action",
+              storyIntro: "Exemple concret : De l'idée reçue à l'exclusion réelle.",
+              stages: [
+                {
+                  id: 'st',
+                  title: "STÉRÉOTYPE",
+                  icon: 'Brain',
+                  color: 'bg-blue-100 text-blue-800 border-blue-200',
+                  activeColor: 'bg-blue-600 text-white shadow-blue-200',
+                  borderColor: 'border-blue-600',
+                  short: "1. L'Idée (Cognitif)",
+                  def: "Une image simplifiée, caricaturale et généralisée concernant un groupe.",
+                  desc: "C'est une 'économie de la pensée'. Le cerveau classe les gens dans des cases pour simplifier le monde.",
+                  story: "Situation : Un animateur voit des jeunes du quartier avec des capuches.",
+                  storyEx: "Pensée automatique : « Ces jeunes sont des délinquants potentiels. »"
+                },
+                {
+                  id: 'pr',
+                  title: "PRÉJUGÉ",
+                  icon: 'Heart',
+                  color: 'bg-amber-100 text-amber-800 border-amber-200',
+                  activeColor: 'bg-amber-600 text-white shadow-amber-200',
+                  borderColor: 'border-amber-600',
+                  short: "2. L'Émotion (Affectif)",
+                  def: "Un jugement ou sentiment (souvent négatif) basé sur le stéréotype.",
+                  desc: "On passe de l'idée au ressenti. C'est une attitude intérieure de méfiance, de peur ou de rejet.",
+                  story: "Conséquence interne : L'animateur ressent de la peur ou de la méfiance.",
+                  storyEx: "Ressenti : « Je ne leur fais pas confiance, je dois me protéger d'eux. »"
+                },
+                {
+                  id: 'di',
+                  title: "DISCRIMINATION",
+                  icon: 'Hand',
+                  color: 'bg-rose-100 text-rose-800 border-rose-200',
+                  activeColor: 'bg-rose-600 text-white shadow-rose-200',
+                  borderColor: 'border-rose-600',
+                  short: "3. L'Acte (Comportemental)",
+                  def: "Traitement défavorable entraînant une inégalité d'accès ou de droits.",
+                  desc: "Le préjugé devient acte concret. C'est la seule étape punissable par la loi.",
+                  story: "Action visible : L'animateur agit sur base de sa peur.",
+                  storyEx: "Acte : Il leur refuse l'accès à la Maison des Jeunes alors qu'il laisse entrer les autres."
+                }
+              ],
+              warning: {
+                title: "Vigilance : La Discrimination Silencieuse",
+                text: "En animation, tout n'est pas une insulte directe. Attention aux : activités inaccessibles, règles implicites (« on a toujours fait comme ça »), ou l'humour qui exclut."
+              }
+            },
+            forms: {
+              intro: "La discrimination prend plusieurs visages. En tant que professionnel, il faut savoir identifier les mécanismes cachés.",
+              cards: [
+                {
+                  title: "DIRECTE",
+                  icon: 'Eye',
+                  theme: 'red',
+                  desc: "Le rejet est explicite et clair. Une personne est traitée moins bien qu'une autre dans une situation comparable.",
+                  ex: "« Ce poste est réservé aux hommes », « Tu ne peux pas jouer car tu es trop lent »."
+                },
+                {
+                  title: "INDIRECTE",
+                  icon: 'Layers',
+                  theme: 'orange',
+                  desc: "Une règle ou pratique apparemment neutre (la même pour tous) qui désavantage en réalité un groupe spécifique.",
+                  ex: "« Interdiction de tout couvre-chef » (exclut certaines religions) ou « Réunion à 18h30 » (exclut les parents)."
+                },
+                {
+                  title: "SYSTÉMIQUE",
+                  icon: 'Briefcase',
+                  theme: 'slate',
+                  desc: "Ce n'est pas un individu qui discrimine, mais le fonctionnement global de l'institution ou de la société qui produit l'exclusion.",
+                  ex: "Manuels scolaires ne montrant que des hommes blancs, locaux inaccessibles aux PMR depuis 20 ans."
+                },
+                {
+                  title: "HARCÈLEMENT",
+                  icon: 'ShieldAlert',
+                  theme: 'purple',
+                  desc: "Comportement indésirable lié à un critère, répété ou grave, qui viole la dignité et crée un climat hostile.",
+                  ex: "Blagues racistes récurrentes, climat d'humiliation, mimes moqueurs sur le handicap."
+                },
+                {
+                  title: "INTERSECTIONNELLE",
+                  icon: 'GitMerge',
+                  theme: 'indigo',
+                  desc: "Le CUMUL des discriminations. C'est le croisement de plusieurs facteurs qui crée une situation d'exclusion unique et complexe.",
+                  ex: "Une femme âgée d'origine étrangère subit une discrimination spécifique, différente de celle subie par une femme jeune ou un homme âgé."
+                }
+              ]
+            },
+            un: {
+              intro: "Le cadre légal est un socle, mais l'éthique va plus loin.",
+              compass: {
+                title: "La Boussole du Travailleur Jeunesse",
+                text: "Attention : La liste des critères reconnus varie d'un pays à l'autre. Cependant, en travail jeunesse, nous devons transmettre des valeurs d'inclusion universelles. Même si la loi locale ne protège pas encore explicitement un groupe, notre éthique nous impose de garantir un espace sûr (Safe Space) pour tous. La déclaration de l'ONU est notre base commune."
+              },
+              groups: [
+                {
+                  name: "IDENTITÉ & PHYSIQUE",
+                  items: ["Race / Couleur", "Sexe / Genre", "Âge", "Handicap", "Caractéristiques génétiques", "Apparence physique"]
+                },
+                {
+                  name: "ORIGINE & CULTURE",
+                  items: ["Nationalité", "Origine ethnique", "Langue", "Patronyme", "Lieu de résidence"]
+                },
+                {
+                  name: "VIE PRIVÉE & IDÉES",
+                  items: ["Religion / Croyances", "Orientation sexuelle", "Identité de genre", "Opinions politiques", "Situation familiale", "Grossesse"]
+                }
+              ],
+              focus: {
+                title: "Point clé : L'aménagement raisonnable",
+                text: "L'égalité ne veut pas dire 'traiter tout le monde pareil'. Parfois, il faut traiter différemment pour rétablir l'égalité. Refuser d'adapter une activité (temps, matériel) pour un jeune en situation de handicap EST une discrimination."
+              }
+            },
+            footer: "© Kévin Le Gal 2025 - Tous droits réservés"
+          },
+          en: {
+            header: {
+              title: "Module: Discrimination",
+              subtitle: "Understand to Act | Educational Tool",
+              switchLang: "Français"
+            },
+            tabs: {
+              concept: "1. The Process (S-P-D)",
+              forms: "2. Forms & Traps",
+              law: "3. Criteria & Values"
+            },
+            spd: {
+              instruction: "Select a stage on the left to see details on the right.",
+              storyTitle: "The Continuous Thread: Action Example",
+              storyIntro: "Concrete example: From received idea to real exclusion.",
+              stages: [
+                {
+                  id: 'st',
+                  title: "STEREOTYPE",
+                  icon: 'Brain',
+                  color: 'bg-blue-100 text-blue-800 border-blue-200',
+                  activeColor: 'bg-blue-600 text-white shadow-blue-200',
+                  borderColor: 'border-blue-600',
+                  short: "1. The Idea (Cognitive)",
+                  def: "A simplified, caricature, and generalized image about a group.",
+                  desc: "It is an 'economy of thought'. The brain sorts people into boxes to simplify the world.",
+                  story: "Situation: A youth worker sees young people from the neighborhood in hoodies.",
+                  storyEx: "Automatic thought: 'These kids are potential delinquents.'"
+                },
+                {
+                  id: 'pr',
+                  title: "PREJUDICE",
+                  icon: 'Heart',
+                  color: 'bg-amber-100 text-amber-800 border-amber-200',
+                  activeColor: 'bg-amber-600 text-white shadow-amber-200',
+                  borderColor: 'border-amber-600',
+                  short: "2. The Feeling (Affective)",
+                  def: "A judgment or feeling (often negative) based on the stereotype.",
+                  desc: "Moving from idea to feeling. It is an internal attitude of mistrust, fear, or rejection.",
+                  story: "Internal consequence: The youth worker feels fear or mistrust.",
+                  storyEx: "Feeling: 'I don't trust them, I need to protect the center from them.'"
+                },
+                {
+                  id: 'di',
+                  title: "DISCRIMINATION",
+                  icon: 'Hand',
+                  color: 'bg-rose-100 text-rose-800 border-rose-200',
+                  activeColor: 'bg-rose-600 text-white shadow-rose-200',
+                  borderColor: 'border-rose-600',
+                  short: "3. The Act (Behavioral)",
+                  def: "Unfavorable treatment resulting in inequality of access or rights.",
+                  desc: "Prejudice becomes concrete action. This is the only step punishable by law.",
+                  story: "Visible action: The youth worker acts based on fear.",
+                  storyEx: "Act: He refuses them entry to the Youth Center while letting others in."
+                }
+              ],
+              warning: {
+                title: "Vigilance: Silent Discrimination",
+                text: "In youth work, not everything is a direct insult. Watch out for: inaccessible activities, implicit rules ('we always did it this way'), or humor that excludes."
+              }
+            },
+            forms: {
+              intro: "Discrimination takes many faces. As a professional, you must identify hidden mechanisms.",
+              cards: [
+                {
+                  title: "DIRECT",
+                  icon: 'Eye',
+                  theme: 'red',
+                  desc: "Rejection is explicit and clear. One person is treated worse than another in a comparable situation.",
+                  ex: "'This job is for men only', 'You can't play because you're too slow'."
+                },
+                {
+                  title: "INDIRECT",
+                  icon: 'Layers',
+                  theme: 'orange',
+                  desc: "A seemingly neutral rule or practice (same for everyone) that actually disadvantages a specific group.",
+                  ex: "'No headgear allowed' (excludes certain religions) or 'Meeting at 6:30 PM' (excludes parents)."
+                },
+                {
+                  title: "SYSTEMIC",
+                  icon: 'Briefcase',
+                  theme: 'slate',
+                  desc: "It is not an individual who discriminates, but the global functioning of the institution or society that produces exclusion.",
+                  ex: "School textbooks showing only white men, premises inaccessible to wheelchair users for 20 years."
+                },
+                {
+                  title: "HARASSMENT",
+                  icon: 'ShieldAlert',
+                  theme: 'purple',
+                  desc: "Unwanted conduct related to a criterion, repeated or severe, violating dignity and creating a hostile climate.",
+                  ex: "Recurring racist jokes, climate of humiliation, mocking mimicry of disability."
+                },
+                {
+                  title: "INTERSECTIONAL",
+                  icon: 'GitMerge',
+                  theme: 'indigo',
+                  desc: "The ACCUMULATION of discriminations. It is the intersection of several factors creating a unique and complex exclusion situation.",
+                  ex: "An elderly woman of foreign origin suffers a specific discrimination, different from that suffered by a young woman or an elderly man."
+                }
+              ]
+            },
+            un: {
+              intro: "The legal framework is a foundation, but ethics goes further.",
+              compass: {
+                title: "The Youth Worker's Compass",
+                text: "Note: The list of recognized criteria varies from country to country. However, in youth work, we must transmit universal values of inclusion. Even if local law does not yet explicitly protect a group, our ethics require us to guarantee a Safe Space for everyone. The UN declaration is our common baseline."
+              },
+              groups: [
+                {
+                  name: "IDENTITY & BODY",
+                  items: ["Race / Color", "Sex / Gender", "Age", "Disability", "Genetic features", "Physical appearance"]
+                },
+                {
+                  name: "ORIGIN & CULTURE",
+                  items: ["Nationality", "Ethnic origin", "Language", "Surname", "Place of residence"]
+                },
+                {
+                  name: "PRIVATE LIFE & IDEAS",
+                  items: ["Religion / Beliefs", "Sexual orientation", "Gender identity", "Political opinions", "Family status", "Pregnancy"]
+                }
+              ],
+              focus: {
+                title: "Key Point: Reasonable Accommodation",
+                text: "Equality does not mean 'treating everyone the same'. Sometimes, you have to treat differently to restore equality. Refusing to adapt an activity (time, equipment) for a young person with a disability IS discrimination."
+              }
+            },
+            footer: "© Kévin Le Gal 2025 - All rights reserved"
+          }
+        };
+
+        const App = () => {
+          const [lang, setLang] = useState('fr');
+          const [view, setView] = useState('concept'); // concept, forms, law
+          const [spdStep, setSpdStep] = useState('st'); // st, pr, di
+
+          const t = content[lang];
+          
+          const getThemeColors = (theme) => {
+            switch(theme) {
+              case 'red': return 'border-red-500 text-red-700 bg-red-50';
+              case 'orange': return 'border-orange-500 text-orange-700 bg-orange-50';
+              case 'purple': return 'border-purple-500 text-purple-700 bg-purple-50';
+              case 'indigo': return 'border-indigo-500 text-indigo-700 bg-indigo-50';
+              case 'slate': return 'border-slate-500 text-slate-700 bg-slate-100';
+              default: return 'border-blue-500 text-blue-700 bg-blue-50';
+            }
+          };
+
+          const currentStage = t.spd.stages.find(s => s.id === spdStep);
+
+          return (
+            <div className="min-h-screen bg-slate-50 flex flex-col">
+              
+              {/* 1. TOP HEADER */}
+              <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-20 sticky top-0">
+                <div className="flex items-center gap-3">
+                  <div className="bg-indigo-600 p-2 rounded-lg text-white shadow">
+                    <Icon name="Users" className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold leading-none text-slate-900">{t.header.title}</h1>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide mt-1">{t.header.subtitle}</p>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => setLang(prev => prev === 'fr' ? 'en' : 'fr')}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 rounded-full font-bold text-sm transition-colors text-indigo-700 border border-slate-200 shadow-sm"
+                >
+                  <Icon name="Globe" className="w-4 h-4" />
+                  {t.header.switchLang}
+                </button>
+              </header>
+
+              {/* 2. NAVIGATION TABS */}
+              <nav className="bg-white border-b border-slate-200 px-4 md:px-8 pt-2 shadow-sm overflow-x-auto sticky top-[73px] z-10">
+                <div className="flex gap-6 min-w-max">
+                  {[
+                    { id: 'concept', label: t.tabs.concept },
+                    { id: 'forms', label: t.tabs.forms },
+                    { id: 'law', label: t.tabs.law }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setView(tab.id)}
+                      className={`pb-4 px-2 text-sm md:text-base font-bold border-b-4 transition-all ${
+                        view === tab.id 
+                          ? 'border-indigo-600 text-indigo-700' 
+                          : 'border-transparent text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </nav>
+
+              {/* 3. MAIN CONTENT AREA */}
+              <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full pb-20">
+                
+                {/* VIEW 1: S-P-D PROCESS (MASTER-DETAIL LAYOUT) */}
+                {view === 'concept' && (
+                  <div className="flex flex-col lg:flex-row gap-8 h-full animate-in">
+                    
+                    {/* LEFT COLUMN: LIST MENU */}
+                    <div className="lg:w-1/3 flex flex-col gap-4">
+                       <div className="md:hidden w-full text-center text-sm text-slate-500 italic mb-2">
+                          {t.spd.instruction}
+                       </div>
+
+                       {t.spd.stages.map((stage) => {
+                          const isActive = spdStep === stage.id;
+                          return (
+                            <button 
+                              key={stage.id} 
+                              onClick={() => setSpdStep(stage.id)}
+                              className={`
+                                w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 group relative overflow-hidden flex items-center gap-4
+                                ${isActive 
+                                   ? `${stage.activeColor} ${stage.borderColor} shadow-lg scale-100` 
+                                   : 'bg-white border-slate-200 text-slate-500 hover:border-indigo-300 hover:shadow-md'
+                                }
+                              `}
+                            >
+                               <div className={`
+                                 w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors
+                                 ${isActive ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-indigo-50'}
+                               `}>
+                                  <Icon name={stage.icon} className={`w-6 h-6 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                               </div>
+                               
+                               <div className="flex-1">
+                                  <div className={`font-bold text-lg ${isActive ? 'text-white' : 'text-slate-800'}`}>
+                                     {stage.title}
+                                  </div>
+                                  <div className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-white/80' : 'text-slate-400'}`}>
+                                     {stage.short}
+                                  </div>
+                               </div>
+
+                               {isActive && <Icon name="ChevronRight" className="text-white/80 w-5 h-5" />}
+                            </button>
+                          );
+                       })}
+                    </div>
+
+                    {/* RIGHT COLUMN: DETAILS */}
+                    <div className="flex-1 flex flex-col gap-6">
+                       
+                       {/* DEFINITION CARD */}
+                       <div className={`bg-white rounded-2xl shadow-lg border-l-8 overflow-hidden flex flex-col min-h-[250px]
+                           ${spdStep === 'st' ? 'border-blue-500' : spdStep === 'pr' ? 'border-amber-500' : 'border-rose-500'}
+                        `}>
+                            <div className="p-6 md:p-8 flex-1">
+                                <div className="flex items-center gap-3 mb-4">
+                                   <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                                        spdStep === 'st' ? 'bg-blue-100 text-blue-800' : spdStep === 'pr' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                                   }`}>
+                                      {currentStage.short}
+                                   </span>
+                                </div>
+                                <h3 className={`text-3xl font-bold mb-4 ${spdStep === 'st' ? 'text-blue-700' : spdStep === 'pr' ? 'text-amber-700' : 'text-rose-700'}`}>
+                                    {currentStage.title}
+                                </h3>
+                                <p className="text-xl font-medium text-slate-800 mb-4 leading-snug">
+                                    {currentStage.def}
+                                </p>
+                                <p className="text-slate-600 text-lg leading-relaxed border-t border-slate-100 pt-4">
+                                    {currentStage.desc}
+                                </p>
+                            </div>
+                       </div>
+
+                       {/* STORY CARD */}
+                       <div className="bg-slate-50 rounded-xl border border-slate-200 p-6 flex flex-col gap-4">
+                           <div className="flex items-center gap-2 text-indigo-700 border-b border-slate-200 pb-3">
+                               <Icon name="GitMerge" className="w-5 h-5" />
+                               <h4 className="font-bold uppercase tracking-wide text-sm">{t.spd.storyTitle}</h4>
+                           </div>
+                           
+                           <div className="flex flex-col md:flex-row gap-6">
+                              <div className="md:w-1/3 text-sm text-slate-500 italic">
+                                 {t.spd.storyIntro}
+                              </div>
+                              <div className="flex-1 bg-white p-4 rounded-lg border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
+                                  <div className="text-sm font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+                                    <Icon name={currentStage.icon} className="w-4 h-4" />
+                                    {currentStage.title} - Exemple
+                                  </div>
+                                  <div className="font-medium text-slate-800 mb-2 text-lg">
+                                    {currentStage.story}
+                                  </div>
+                                  <div className="italic text-indigo-600 bg-indigo-50 p-3 rounded-lg">
+                                    "{currentStage.storyEx}"
+                                  </div>
+                              </div>
+                           </div>
+                       </div>
+
+                       {/* WARNING BOX (Only on Discr step) */}
+                       {spdStep === 'di' && (
+                        <div className="bg-slate-800 text-slate-200 rounded-xl p-5 border border-slate-700 animate-in shadow-xl">
+                          <div className="flex items-start gap-4">
+                            <Icon name="AlertTriangle" className="text-yellow-400 w-6 h-6 shrink-0 mt-1" />
+                            <div>
+                              <h4 className="font-bold text-yellow-400 text-lg mb-1">{t.spd.warning.title}</h4>
+                              <p className="text-sm opacity-90 leading-relaxed">{t.spd.warning.text}</p>
+                            </div>
+                          </div>
+                        </div>
+                       )}
+
+                    </div>
+                  </div>
+                )}
+
+                {/* VIEW 2: FORMS OF DISCRIMINATION */}
+                {view === 'forms' && (
+                  <div className="animate-in">
+                    <div className="max-w-3xl mx-auto text-center mb-10">
+                       <p className="text-lg text-slate-600">{t.forms.intro}</p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {t.forms.cards.map((card, idx) => {
+                        const style = getThemeColors(card.theme);
+                        return (
+                          <div key={idx} className={`bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 ${style}`}>
+                            <div className="flex justify-between items-start mb-4">
+                              <h3 className="text-xl font-bold uppercase tracking-tight">{card.title}</h3>
+                              <Icon name={card.icon} className="w-8 h-8 opacity-80" />
+                            </div>
+                            <p className="font-medium text-slate-800 mb-3">{card.desc}</p>
+                            <div className="mt-auto pt-4 border-t border-black/5">
+                                <span className="text-xs font-bold uppercase opacity-60">Exemple :</span>
+                                <p className="text-sm italic mt-1">{card.ex}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* VIEW 3: LAW & CRITERIA */}
+                {view === 'law' && (
+                  <div className="animate-in max-w-5xl mx-auto">
+                     
+                     {/* Header Compass */}
+                     <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-2xl p-8 text-white shadow-xl mb-10 flex flex-col md:flex-row gap-6 items-center">
+                        <div className="bg-white/10 p-5 rounded-full shrink-0">
+                           <Icon name="Anchor" className="w-10 h-10 text-blue-200" />
+                        </div>
+                        <div>
+                           <h3 className="text-2xl font-bold mb-3 text-blue-100">{t.un.compass.title}</h3>
+                           <p className="text-blue-50 leading-relaxed text-lg opacity-90">
+                              {t.un.compass.text}
+                           </p>
+                        </div>
+                     </div>
+
+                     <div className="mb-6 flex items-center justify-center gap-2 text-slate-500">
+                       <Icon name="ChevronDown" className="w-4 h-4" />
+                       <span className="uppercase text-xs font-bold tracking-widest">{t.un.intro}</span>
+                       <Icon name="ChevronDown" className="w-4 h-4" />
+                     </div>
+
+                     {/* Groups Grid */}
+                     <div className="grid md:grid-cols-3 gap-6 mb-8">
+                       {t.un.groups.map((group, idx) => (
+                         <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:border-blue-300 transition-colors">
+                           <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                             <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                <Icon name={idx === 0 ? "Users" : idx === 1 ? "Globe" : "Heart"} className="w-4 h-4 text-blue-600" />
+                                {group.name}
+                             </h3>
+                           </div>
+                           <div className="p-6">
+                             <ul className="space-y-3">
+                               {group.items.map((item, i) => (
+                                 <li key={i} className="flex items-start gap-2 text-slate-600">
+                                   <Icon name="CheckCircle2" className="text-green-500 mt-1 shrink-0 w-4 h-4" />
+                                   <span>{item}</span>
+                                 </li>
+                               ))}
+                             </ul>
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+
+                     {/* Reasonable Accomodation */}
+                     <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 flex gap-4 items-start">
+                        <Icon name="ShieldAlert" className="text-emerald-600 w-8 h-8 shrink-0" />
+                        <div>
+                           <h4 className="font-bold text-emerald-800 text-lg mb-2">{t.un.focus.title}</h4>
+                           <p className="text-emerald-700 leading-relaxed">{t.un.focus.text}</p>
+                        </div>
+                     </div>
+                  </div>
+                )}
+
+              </main>
+
+              {/* FOOTER */}
+              <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 font-medium">
+                 {t.footer}
+              </footer>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
