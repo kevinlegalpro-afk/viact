@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inclusion : L'Art de la Question</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-flip-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .card-flip-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 300ms, transform 300ms;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Custom scrollbar for modal if needed */
+        .modal-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- DATA & CONTENT ---
+
+        const content = {
+            fr: {
+                title: "L'Analyse de Besoins Inclusive",
+                subtitle: "Transformer nos questions pour ouvrir les possibles dans le travail jeunesse et la formation.",
+                introText: "L'analyse de besoins est bien plus qu'une formalité administrative. C'est le moment où se joue la première relation de confiance. Poser des questions inclusives, ce n'est pas seulement être poli, c'est garantir que chacun se sente légitime, en sécurité et en capacité de participer pleinement, quelles que soient ses contraintes et besoins.",
+                instruction: "Cliquez sur une carte pour révéler la formulation inclusive.",
+                labelBad: "Souvent vu",
+                labelGood: "Approche Inclusive",
+                btnReset: "Tout réinitialiser",
+                btnExpress: "⚡ Analyse de dernière minute ?",
+                modalTitle: "L'Inclusion en 5 minutes chrono",
+                modalIntro: "L'inclusion n'exige pas toujours des heures de préparation. Voici 4 réflexes pour maximiser l'impact quand le temps presse.",
+                close: "Fermer",
+                footer: "Conçu pour une pédagogie bienveillante et accessible.",
+                switchLang: "English",
+                tips: [
+                    { title: "L'Option 'Joker'", text: "Instaurez dès le début le droit de ne pas répondre ou de 'passer son tour' sans justification. Cela sécurise immédiatement le groupe." },
+                    { title: "Canaux Parallèles", text: "Proposez toujours une alternative à l'oral (post-it, QR code vers un formulaire anonyme, boîte à questions) pour les profils introvertis ou neuroatypiques." },
+                    { title: "La Question Magique", text: "Si vous n'avez le temps que pour une seule question : 'De quoi avez-vous besoin pour être à l'aise durant cette séance ?'" },
+                    { title: "Supports Anticipés", text: "Envoyez le plan ou les supports 24h avant. Cela aide énormément les personnes anxieuses, DYS ou non-natives à se préparer." }
+                ]
+            },
+            en: {
+                title: "Inclusive Needs Analysis",
+                subtitle: "Transforming our questions to open up possibilities in youth work and training.",
+                introText: "Needs analysis is more than just paperwork. It is the moment where the first bond of trust is built. Asking inclusive questions isn't just about being polite; it's about ensuring everyone feels legitimate, safe, and capable of participating fully, regardless of their constraints and needs.",
+                instruction: "Click on a card to reveal the inclusive formulation.",
+                labelBad: "Often Seen",
+                labelGood: "Inclusive Approach",
+                btnReset: "Reset All",
+                btnExpress: "⚡ Last Minute Analysis?",
+                modalTitle: "Inclusion in 5 minutes flat",
+                modalIntro: "Inclusion doesn't always require hours of prep. Here are 4 habits to maximize impact when time is tight.",
+                close: "Close",
+                footer: "Designed for compassionate and accessible pedagogy.",
+                switchLang: "Français",
+                tips: [
+                    { title: "The 'Pass' Option", text: "Establish right away that anyone can 'pass' or decline to answer without justification. This immediately creates psychological safety." },
+                    { title: "Parallel Channels", text: "Always offer a non-verbal alternative (post-it notes, QR code to anonymous form, question box) for introverted or neurodivergent profiles." },
+                    { title: "The Magic Question", text: "If you only have time for one question: 'What do you need to feel comfortable during this session?'" },
+                    { title: "Materials in Advance", text: "Send the agenda or slides 24h ahead. This greatly helps anxious participants, dyslexic learners, or non-native speakers prepare." }
+                ]
+            }
+        };
+
+        const questionsData = [
+            {
+                id: 1,
+                category: "Competence",
+                bad: { fr: "Quel est votre niveau sur le sujet ? (débutant/intermédiaire/avancé)", en: "What is your level on the topic? (beginner/intermediate/advanced)" },
+                good: { fr: "Qu’est-ce que vous faites déjà aujourd’hui sur ce sujet ? Donnez 1–2 exemples concrets.", en: "What are you already doing regarding this topic today? Give 1–2 concrete examples." }
+            },
+            {
+                id: 2,
+                category: "History",
+                bad: { fr: "Avez-vous déjà suivi une formation sur ce thème ?", en: "Have you attended training on this topic before?" },
+                good: { fr: "Qu’avez-vous déjà appris/essayé sur ce thème (formation, autoformation, terrain) et qu’est-ce qui a été utile ?", en: "What have you already learned/tried on this topic (training, self-study, field work) and what was useful?" }
+            },
+            {
+                id: 3,
+                category: "Expectations",
+                bad: { fr: "Quelles sont vos attentes ?", en: "What are your expectations?" },
+                good: { fr: "À la fin de la formation, qu’aimeriez-vous être capable de faire concrètement dans votre contexte de travail ?", en: "By the end of the training, what would you like to be concretely capable of doing in your work context?" }
+            },
+            {
+                id: 4,
+                category: "Goals",
+                bad: { fr: "Quels sont vos objectifs ?", en: "What are your goals?" },
+                good: { fr: "Parmi ces objectifs, lesquels sont prioritaires pour vous dans les 4 prochaines semaines ?", en: "Among these goals, which are priorities for you in the next 4 weeks?" }
+            },
+            {
+                id: 5,
+                category: "Obstacles",
+                bad: { fr: "Quelles sont vos difficultés ?", en: "What are your difficulties?" },
+                good: { fr: "Qu’est-ce qui vous freine aujourd’hui (temps, outils, processus, validation, coordination, connaissances, confiance) ?", en: "What is holding you back today (time, tools, process, validation, coordination, knowledge, confidence)?" }
+            },
+            {
+                id: 6,
+                category: "Context",
+                bad: { fr: "Pourquoi n’y arrivez-vous pas ?", en: "Why can't you manage it?" },
+                good: { fr: "Qu’est-ce qui rend la mise en pratique difficile dans votre environnement (contraintes, arbitrages, ressources, décisions) ?", en: "What makes practical application difficult in your environment (constraints, trade-offs, resources, decisions)?" }
+            },
+            {
+                id: 7,
+                category: "Role",
+                bad: { fr: "Quel est votre poste ?", en: "What is your job title?" },
+                good: { fr: "Quelles sont vos missions principales et quelles situations vous amènent à utiliser ce sujet ?", en: "What are your main missions and what situations lead you to use this topic?" }
+            },
+            {
+                id: 8,
+                category: "Experience",
+                bad: { fr: "Depuis combien de temps occupez-vous ce poste ?", en: "How long have you held this position?" },
+                good: { fr: "Quelle est votre expérience la plus proche du sujet (projets, tâches, responsabilités), même si ce n’est pas votre poste actuel ?", en: "What is your closest experience to the subject (projects, tasks, responsibilities), even if it's not your current role?" }
+            },
+            {
+                id: 9,
+                category: "Language",
+                bad: { fr: "Quelle est votre maîtrise du français ?", en: "How fluent is your French?" },
+                good: { fr: "Dans quelle(s) langue(s) êtes-vous le plus à l’aise pour apprendre/échanger ? (écrit/oral). Souhaitez-vous des supports simplifiés ou visuels ?", en: "In which language(s) are you most comfortable learning/exchanging? (written/spoken). Would you like simplified or visual materials?" }
+            },
+            {
+                id: 10,
+                category: "Access",
+                bad: { fr: "Avez-vous des besoins particuliers / un handicap ?", en: "Do you have special needs / a disability?" },
+                good: { fr: "Y a-t-il des aménagements qui faciliteraient votre participation (rythme, pauses, format, supports, sous-titres, police, accessibilité) ?", en: "Are there any accommodations that would facilitate your participation (pace, breaks, format, materials, subtitles, font, accessibility)?" }
+            },
+            {
+                id: 11,
+                category: "Neurodiversity",
+                bad: { fr: "Avez-vous des troubles (dys, TDAH, etc.) ?", en: "Do you have disorders (dys, ADHD, etc.)?" },
+                good: { fr: "Qu’est-ce qui vous aide à apprendre efficacement (durée des séquences, consignes écrites, exemples, répétition, interactions, pauses) ?", en: "What helps you learn effectively (sequence duration, written instructions, examples, repetition, interactions, breaks)?" }
+            },
+            {
+                id: 12,
+                category: "Participation",
+                bad: { fr: "Êtes-vous à l’aise à l’oral ?", en: "Are you comfortable speaking?" },
+                good: { fr: "Comment préférez-vous participer : oral, écrit, petits groupes, questions anonymes, temps de réflexion avant réponse ?", en: "How do you prefer to participate: orally, in writing, small groups, anonymous questions, reflection time before answering?" }
+            },
+            {
+                id: 13,
+                category: "Digital",
+                bad: { fr: "Êtes-vous à l’aise avec l’informatique ?", en: "Are you comfortable with IT?" },
+                good: { fr: "Avec quels outils numériques allez-vous utiliser les acquis (PC, mobile, logiciels) et quels points méritent d’être sécurisés ?", en: "With which digital tools will you apply what you learn (PC, mobile, software) and what points need securing?" }
+            },
+            {
+                id: 14,
+                category: "Equipment",
+                bad: { fr: "Avez-vous une bonne connexion / un bon matériel ?", en: "Do you have a good connection / equipment?" },
+                good: { fr: "De quel équipement disposez-vous (ordinateur, micro/caméra, accès réseau) et souhaitez-vous une alternative si besoin (supports téléchargeables, audio, faible débit) ?", en: "What equipment do you have (computer, mic/camera, network access) and would you like an alternative if needed (downloadable materials, audio, low bandwidth)?" }
+            },
+            {
+                id: 15,
+                category: "Logistics",
+                bad: { fr: "Pouvez-vous être disponible tout le temps / ponctuel ?", en: "Can you be available all the time / punctual?" },
+                good: { fr: "Quelles contraintes d’agenda ou de terrain peuvent impacter votre présence (horaires, pics d’activité) et comment peut-on s’adapter (replay, ressources, rattrapage) ?", en: "What agenda or field constraints might impact your attendance (hours, peak activity) and how can we adapt (replay, resources, catch-up)?" }
+            },
+            {
+                id: 16,
+                category: "Prerequisites",
+                bad: { fr: "Avez-vous fait les prérequis ?", en: "Did you do the prerequisites?" },
+                good: { fr: "Quels prérequis sont déjà acquis pour vous, et sur quels points vous aimeriez un rappel rapide / une mise à niveau ?", en: "Which prerequisites are already acquired for you, and on which points would you like a quick refresher / upgrade?" }
+            },
+            {
+                id: 17,
+                category: "Format",
+                bad: { fr: "Quel format préférez-vous ? présentiel / distanciel", en: "Which format do you prefer? in-person / remote" },
+                good: { fr: "Quel format vous aiderait le plus à apprendre dans votre contexte (présentiel, distanciel, hybride) et pourquoi ?", en: "Which format would help you learn best in your context (in-person, remote, hybrid) and why?" }
+            },
+            {
+                id: 18,
+                category: "Rhythm",
+                bad: { fr: "Quel rythme de formation vous convient ?", en: "What training pace suits you?" },
+                good: { fr: "Qu’est-ce qui vous convient le mieux : séances courtes, demi-journée, temps de pratique entre deux, et quelle contrainte explique ce choix ?", en: "What suits you best: short sessions, half-days, practice time in between, and what constraint explains this choice?" }
+            },
+            {
+                id: 19,
+                category: "Safety",
+                bad: { fr: "Avez-vous une appréhension / un stress sur le sujet ?", en: "Do you have apprehension / stress about the topic?" },
+                good: { fr: "Qu’est-ce qui vous mettrait en confiance pendant la formation (cadre, droit à l’erreur, pas de mise en situation imposée, progression pas à pas, exemples) ?", en: "What would make you feel confident during training (framework, right to make mistakes, no forced roleplay, step-by-step progress, examples)?" }
+            },
+            {
+                id: 20,
+                category: "Motivation",
+                bad: { fr: "Quelles sont vos motivations ?", en: "What are your motivations?" },
+                good: { fr: "Qu’est-ce qui rendrait cette formation réellement utile pour vous (bénéfices attendus, irritants à résoudre, projet à mener), et comment le saura-t-on ?", en: "What would make this training truly useful for you (expected benefits, irritants to solve, project to lead), and how will we know?" }
+            }
+        ];
+
+        // --- COMPONENTS ---
+
+        const IconArrow = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-bounce mt-2 text-slate-400">
+                <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+            </svg>
+        );
+
+        const IconSparkles = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 mr-2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+        );
+
+        const IconBolt = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+            </svg>
+        );
+        
+        const IconX = () => (
+             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+
+        const Card = ({ data, lang, isRevealed, onToggle }) => {
+            return (
+                <div 
+                    onClick={onToggle}
+                    className={`relative group cursor-pointer rounded-xl border-2 transition-all duration-500 ease-in-out shadow-sm hover:shadow-md overflow-hidden min-h-[180px] flex flex-col justify-center p-6
+                    ${isRevealed 
+                        ? 'bg-white border-emerald-500 ring-1 ring-emerald-500/20' 
+                        : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                >
+                    {/* Background Pattern for 'Good' state */}
+                    <div className={`absolute top-0 right-0 p-4 transition-opacity duration-500 ${isRevealed ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className="w-16 h-16 bg-emerald-50 rounded-full blur-xl -mr-8 -mt-8"></div>
+                    </div>
+
+                    <div className="relative z-10">
+                        {/* Label Header */}
+                        <div className="flex justify-between items-center mb-3">
+                            <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors duration-300
+                                ${isRevealed 
+                                    ? 'bg-emerald-100 text-emerald-800' 
+                                    : 'bg-slate-100 text-slate-500'}`}>
+                                {isRevealed ? content[lang].labelGood : content[lang].labelBad}
+                            </span>
+                            {isRevealed && <IconSparkles />}
+                        </div>
+
+                        {/* Content */}
+                        <div className="relative">
+                            {!isRevealed ? (
+                                <div className="text-slate-600 font-medium text-lg leading-snug">
+                                    "{data.bad[lang]}"
+                                    <div className="flex justify-center mt-4 opacity-50 group-hover:opacity-100 transition-opacity">
+                                       <IconArrow />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="card-flip-enter-active">
+                                    <p className="text-slate-800 font-semibold text-lg leading-relaxed">
+                                        "{data.good[lang]}"
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const QuickTip = ({ title, text }) => (
+            <div className="flex items-start space-x-4 p-4 rounded-lg bg-emerald-50 border border-emerald-100 hover:bg-emerald-100/50 transition-colors">
+                <div className="mt-1 min-w-[20px] h-[20px] rounded-full bg-emerald-200 flex items-center justify-center shadow-sm">
+                    <svg className="w-3 h-3 text-emerald-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div>
+                    <h4 className="font-bold text-slate-800 mb-1">{title}</h4>
+                    <p className="text-slate-600 text-sm leading-relaxed">{text}</p>
+                </div>
+            </div>
+        );
+
+        const Modal = ({ isOpen, onClose, lang }) => {
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 flex justify-between items-start text-white shrink-0">
+                            <div>
+                                <h3 className="text-2xl font-serif font-bold flex items-center">
+                                    <IconBolt />
+                                    {content[lang].modalTitle}
+                                </h3>
+                                <p className="text-emerald-100 mt-2 text-sm opacity-90 max-w-md">
+                                    {content[lang].modalIntro}
+                                </p>
+                            </div>
+                            <button 
+                                onClick={onClose}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                <IconX />
+                            </button>
+                        </div>
+                        
+                        {/* Body - Scrollable */}
+                        <div className="p-6 overflow-y-auto modal-scroll">
+                            <div className="grid grid-cols-1 gap-4">
+                                {content[lang].tips.map((tip, idx) => (
+                                    <QuickTip key={idx} title={tip.title} text={tip.text} />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end shrink-0">
+                            <button 
+                                onClick={onClose}
+                                className="px-5 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 font-medium text-sm transition-colors"
+                            >
+                                {content[lang].close}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState('fr');
+            const [revealedIds, setRevealedIds] = useState([]);
+            const [showExpress, setShowExpress] = useState(false);
+
+            const toggleCard = (id) => {
+                if (revealedIds.includes(id)) {
+                    // Optional: keep it revealed
+                } else {
+                    setRevealedIds(prev => [...prev, id]);
+                }
+            };
+
+            const resetAll = () => setRevealedIds([]);
+
+            const switchLanguage = () => {
+                setLang(prev => prev === 'fr' ? 'en' : 'fr');
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <Modal isOpen={showExpress} onClose={() => setShowExpress(false)} lang={lang} />
+
+                    {/* Header */}
+                    <header className="bg-white border-b border-slate-100 sticky top-0 z-40 bg-opacity-90 backdrop-blur-md">
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-lg">
+                                    I
+                                </div>
+                                <h1 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight hidden sm:block">
+                                    {content[lang].title}
+                                </h1>
+                                <h1 className="text-xl font-bold text-slate-800 tracking-tight sm:hidden">
+                                    Inclusion
+                                </h1>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                <button 
+                                    onClick={switchLanguage}
+                                    className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"
+                                >
+                                    {content[lang].switchLang}
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="flex-grow">
+                        {/* Hero / Intro */}
+                        <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-slate-900 mb-6 leading-tight">
+                                {lang === 'fr' ? (
+                                    <span>Poser les <span className="gradient-text">bonnes questions</span></span>
+                                ) : (
+                                    <span>Asking the <span className="gradient-text">Right Questions</span></span>
+                                )}
+                            </h2>
+                            
+                            {/* Intro Text */}
+                            <p className="text-lg text-slate-700 mb-6 max-w-3xl mx-auto leading-relaxed">
+                                {content[lang].introText}
+                            </p>
+                            <p className="text-lg text-slate-500 mb-8 max-w-2xl mx-auto italic">
+                                {content[lang].subtitle}
+                            </p>
+                            
+                            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
+                                <div className="flex items-center space-x-2 text-sm text-slate-500 bg-white inline-flex px-4 py-2 rounded-full shadow-sm border border-slate-100">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span>{content[lang].instruction}</span>
+                                </div>
+
+                                {/* Express Button */}
+                                <button 
+                                    onClick={() => setShowExpress(true)}
+                                    className="inline-flex items-center px-5 py-2 rounded-full bg-slate-800 text-white font-medium text-sm hover:bg-slate-700 hover:scale-105 transition-all shadow-md group"
+                                >
+                                    <IconBolt />
+                                    <span>{content[lang].btnExpress}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Filter/Reset Bar */}
+                        <div className="max-w-6xl mx-auto px-4 mb-6 flex justify-end">
+                            {revealedIds.length > 0 && (
+                                <button 
+                                    onClick={resetAll}
+                                    className="text-sm text-slate-500 hover:text-rose-500 transition-colors flex items-center space-x-1"
+                                >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                    <span>{content[lang].btnReset}</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Grid */}
+                        <div className="max-w-6xl mx-auto px-4 pb-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {questionsData.map((q) => (
+                                <Card 
+                                    key={q.id} 
+                                    data={q} 
+                                    lang={lang} 
+                                    isRevealed={revealedIds.includes(q.id)}
+                                    onToggle={() => toggleCard(q.id)}
+                                />
+                            ))}
+                        </div>
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-50 border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
+                        <p>{content[lang].footer}</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
