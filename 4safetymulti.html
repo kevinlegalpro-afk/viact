@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Sécurité Multi-dimensionnelle dans le Travail de Jeunesse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        /* Sidebar Styles */
+        .nav-item { transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: #f3f4f6; padding-left: 1.25rem; }
+        .nav-item.active { 
+            background-color: #eef2ff; 
+            color: #4f46e5; /* Indigo-600 */
+            border-left: 3px solid #4f46e5; 
+            font-weight: 700; 
+        }
+
+        /* Interactive Elements */
+        .reveal-card { transition: all 0.3s ease; cursor: pointer; border-left: 4px solid #818cf8; /* Indigo-400 */ }
+        .reveal-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-left-color: #4f46e5; }
+        .reveal-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+        .reveal-card.open .reveal-content { max-height: 1500px; }
+        .reveal-card.open .icon-rotate { transform: rotate(180deg); }
+
+        /* Quiz Styles */
+        .quiz-btn { transition: all 0.2s; border-width: 1px; }
+        .quiz-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #6366f1; transform: translateX(4px); }
+        .quiz-btn.correct { background-color: #ecfdf5; border-color: #10b981; color: #047857; font-weight: 600; }
+        .quiz-btn.wrong { background-color: #fef2f2; border-color: #ef4444; color: #b91c1c; }
+
+        /* Visuals & Animations */
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Diagrams CSS */
+        .maslow-step { clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%); transition: all 0.3s; }
+        .maslow-step:hover { transform: scale(1.05); filter: brightness(1.1); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Gradient Text */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #4f46e5, #9333ea);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden bg-white">
+
+    <!-- SIDEBAR -->
+    <aside class="w-full md:w-80 bg-white border-r border-slate-100 flex-shrink-0 flex flex-col h-auto md:h-full z-30 shadow-lg">
+        <div class="p-6 border-b border-slate-50 bg-white">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-200 flex items-center justify-center text-white text-xl transform rotate-3">
+                    <i class="fa-solid fa-shield-cat"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-800 tracking-tight leading-none text-lg">Sécurité <br><span class="text-gradient">Multi-dimensionnelle</span></h1>
+                    <p class="text-[10px] text-slate-400 font-medium tracking-widest mt-1 uppercase">Travail de Jeunesse</p>
+                </div>
+            </div>
+            
+            <div class="flex bg-slate-50 p-1.5 rounded-xl border border-slate-100">
+                <button onclick="setLanguage('en')" id="btn-en" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-slate-500 hover:text-indigo-600">EN</button>
+                <button onclick="setLanguage('fr')" id="btn-fr" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-slate-500 hover:text-indigo-600">FR</button>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto p-4 space-y-2" id="nav-menu"></nav>
+
+        <div class="p-6 border-t border-slate-50 bg-slate-50/50">
+            <div class="flex justify-between items-end mb-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Progression</p>
+                <p class="text-xs font-bold text-indigo-600" id="progress-text">0%</p>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div id="sidebar-progress" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+            </div>
+            <p class="text-[10px] text-slate-300 mt-4 text-center">© Kévin Le Gal 2025</p>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-full relative bg-slate-50">
+        <div id="scroll-area" class="flex-1 overflow-y-auto p-4 md:p-10 lg:p-16 scroll-smooth">
+            <div id="app-container" class="max-w-4xl mx-auto min-h-[600px] flex flex-col pb-20"></div>
+        </div>
+    </main>
+
+    <script>
+        // --- VISUAL COMPONENTS GENERATORS ---
+        
+        const Visuals = {
+            maslow: () => `
+                <div class="flex flex-col items-center justify-center py-6 w-full max-w-xs mx-auto space-y-1.5 drop-shadow-sm">
+                    <div class="w-24 h-14 bg-indigo-200 flex items-center justify-center text-[10px] text-indigo-900 font-bold maslow-step rounded-sm">Accomplissement</div>
+                    <div class="w-36 h-14 bg-violet-200 flex items-center justify-center text-[10px] text-violet-900 font-bold maslow-step rounded-sm">Estime</div>
+                    <div class="w-48 h-14 bg-fuchsia-200 flex items-center justify-center text-xs text-fuchsia-900 font-bold maslow-step rounded-sm">Appartenance</div>
+                    <div class="w-60 h-14 bg-rose-200 flex items-center justify-center text-xs text-rose-900 font-bold maslow-step rounded-sm">Sécurité</div>
+                    <div class="w-72 h-14 bg-orange-200 flex items-center justify-center text-sm text-orange-900 font-bold maslow-step rounded-sm">Physiologique</div>
+                </div>
+            `,
+            windowOfTolerance: () => `
+                <div class="flex flex-row items-stretch h-56 w-full max-w-sm mx-auto rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white">
+                    <div class="w-1/4 flex flex-col justify-between text-[10px] text-right pr-3 py-6 font-bold text-slate-400 bg-slate-50 border-r border-slate-100">
+                        <span class="text-rose-500">Hyper</span>
+                        <span class="text-emerald-600">Optimal</span>
+                        <span class="text-slate-500">Hypo</span>
+                    </div>
+                    <div class="w-3/4 flex flex-col">
+                        <div class="h-1/3 bg-rose-50 flex items-center px-4 text-rose-700 font-bold text-xs relative group border-b border-rose-100">
+                            <i class="fa-solid fa-fire mr-2"></i>Hyper-Activation
+                            <div class="absolute inset-0 bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] text-rose-600">Combat / Fuite</div>
+                        </div>
+                        <div class="h-1/3 bg-emerald-50 flex items-center px-4 text-emerald-700 font-bold text-xs relative border-b border-emerald-100">
+                            <i class="fa-solid fa-check-circle mr-2"></i>Fenêtre de Tolérance
+                            <div class="absolute right-2 text-[9px] bg-white px-2 py-0.5 rounded-full shadow-sm text-emerald-600 border border-emerald-100">Zone d'apprentissage</div>
+                        </div>
+                        <div class="h-1/3 bg-slate-100 flex items-center px-4 text-slate-600 font-bold text-xs relative group">
+                            <i class="fa-solid fa-snowflake mr-2"></i>Hypo-Activation
+                            <div class="absolute inset-0 bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] text-slate-500">Figement / Repli</div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            karpman: () => `
+                <div class="relative w-64 h-56 mx-auto my-6">
+                    <svg viewBox="0 0 100 86.6" class="w-full h-full drop-shadow-md">
+                        <polygon points="50,0 100,86.6 0,86.6" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-rose-600 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-rose-100 shadow-sm">Persécuteur</div>
+                    <div class="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/2 bg-white text-indigo-600 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-indigo-100 shadow-sm">Sauveur</div>
+                    <div class="absolute bottom-0 left-0 -translate-x-1/4 translate-y-1/2 bg-white text-amber-600 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-amber-100 shadow-sm">Victime</div>
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-rotate text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            `,
+            boundaries: () => `
+                <div class="w-full max-w-md mx-auto my-8">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-3 uppercase tracking-wider">
+                        <span>Froid / Distant</span>
+                        <span class="text-indigo-600">Adaptation Contextuelle</span>
+                        <span>Fusionnel</span>
+                    </div>
+                    <div class="h-3 w-full rounded-full bg-gradient-to-r from-slate-200 via-indigo-300 to-rose-300 relative">
+                        <!-- Markers -->
+                        <div class="absolute left-[30%] top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div class="absolute right-[30%] top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-white rounded-full"></div>
+                        
+                        <!-- Slider -->
+                        <div class="absolute left-1/2 -translate-x-1/2 -top-1.5 w-1.5 h-6 bg-slate-800 rounded-full shadow-md cursor-grab active:cursor-grabbing"></div>
+                    </div>
+                    
+                    <div class="flex justify-center gap-2 mt-6">
+                         <div class="px-3 py-1.5 bg-white border border-slate-100 rounded-lg text-[10px] text-slate-600 shadow-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock text-indigo-400"></i>Durée
+                         </div>
+                         <div class="px-3 py-1.5 bg-white border border-slate-100 rounded-lg text-[10px] text-slate-600 shadow-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-building-columns text-indigo-400"></i>Cadre
+                         </div>
+                         <div class="px-3 py-1.5 bg-white border border-slate-100 rounded-lg text-[10px] text-slate-600 shadow-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-heart-crack text-indigo-400"></i>Vulnérabilité
+                         </div>
+                    </div>
+                </div>
+            `,
+            tuckman: () => `
+                <div class="w-full max-w-sm mx-auto h-48 relative border-l-2 border-b-2 border-slate-100 p-4 bg-white rounded-tr-3xl shadow-sm">
+                    <svg viewBox="0 0 100 50" class="w-full h-full overflow-visible">
+                        <path d="M0,25 Q25,50 50,30 T100,5" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" />
+                        
+                        <circle cx="0" cy="25" r="3" fill="white" stroke="#94a3b8" stroke-width="2" />
+                        <text x="0" y="15" font-size="5" fill="#64748b" font-weight="bold" text-anchor="middle">Forming</text>
+                        
+                        <circle cx="25" cy="45" r="3" fill="white" stroke="#ef4444" stroke-width="2" />
+                        <text x="25" y="60" font-size="5" fill="#ef4444" font-weight="bold" text-anchor="middle">Storming</text>
+                        
+                        <circle cx="50" cy="30" r="3" fill="white" stroke="#eab308" stroke-width="2" />
+                        <text x="50" y="20" font-size="5" fill="#eab308" font-weight="bold" text-anchor="middle">Norming</text>
+                        
+                        <circle cx="85" cy="10" r="3" fill="white" stroke="#10b981" stroke-width="2" />
+                        <text x="85" y="0" font-size="5" fill="#10b981" font-weight="bold" text-anchor="middle">Performing</text>
+                    </svg>
+                    <div class="absolute -left-6 top-1/2 -rotate-90 text-[10px] text-slate-300 font-bold tracking-widest uppercase">Performance</div>
+                </div>
+            `,
+            digital: () => `
+                <div class="flex items-center justify-center gap-6 py-6">
+                    <div class="w-20 h-20 bg-white rounded-2xl shadow-sm flex flex-col items-center justify-center border border-slate-100 relative z-10">
+                        <i class="fa-solid fa-user text-slate-300 text-2xl"></i>
+                        <span class="text-[9px] mt-2 font-bold text-slate-500 uppercase">Vous</span>
+                    </div>
+                    
+                    <div class="w-28 h-28 bg-gradient-to-br from-indigo-50 to-white rounded-2xl shadow-md flex flex-col items-center justify-center border-2 border-dashed border-indigo-200 relative z-20 transform scale-110">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mb-2">
+                            <i class="fa-solid fa-filter text-indigo-600"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-indigo-800 text-center leading-tight">Filtre<br>Professionnel</span>
+                    </div>
+
+                    <div class="w-20 h-20 bg-white rounded-2xl shadow-sm flex flex-col items-center justify-center border border-slate-100 relative z-10">
+                        <i class="fa-solid fa-globe text-slate-300 text-2xl"></i>
+                        <span class="text-[9px] mt-2 font-bold text-slate-500 uppercase">Le Web</span>
+                    </div>
+                    
+                    <!-- Connector Line -->
+                    <div class="absolute h-0.5 bg-slate-100 w-48 z-0"></div>
+                </div>
+            `
+        };
+
+        // --- CONTENT DATABASE ---
+        const content = {
+            en: {
+                nav: ["Introduction", "1. Physical Context", "2. Emotional Safety", "3. Relational Safety", "4. Pro Boundaries", "5. Group Dynamics", "6. Digital Space", "Final Report"],
+                ui: {
+                    next: "Next Dimension",
+                    prev: "Previous",
+                    finish: "Finish & Download",
+                    downloadBtn: "Download PDF Report",
+                    quizTitle: "Brain Teaser: What would you do?",
+                    theoryTitle: "Deep Dive: The Theory",
+                    reflectTitle: "Your Practice Audit",
+                    reflectPlaceholder: "Document your observations or planned actions here...",
+                    correct: "Correct! Well done.",
+                    wrong: "Not quite. Think about the long-term impact."
+                },
+                sections: [
+                    {
+                        id: "intro",
+                        title: "The Invisible Safety Net",
+                        subtitle: "Introduction",
+                        icon: "fa-rocket",
+                        content: `
+                            <div class="bg-white p-10 rounded-3xl shadow-sm border border-slate-100 mb-8 relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                                <div class="relative z-10">
+                                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Welcome</h2>
+                                    <p class="text-lg text-slate-600 leading-relaxed mb-6 font-light">
+                                        In this module, you are invited to explore what the notion of safety really covers. Through different key dimensions, you will take the time to observe, question, and relate these elements to your own practice.
+                                    </p>
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-semibold">
+                                        <i class="fa-solid fa-eye"></i> Observation
+                                    </div>
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-semibold">
+                                        <i class="fa-solid fa-question"></i> Questioning
+                                    </div>
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-semibold">
+                                        <i class="fa-solid fa-link"></i> Connection
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        id: "physical",
+                        title: "1. Physical Safety",
+                        subtitle: "Maslow Before Bloom",
+                        icon: "fa-shield-virus",
+                        theory: {
+                            title: "Maslow's Hierarchy & Cognitive Load",
+                            text: "<strong>The Theory:</strong> Abraham Maslow demonstrated that higher cognitive functions (learning, empathy, creativity) are inhibited when lower-level needs (physiological, safety) are unmet. Neurobiologically, when the brain detects a threat (hunger, cold, insecurity), the amygdala hijacks the prefrontal cortex.<br><br><strong>Application:</strong> You cannot effectively conduct educational work if the physical environment generates stress. Safety is not just the absence of accidents; it is the presence of <strong>physical comfort and stability</strong> that allows the nervous system to relax.<br><br><div class='bg-amber-50 p-4 rounded-xl border border-amber-100 text-sm text-amber-900 flex gap-3'><i class='fa-solid fa-lightbulb text-amber-500 mt-1'></i><div><strong>Pro Tip:</strong> Use the <strong>HALT</strong> scan. Is the group <strong>H</strong>ungry, <strong>A</strong>ngry, <strong>L</strong>onely, or <strong>T</strong>ired? Addressing these biological variables is often more effective than disciplinary action.</div></div>",
+                            visual: "maslow"
+                        },
+                        quiz: {
+                            q: "Scenario: You are running a workshop. It's 5 PM. The group is restless, agitated, and not listening. You have 30 mins of content left.",
+                            options: [
+                                { text: "Power through. Discipline them to focus.", correct: false, feedback: "Forcing focus when biological needs (fatigue, hunger) aren't met creates useless conflict." },
+                                { text: "Stop. Do an 'energizer' game immediately.", correct: false, feedback: "Be careful: high energy might make chaos worse if they are actually physically exhausted." },
+                                { text: "Pause. Check the room (Air? Food? Break?).", correct: true, feedback: "Bingo. Address the physical need first (open a window, water break, snack) to reset their brains." }
+                            ]
+                        },
+                        prompt: "Audit your space: Are there 'invisible' physical stressors (noise, lighting, temperature, hunger) affecting your group? List one fix."
+                    },
+                    {
+                        id: "emotional",
+                        title: "2. Emotional Safety",
+                        subtitle: "The Window of Tolerance",
+                        icon: "fa-heart-pulse",
+                        theory: {
+                            title: "The Window of Tolerance (Dan Siegel)",
+                            text: "<strong>The Theory:</strong> Dr. Dan Siegel coined the 'Window of Tolerance' to describe the optimal zone of arousal for functioning. Trauma or stress can shrink this window.<br><br><strong>Dysregulation Signs:</strong><ul><li><strong>Hyper-arousal (Fight/Flight):</strong> The sympathetic nervous system is flooded. Signs: Agitation, aggression, panic, rapid speech.</li><li><strong>Hypo-arousal (Freeze):</strong> The parasympathetic system takes over to conserve energy. Signs: Disassociation, silence, glazed eyes.</li></ul><br><strong>The Strategy:</strong> Your goal is <strong>Co-regulation</strong>. You lend your calm nervous system to the youth to help them widen their window. Punishing a dysregulated youth is ineffective; they literally cannot process the information.",
+                            visual: "windowOfTolerance"
+                        },
+                        quiz: {
+                            q: "Scenario: A young person expresses a controversial, slightly offensive opinion during a debate.",
+                            options: [
+                                { text: "Shut it down immediately. 'We don't say that here.'", correct: false, feedback: "This shames them and pushes them out of the window (Fight/Flight). They stop learning." },
+                                { text: "Explore calmly: 'That’s a strong word. What do you mean by that?'", correct: true, feedback: "Correct. You maintain the relationship while questioning the idea. *Nuance:* If it was direct hate speech attacking someone in the room, you would intervene to protect the group, but for an opinion, dialogue is key." },
+                                { text: "Ignore it to avoid conflict.", correct: false, feedback: "Dangerous. The rest of the group will feel unsafe if you don't manage the boundary." }
+                            ]
+                        },
+                        prompt: "Think of a youth who often 'checks out' (hypo-arousal) or 'acts out' (hyper-arousal). What strategy can bring them back to the window?"
+                    },
+                    {
+                        id: "relational",
+                        title: "3. Relational Safety",
+                        subtitle: "From Drama to Empowerment",
+                        icon: "fa-users-between-lines",
+                        theory: {
+                            title: "The Karpman Drama Triangle",
+                            text: "<strong>The Theory:</strong> Stephen Karpman mapped dysfunctional social interactions where participants unknowingly switch between roles: <strong>Persecutor</strong> (Attacks), <strong>Victim</strong> (Suffers), and <strong>Rescuer</strong> (Intervenes unhelpfully).<br><br><strong>Critical Nuance:</strong> Before attempting to 'empower', you must assess the reality of the danger. Is there actual persecution or danger?<ul><li><strong>Step 1: Protection.</strong> If a youth is in danger (bullying, abuse), you must act protectively. You cannot 'coach' someone out of a burning building.</li><li><strong>Step 2: Empowerment.</strong> Once safety is established, avoid the 'Rescuer' trap (solving problems *for* them). Shift to the <strong>Empowerment Dynamic</strong> (David Emerald): Guide them to become Creators of their own solutions.</li></ul>This is a long-term process, not a quick fix.",
+                            visual: "karpman"
+                        },
+                        quiz: {
+                            q: "Scenario: Two youths are in a heated conflict. One comes to you demanding you punish the other.",
+                            options: [
+                                { text: "Immediately punish the other to show support.", correct: false, feedback: "You have entered the Triangle as a Rescuer/Persecutor. You risk reinforcing the Victim role." },
+                                { text: "Assess safety first. Then ask: 'How do you think we can solve this situation?'", correct: true, feedback: "Correct. First, ensure no violence. Then, shift responsibility back to them to define the solution. This empowers them." },
+                                { text: "Tell them to figure it out themselves.", correct: false, feedback: "Too passive. If there is a power imbalance, this is negligence." }
+                            ]
+                        },
+                        prompt: "Do you tend to be a Rescuer? How can you shift to being a 'Coach' in your next conflict intervention?"
+                    },
+                    {
+                        id: "boundaries",
+                        title: "4. Professional Boundaries",
+                        subtitle: "The Structural Variables",
+                        icon: "fa-user-astronaut",
+                        theory: {
+                            title: "Contextual Variables of Posture",
+                            text: "<strong>The Theory:</strong> There is no single 'correct' distance. The appropriate boundary is determined by structural variables, not personal preference. You must constantly calibrate based on:<br><br><ul><li><strong>Vulnerability of the Public:</strong> High vulnerability requires clearer, more protective boundaries to prevent dependency.</li><li><strong>Duration of Relationship:</strong> A one-off intervention requires different boundaries than a 3-year mentorship.</li><li><strong>Institutional Framework:</strong> A street-work setting (horizontal) differs from a residential care setting (hierarchical/protective).</li></ul><br><strong>The Core Principle:</strong> The relationship is a tool for the youth's development, not for the worker's emotional gratification. Every boundary crossing (e.g., self-disclosure, touch) must serve a pedagogical purpose.",
+                            visual: "boundaries"
+                        },
+                        quiz: {
+                            q: "Red Flag Check: Which situation indicates a loss of professional distance?",
+                            options: [
+                                { text: "You share a relevant past experience to help a youth feel understood.", correct: false, feedback: "This is intentional pedagogical self-disclosure. It serves the youth." },
+                                { text: "Inviting a youth to spend the evening or weekend at your private home.", correct: true, feedback: "Major Violation. Private homes are off-limits. This destroys professional neutrality and creates massive safeguarding risks." },
+                                { text: "You adapt your rules based on the individual needs of the group.", correct: false, feedback: "This is equitable practice, provided the reasoning is transparent." }
+                            ]
+                        },
+                        prompt: "Identify one area where you might be 'Over-involved' (e.g., thinking about them at home, giving money, special exceptions)."
+                    },
+                    {
+                        id: "group",
+                        title: "5. Group Dynamics",
+                        subtitle: "Navigating The Storm",
+                        icon: "fa-people-group",
+                        theory: {
+                            title: "Tuckman's Group Development",
+                            text: "<strong>The Theory:</strong> Bruce Tuckman identified that groups must pass through conflict to achieve cohesion. The sequence is <strong>Forming</strong> (Surface harmony), <strong>Storming</strong> (Conflict/Clans), <strong>Norming</strong> (Negotiation), and <strong>Performing</strong> (Synergy).<br><br><strong>The Function of Storming:</strong> Conflict is not a malfunction; it is the group's way of testing safety and establishing hierarchy. If you suppress the Storming phase with authoritarian control, the group remains stuck in superficiality (pseudo-community).<br><br><strong>Your Role:</strong> Don't just stop the conflict; facilitate the negotiation. Help them build the 'Norms' that will resolve the 'Storm'.",
+                            visual: "tuckman"
+                        },
+                        quiz: {
+                            q: "Scenario: During free time, the group splits into two exclusive 'clans' who refuse to share the common equipment. Tensions rise.",
+                            options: [
+                                { text: "Confiscate the equipment until they behave.", correct: false, feedback: "This manages the symptom but suppresses the group process. The tension will return elsewhere." },
+                                { text: "Let them fight it out; it's natural.", correct: false, feedback: "Unsafe. 'Storming' without guidance can lead to bullying and permanent exclusion." },
+                                { text: "Facilitate a negotiation: 'We have a resource problem. How do we solve it?'", correct: true, feedback: "Correct. You are guiding them from Storming to Norming by making them responsible for the solution." }
+                            ]
+                        },
+                        prompt: "What stage is your current group in? What does the group need from you *right now* to move to the next stage?"
+                    },
+                    {
+                        id: "digital",
+                        title: "6. Digital Space",
+                        subtitle: "Digital Citizenship",
+                        icon: "fa-mobile-screen-button",
+                        theory: {
+                            title: "Digital Footprint & Citizenship",
+                            text: "<strong>The Theory:</strong> The digital world is often perceived by youth as separate from 'real life', leading to the <strong>Online Disinhibition Effect</strong>. Safety involves bridging this gap.<br><br><strong>Key Pillars:</strong><ul><li><strong>Permanence:</strong> Teaching that the 'right to be forgotten' is technically difficult.</li><li><strong>Consent & Image:</strong> The legal and ethical implications of sharing others' data.</li><li><strong>Critical Literacy:</strong> Understanding algorithms and echo chambers.</li></ul><br><strong>Professional Hygiene:</strong> As a worker, your digital presence is public. 'Private' settings are never truly private. Maintain a strict separation between personal identity and professional availability.",
+                            visual: "digital"
+                        },
+                        quiz: {
+                            q: "Scenario: You see a youth from your group posting risky photos on a public Instagram.",
+                            options: [
+                                { text: "Comment publicly on the photo asking them to delete it.", correct: false, feedback: "Public shaming. Unsafe." },
+                                { text: "Ignore it. It's their private life.", correct: false, feedback: "Negligent. You have a duty of care if they are at risk." },
+                                { text: "Discuss it in person at the next session (General or 1-on-1).", correct: true, feedback: "Best approach. Educational conversation in a safe space." }
+                            ]
+                        },
+                        prompt: "Write one specific 'Digital Rule' you need to add to your Group Contract (e.g., regarding photos, group chats)."
+                    },
+                    {
+                        id: "summary",
+                        title: "Final Report",
+                        subtitle: "Ready to Download",
+                        icon: "fa-file-signature",
+                        content: `
+                            <div class="text-center py-10 bg-white rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-b from-slate-50 to-white z-0"></div>
+                                <div class="relative z-10">
+                                    <div class="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-sm border border-emerald-100">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                    <h3 class="text-3xl font-bold text-slate-800 mb-4">Audit Terminé</h3>
+                                    <p class="text-slate-600 max-w-lg mx-auto mb-10 text-lg">Vous avez navigué à travers les complexités de la sécurité. Vos réponses ont été compilées.</p>
+                                    
+                                    <button onclick="downloadReport()" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-gradient-to-r from-indigo-600 to-purple-600 font-lg rounded-full hover:shadow-lg hover:-translate-y-1 hover:shadow-indigo-200">
+                                        <i class="fa-solid fa-download mr-3 group-hover:animate-bounce"></i> Download My Safety Action Plan
+                                    </button>
+                                </div>
+                            </div>
+                        `
+                    }
+                ]
+            },
+            fr: {
+                nav: ["Introduction", "1. Contexte Physique", "2. Sécurité Émotionnelle", "3. Sécurité Relationnelle", "4. Cadre & Limites", "5. Dynamique de Groupe", "6. Espace Numérique", "Rapport Final"],
+                ui: {
+                    next: "Dimension Suivante",
+                    prev: "Retour",
+                    finish: "Terminer & Télécharger",
+                    downloadBtn: "Télécharger le Rapport PDF",
+                    quizTitle: "Brain Teaser : Que feriez-vous ?",
+                    theoryTitle: "Deep Dive : La Théorie",
+                    reflectTitle: "Audit de votre Pratique",
+                    reflectPlaceholder: "Documentez vos observations ou actions prévues ici...",
+                    correct: "Exactement ! Bien vu.",
+                    wrong: "Pas tout à fait. Pensez à l'impact long terme."
+                },
+                sections: [
+                    {
+                        id: "intro",
+                        title: "Le Filet de Sécurité Invisible",
+                        subtitle: "Introduction",
+                        icon: "fa-rocket",
+                        content: `
+                            <div class="bg-white p-10 rounded-3xl shadow-sm border border-slate-100 mb-8 relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                                <div class="relative z-10">
+                                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Bienvenue</h2>
+                                    <p class="text-lg text-slate-600 leading-relaxed mb-6 font-light">
+                                        Dans ce module, vous êtes invité·e à explorer ce que recouvre réellement la notion de sécurité. À travers différentes dimensions clés, vous prendrez le temps d’observer, de questionner et de relier ces éléments à votre propre pratique.
+                                    </p>
+                                    <div class="flex flex-wrap gap-3">
+                                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-semibold border border-indigo-100">
+                                            <i class="fa-solid fa-eye"></i> Observer
+                                        </div>
+                                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 rounded-full text-sm font-semibold border border-violet-100">
+                                            <i class="fa-solid fa-question"></i> Questionner
+                                        </div>
+                                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-semibold border border-emerald-100">
+                                            <i class="fa-solid fa-link"></i> Relier
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        id: "physical",
+                        title: "1. Sécurité Physique",
+                        subtitle: "Maslow avant Bloom",
+                        icon: "fa-shield-virus",
+                        theory: {
+                            title: "Maslow et la Charge Cognitive",
+                            text: "<strong>La Théorie :</strong> Abraham Maslow a démontré que les fonctions cognitives supérieures (apprentissage, empathie, créativité) sont inhibées quand les besoins de base (physiologie, sécurité) ne sont pas satisfaits. Neurobiologiquement, quand le cerveau détecte une menace (faim, froid, insécurité), l'amygdale 'pirate' le cortex préfrontal.<br><br><strong>Application :</strong> On ne peut pas mener un travail éducatif efficace si l'environnement physique génère du stress. La sécurité n'est pas juste l'absence d'accidents, c'est la présence d'un <strong>confort physique et d'une stabilité</strong> qui permettent au système nerveux de se détendre.<br><br><div class='bg-amber-50 p-4 rounded-xl border border-amber-100 text-sm text-amber-900 flex gap-3'><i class='fa-solid fa-lightbulb text-amber-500 mt-1'></i><div><strong>Conseil Pro :</strong> Utilisez le scan <strong>HALT</strong>. Le groupe est-il <strong>H</strong>ungry (Affamé), <strong>A</strong>ngry (En colère), <strong>L</strong>onely (Seul) ou <strong>T</strong>ired (Fatigué) ? Répondre à ces variables biologiques est souvent plus efficace que la discipline.</div></div>",
+                            visual: "maslow"
+                        },
+                        quiz: {
+                            q: "Scénario : Vous animez un atelier. Il est 17h. Le groupe est agité, n'écoute plus. Il reste 30 min de contenu.",
+                            options: [
+                                { text: "Forcer le passage. Discipliner pour focaliser.", correct: false, feedback: "Forcer l'attention quand les besoins biologiques (faim, fatigue) ne sont pas comblés crée des conflits inutiles." },
+                                { text: "Stop. Faire un 'energizer' immédiatement.", correct: false, feedback: "Attention : l'énergie haute peut aggraver le chaos s'ils sont réellement épuisés physiquement." },
+                                { text: "Pause. Vérifier la salle (Air ? Faim ? Pause ?).", correct: true, feedback: "Bingo. Adressez le besoin physique d'abord (aérer, boire, grignoter) pour réinitialiser les cerveaux." }
+                            ]
+                        },
+                        prompt: "Auditez votre espace : Y a-t-il des stresseurs physiques 'invisibles' (bruit, lumière, faim) qui affectent votre groupe ?"
+                    },
+                    {
+                        id: "emotional",
+                        title: "2. Sécurité Émotionnelle",
+                        subtitle: "La Fenêtre de Tolérance",
+                        icon: "fa-heart-pulse",
+                        theory: {
+                            title: "La Fenêtre de Tolérance (Dan Siegel)",
+                            text: "<strong>La Théorie :</strong> Dr Dan Siegel a défini la 'Fenêtre de Tolérance' comme la zone optimale d'activation où l'on peut apprendre et se connecter. Le stress ou les traumas rétrécissent cette fenêtre.<br><br><strong>Signes de Dérégulation :</strong><ul><li><strong>Hyper-activation (Combat/Fuite) :</strong> Système sympathique inondé. Agitation, agressivité, panique.</li><li><strong>Hypo-activation (Figement) :</strong> Système parasympathique dominant. Dissociation, silence, regard vide.</li></ul><br><strong>La Stratégie :</strong> Votre but est la <strong>Co-régulation</strong>. Vous prêtez votre système nerveux calme au jeune pour l'aider à rouvrir sa fenêtre. Punir un jeune dérégulé est inefficace ; il ne peut physiologiquement pas traiter l'information.",
+                            visual: "windowOfTolerance"
+                        },
+                        quiz: {
+                            q: "Brain Teaser : Un jeune partage une opinion controversée, légèrement offensante lors d'un débat.",
+                            options: [
+                                { text: "Couper court immédiatement. 'On ne dit pas ça ici.'", correct: false, feedback: "Cela l'humilie et le pousse hors de sa fenêtre (Fuite/Combat). L'apprentissage s'arrête." },
+                                { text: "Explorer calmement : 'C'est un mot fort. Qu'est-ce que tu entends par là ?'", correct: true, feedback: "Correct. Vous maintenez le lien tout en questionnant l'idée. *Nuance :* Si c'était un propos haineux direct attaquant quelqu'un, vous devriez intervenir pour protéger le groupe, mais ici, le dialogue est l'outil." },
+                                { text: "Ignorer pour éviter le conflit.", correct: false, feedback: "Dangereux. Le reste du groupe se sentira en insécurité si vous ne gérez pas la limite." }
+                            ]
+                        },
+                        prompt: "Pensez à un jeune souvent 'éteint' (hypo) ou 'explosif' (hyper). Quelle stratégie peut le ramener dans sa fenêtre de tolérance ?"
+                    },
+                    {
+                        id: "relational",
+                        title: "3. Sécurité Relationnelle",
+                        subtitle: "Du Drame à l'Empowerment",
+                        icon: "fa-users-between-lines",
+                        theory: {
+                            title: "Le Triangle de Karpman & Empowerment",
+                            text: "<strong>La Théorie :</strong> Stephen Karpman a cartographié les jeux psychologiques où l'on alterne entre <strong>Persécuteur</strong>, <strong>Victime</strong> et <strong>Sauveur</strong>. Les travailleurs sociaux tombent souvent dans le piège du 'Sauveur', ce qui maintient le jeune en 'Victime' impuissante.<br><br><strong>Nuance Critique :</strong> Avant de viser l'empowerment, il faut diagnostiquer la réalité du danger.<ul><li><strong>Étape 1 : Protection.</strong> S'il y a danger réel (harcèlement, abus), vous devez agir en protection. On ne coache pas quelqu'un dans un immeuble en feu.</li><li><strong>Étape 2 : Empowerment.</strong> Une fois la sécurité établie, évitez de résoudre les problèmes *à la place* du jeune. Passez à la <strong>Dynamique du Créateur</strong> (David Emerald) : guidez-le pour qu'il définisse ses propres solutions.</li></ul>C'est un processus long, pas une solution miracle.",
+                            visual: "karpman"
+                        },
+                        quiz: {
+                            q: "Scénario : Deux jeunes sont en conflit violent. L'un vient vous voir en exigeant que vous punissiez l'autre.",
+                            options: [
+                                { text: "Punir l'autre immédiatement pour montrer votre soutien.", correct: false, feedback: "Vous entrez dans le triangle en tant que Sauveur/Persécuteur. Vous renforcez la position de Victime." },
+                                { text: "Diagnostiquer la sécurité d'abord. Puis demander : 'Comment proposes-tu de régler cette situation ?'", correct: true, feedback: "Correct. D'abord, stopper la violence. Ensuite, renvoyer la responsabilité au jeune pour définir ses solutions (Empowerment)." },
+                                { text: "Lui dire de se débrouiller seul.", correct: false, feedback: "Trop passif (Négligence). S'il y a un déséquilibre de pouvoir, c'est dangereux." }
+                            ]
+                        },
+                        prompt: "Avez-vous tendance à être un Sauveur ? Comment pouvez-vous passer en mode 'Coach' lors de votre prochaine intervention ?"
+                    },
+                    {
+                        id: "boundaries",
+                        title: "4. Cadre & Limites",
+                        subtitle: "La Distance Professionnelle",
+                        icon: "fa-user-astronaut",
+                        theory: {
+                            title: "Responsabilité Contextuelle",
+                            text: "<strong>La Théorie :</strong> Il n'y a pas de 'bonne' distance unique. La limite appropriée est déterminée par des variables structurelles, pas par des préférences personnelles. Vous devez calibrer en permanence selon :<br><br><ul><li><strong>Vulnérabilité du Public :</strong> Plus la vulnérabilité est grande, plus le cadre doit être protecteur pour éviter la dépendance.</li><li><strong>Durée de la Relation :</strong> Une intervention ponctuelle demande des limites différentes d'un mentorat sur 3 ans.</li><li><strong>Cadre Institutionnel :</strong> Le travail de rue (horizontal) diffère de l'hébergement (hiérarchique/protecteur).</li></ul><br><strong>Le Principe Clé :</strong> La relation est un outil pour le développement du jeune, pas pour la gratification émotionnelle du pro. Chaque franchissement de limite (dévoilement de soi, toucher) doit avoir un but pédagogique.",
+                            visual: "boundaries"
+                        },
+                        quiz: {
+                            q: "Check Drapeau Rouge : Lequel est une violation de limite probable ?",
+                            options: [
+                                { text: "Partager une galère passée pertinente pour la situation.", correct: false, feedback: "C'est du 'dévoilement de soi approprié' à but pédagogique." },
+                                { text: "Inviter un jeune à venir passer la soirée chez vous.", correct: true, feedback: "Violation Majeure. Le domicile privé est un sanctuaire. Cela brise la sécurité du cadre et expose le pro et le jeune à des risques immenses." },
+                                { text: "Refuser de faire un câlin à un jeune.", correct: false, feedback: "C'est un choix de limite personnelle, pas une violation." }
+                            ]
+                        },
+                        prompt: "Identifiez une zone où vous pourriez être 'Sur-impliqué' (ex: penser à eux à la maison, prêter de l'argent, exceptions spéciales)."
+                    },
+                    {
+                        id: "group",
+                        title: "5. Dynamique de Groupe",
+                        subtitle: "Naviguer la Tempête",
+                        icon: "fa-people-group",
+                        theory: {
+                            title: "Les Étapes de Tuckman",
+                            text: "<strong>La Théorie :</strong> Bruce Tuckman a identifié que tout groupe traverse des étapes. Le <strong>Storming</strong> (conflit/rébellion) n'est pas un échec ; c'est une phase nécessaire où le groupe teste la sécurité et la confiance avant de pouvoir vraiment travailler (Performing).<br><br><strong>Votre Rôle Change :</strong><ul><li><strong>Forming :</strong> Soyez directif et accueillant.</li><li><strong>Storming :</strong> Soyez médiateur. Ne prenez pas les attaques personnellement.</li><li><strong>Norming :</strong> Mettez-vous en retrait, laissez-les s'approprier les règles.</li></ul><br><div class='bg-amber-50 p-4 rounded-xl border border-amber-100 text-sm text-amber-900 flex gap-3'><i class='fa-solid fa-lightbulb text-amber-500 mt-1'></i><div><strong>Conseil Pro :</strong> Quand le groupe se dispute, célébrez-le intérieurement. 'Super, on est en Storming. Maintenant on peut bâtir la vraie confiance.'</div></div>",
+                            visual: "tuckman"
+                        },
+                        quiz: {
+                            q: "Scénario : Pendant un temps libre, le groupe se scinde en deux 'clans' exclusifs qui refusent de partager le matériel commun. La tension monte.",
+                            options: [
+                                { text: "Confisquer le matériel jusqu'à ce qu'ils se calment.", correct: false, feedback: "Gère le symptôme mais supprime le processus de groupe. La tension ressortira ailleurs." },
+                                { text: "Les laisser se débrouiller, c'est naturel.", correct: false, feedback: "Insécurisant. Le 'Storming' sans guidage peut mener au harcèlement et à l'exclusion durable." },
+                                { text: "Faciliter une négociation : 'On a un problème de ressources. Comment on le règle ?'", correct: true, feedback: "Correct. Vous les guidez du Storming vers le Norming en les responsabilisant sur la solution." }
+                            ]
+                        },
+                        prompt: "À quelle étape est votre groupe actuel ? De quoi a-t-il besoin de vous *maintenant* pour passer à l'étape suivante ?"
+                    },
+                    {
+                        id: "digital",
+                        title: "6. Espace Numérique",
+                        subtitle: "Citoyenneté Numérique",
+                        icon: "fa-mobile-screen-button",
+                        theory: {
+                            title: "Empreinte & Citoyenneté Numérique",
+                            text: "<strong>La Théorie :</strong> Le monde numérique est souvent perçu par les jeunes comme séparé de la 'vraie vie', menant à l'<strong>Effet de Désinhibition en Ligne</strong>. La sécurité implique de faire le pont.<br><br><strong>Piliers Clés :</strong><ul><li><strong>Permanence :</strong> Enseigner que le 'droit à l'oubli' est techniquement difficile.</li><li><strong>Consentement & Image :</strong> Les implications légales et éthiques du partage de données d'autrui.</li><li><strong>Esprit Critique :</strong> Comprendre les algorithmes et les bulles de filtres.</li></ul><br><strong>Hygiène Pro :</strong> En tant que pro, votre présence numérique est publique. Le 'privé' n'existe pas vraiment. Maintenez une séparation stricte entre identité perso et disponibilité pro.",
+                            visual: "digital"
+                        },
+                        quiz: {
+                            q: "Scénario : Vous voyez un jeune de votre groupe poster des photos risquées sur un Instagram public.",
+                            options: [
+                                { text: "Commenter publiquement pour demander de supprimer.", correct: false, feedback: "Humiliation publique. Pas sécurisant." },
+                                { text: "Ignorer. C'est sa vie privée.", correct: false, feedback: "Négligent. Vous avez un devoir de protection s'il y a risque." },
+                                { text: "En discuter en personne à la prochaine séance.", correct: true, feedback: "Meilleure approche. Conversation éducative dans un espace sûr." }
+                            ]
+                        },
+                        prompt: "Écrivez une 'Règle Numérique' spécifique à ajouter à votre Contrat de Groupe (ex: photos, groupes de chat)."
+                    },
+                    {
+                        id: "summary",
+                        title: "Rapport Final",
+                        subtitle: "Prêt au téléchargement",
+                        icon: "fa-file-signature",
+                        content: `
+                            <div class="text-center py-10 bg-white rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-b from-slate-50 to-white z-0"></div>
+                                <div class="relative z-10">
+                                    <div class="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-sm border border-emerald-100">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                    <h3 class="text-3xl font-bold text-slate-800 mb-4">Audit Terminé</h3>
+                                    <p class="text-slate-600 max-w-lg mx-auto mb-10 text-lg">Vous avez navigué à travers les complexités de la sécurité. Vos réponses ont été compilées.</p>
+                                    
+                                    <button onclick="downloadReport()" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-gradient-to-r from-indigo-600 to-purple-600 font-lg rounded-full hover:shadow-lg hover:-translate-y-1 hover:shadow-indigo-200">
+                                        <i class="fa-solid fa-download mr-3 group-hover:animate-bounce"></i> Télécharger mon Plan d'Action
+                                    </button>
+                                </div>
+                            </div>
+                        `
+                    }
+                ]
+            }
+        };
+
+        // --- STATE ---
+        let lang = 'fr';
+        let currentStep = 0;
+        let userResponses = {};
+
+        // --- DOM ELEMENTS ---
+        const navMenu = document.getElementById('nav-menu');
+        const appContainer = document.getElementById('app-container');
+        const scrollArea = document.getElementById('scroll-area');
+        const sidebarProgress = document.getElementById('sidebar-progress');
+        const progressText = document.getElementById('progress-text');
+
+        // --- INIT ---
+        function init() {
+            const userLang = navigator.language || navigator.userLanguage;
+            if (userLang.startsWith('en')) lang = 'en';
+            updateUI();
+        }
+
+        function updateUI() {
+            renderNav();
+            renderContent();
+            updateLangButtons();
+            updateProgress();
+        }
+
+        function setLanguage(l) {
+            lang = l;
+            updateUI();
+        }
+
+        function updateProgress() {
+            const total = content[lang].sections.length;
+            const pct = Math.round(((currentStep + 1) / total) * 100);
+            sidebarProgress.style.width = `${pct}%`;
+            progressText.textContent = `${pct}%`;
+        }
+
+        function updateLangButtons() {
+            const btnEn = document.getElementById('btn-en');
+            const btnFr = document.getElementById('btn-fr');
+            if(lang === 'en') {
+                btnEn.className = "flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-white text-indigo-600 shadow-sm border border-slate-200";
+                btnFr.className = "flex-1 text-xs font-bold py-2 rounded-lg transition-all text-slate-400 hover:text-indigo-600";
+            } else {
+                btnFr.className = "flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-white text-indigo-600 shadow-sm border border-slate-200";
+                btnEn.className = "flex-1 text-xs font-bold py-2 rounded-lg transition-all text-slate-400 hover:text-indigo-600";
+            }
+        }
+
+        function renderNav() {
+            navMenu.innerHTML = content[lang].nav.map((title, idx) => {
+                const active = idx === currentStep ? 'active' : 'text-slate-500 font-medium hover:text-slate-800';
+                return `
+                    <button onclick="jumpTo(${idx})" class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm mb-1 ${active}">
+                        ${title}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function jumpTo(idx) {
+            currentStep = idx;
+            renderContent();
+            updateProgress();
+        }
+
+        function nextStep() {
+            if (currentStep < content[lang].sections.length - 1) {
+                currentStep++;
+                renderContent();
+                updateProgress();
+                scrollArea.scrollTo({top:0, behavior:'smooth'});
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                renderContent();
+                updateProgress();
+                scrollArea.scrollTo({top:0, behavior:'smooth'});
+            }
+        }
+
+        function toggleTheory(btn) {
+            const card = btn.closest('.reveal-card');
+            card.classList.toggle('open');
+        }
+
+        // --- NEW QUIZ HANDLER (INDEX BASED) ---
+        function handleQuizClick(btn, optionIndex) {
+            const section = content[lang].sections[currentStep];
+            if (!section.quiz) return;
+            
+            const option = section.quiz.options[optionIndex];
+            
+            // Disable siblings
+            const parent = btn.parentElement;
+            const buttons = parent.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+
+            // Style clicked button
+            if (option.correct) {
+                btn.classList.add('correct');
+                btn.innerHTML += ` <i class="fa-solid fa-check ml-2"></i>`;
+            } else {
+                btn.classList.add('wrong');
+                btn.innerHTML += ` <i class="fa-solid fa-xmark ml-2"></i>`;
+            }
+
+            // Show Feedback
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.className = `mt-4 p-4 rounded-xl text-sm font-medium fade-in border ${option.correct ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-rose-50 text-rose-800 border-rose-100'}`;
+            feedbackDiv.innerHTML = `<strong>${option.correct ? content[lang].ui.correct : content[lang].ui.wrong}</strong> ${option.feedback}`;
+            parent.appendChild(feedbackDiv);
+        }
+
+        function saveResponse(id, val) {
+            userResponses[id] = val;
+        }
+
+        function renderContent() {
+            const data = content[lang];
+            const section = data.sections[currentStep];
+            const isSummary = section.id === 'summary';
+
+            let html = `
+                <div class="fade-in">
+                    <!-- Header -->
+                    <div class="flex items-center gap-5 mb-10 pb-6 border-b border-slate-100">
+                        <div class="w-16 h-16 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-indigo-600 text-2xl relative overflow-hidden">
+                            <div class="absolute inset-0 bg-indigo-50/50"></div>
+                            <i class="fa-solid ${section.icon} relative z-10"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">${section.subtitle}</span>
+                            <h2 class="text-3xl font-bold text-slate-800 mt-3 tracking-tight">${section.title}</h2>
+                        </div>
+                    </div>
+            `;
+
+            if (section.content) {
+                html += section.content;
+            } else {
+                // IT IS A LEARNING SECTION
+                
+                // 1. THEORY CARD (Accordion)
+                if (section.theory) {
+                    html += `
+                        <div class="reveal-card bg-white rounded-2xl shadow-sm border border-slate-100 mb-8 overflow-hidden group">
+                            <button onclick="toggleTheory(this)" class="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-slate-50/50 transition-colors">
+                                <span class="font-bold text-slate-700 flex items-center gap-3 text-lg">
+                                    <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 text-sm"><i class="fa-solid fa-book-open"></i></div>
+                                    ${data.ui.theoryTitle}
+                                </span>
+                                <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-500 transition-colors">
+                                    <i class="fa-solid fa-chevron-down icon-rotate transition-transform duration-300"></i>
+                                </div>
+                            </button>
+                            <div class="reveal-content bg-white">
+                                <div class="p-8 prose prose-slate max-w-none border-t border-slate-50">
+                                    <!-- INJECT VISUAL HERE IF EXISTS -->
+                                    ${section.theory.visual && Visuals[section.theory.visual] ? Visuals[section.theory.visual]() : ''}
+                                    
+                                    <h4 class="text-xl font-bold text-slate-800 mb-3 mt-6">${section.theory.title}</h4>
+                                    <div class="text-slate-600 leading-relaxed text-lg">${section.theory.text}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 2. INTERACTIVE QUIZ
+                if (section.quiz) {
+                    html += `
+                        <div class="bg-gradient-to-br from-indigo-50 to-white rounded-2xl p-8 border border-indigo-100/60 mb-8 shadow-sm relative overflow-hidden">
+                             <!-- Decorative background shape -->
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-100/30 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
+
+                            <h4 class="font-bold text-indigo-900 mb-4 flex items-center gap-3 text-lg relative z-10">
+                                <i class="fa-solid fa-brain text-indigo-500"></i> ${data.ui.quizTitle}
+                            </h4>
+                            <p class="text-base text-indigo-900/80 mb-6 font-medium leading-relaxed relative z-10">${section.quiz.q}</p>
+                            <div class="flex flex-col gap-3 relative z-10">
+                                ${section.quiz.options.map((opt, idx) => `
+                                    <button onclick="handleQuizClick(this, ${idx})" 
+                                        class="quiz-btn w-full text-left p-5 rounded-xl bg-white border border-indigo-100 text-slate-600 font-medium shadow-sm hover:shadow-md text-sm">
+                                        ${opt.text}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 3. REFLECTION PROMPT
+                if (section.prompt) {
+                    const savedVal = userResponses[section.id] || "";
+                    html += `
+                        <div class="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm relative">
+                            <label class="block font-bold text-slate-700 mb-3 flex items-center gap-3 text-lg">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 text-sm"><i class="fa-solid fa-pen-nib"></i></div>
+                                ${data.ui.reflectTitle}
+                            </label>
+                            <p class="text-sm text-slate-500 mb-4 ml-11 border-l-2 border-slate-100 pl-4">${section.prompt}</p>
+                            <textarea 
+                                oninput="saveResponse('${section.id}', this.value)"
+                                class="w-full p-4 rounded-xl bg-slate-50/50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm text-slate-800 placeholder-slate-400"
+                                rows="4"
+                                placeholder="${data.ui.reflectPlaceholder}">${savedVal}</textarea>
+                        </div>
+                    `;
+                }
+            }
+
+            // Footer Navigation
+            if (!isSummary) {
+                html += `
+                    <div class="flex justify-between items-center mt-12 pt-8 border-t border-slate-100">
+                        <button onclick="prevStep()" class="text-slate-400 hover:text-slate-600 font-semibold px-4 py-2 transition-colors flex items-center gap-2 ${currentStep === 0 ? 'invisible' : ''}">
+                            <i class="fa-solid fa-arrow-left text-xs"></i> ${data.ui.prev}
+                        </button>
+                        <button onclick="nextStep()" class="bg-slate-900 hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-slate-200 hover:shadow-indigo-200 transform hover:-translate-y-0.5 transition-all flex items-center gap-2 group">
+                            ${data.ui.next} <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
+                `;
+            }
+
+            html += `</div>`; // Close fade-in wrapper
+            appContainer.innerHTML = html;
+        }
+
+        // --- PDF GENERATION ---
+        function downloadReport() {
+            const d = content[lang];
+            const date = new Date().toLocaleDateString();
+            
+            let html = `
+                <html>
+                <head>
+                    <title>Safety Action Plan</title>
+                    <style>
+                        body { font-family: 'Helvetica', sans-serif; padding: 40px; color: #333; }
+                        .header { border-bottom: 3px solid #4f46e5; padding-bottom: 20px; margin-bottom: 30px; }
+                        h1 { color: #1e293b; margin: 0; }
+                        .meta { color: #64748b; font-size: 14px; margin-top: 5px; }
+                        .section { margin-bottom: 30px; page-break-inside: avoid; }
+                        h3 { background: #f8fafc; padding: 10px 15px; border-left: 5px solid #4f46e5; margin-bottom: 10px; color: #1e293b; }
+                        .prompt { font-style: italic; font-size: 13px; color: #64748b; margin-bottom: 8px; }
+                        .answer { background: #fff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; white-space: pre-wrap; font-size: 14px; }
+                        .empty { color: #ef4444; font-size: 12px; }
+                        .footer { margin-top: 50px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Safety Audit & Action Plan</h1>
+                        <div class="meta">Generated: ${date} | Language: ${lang.toUpperCase()} | © Kévin Le Gal 2025</div>
+                    </div>
+            `;
+
+            d.sections.forEach(sec => {
+                if (sec.prompt) {
+                    const response = userResponses[sec.id];
+                    html += `
+                        <div class="section">
+                            <h3>${sec.title}</h3>
+                            <div class="prompt">Audit Question: ${sec.prompt}</div>
+                            ${response 
+                                ? `<div class="answer">${response}</div>` 
+                                : `<div class="answer empty">[No notes added]</div>`}
+                        </div>
+                    `;
+                }
+            });
+
+            html += `
+                    <div class="footer">
+                        Self-Directed Learning Module | Youth Work Safety | © Kévin Le Gal 2025
+                    </div>
+                    <script>window.print();<\/script>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([html], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Safety_Plan_${lang}_${Date.now()}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        init();
+    </script>
+</body>
+</html>
