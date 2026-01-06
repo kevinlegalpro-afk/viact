@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOUTH_DATA_PROTOCOL_V3.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-green: #0f0;
+            --terminal-dim: #00cc00;
+            --terminal-bg: #050505;
+            --terminal-glow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        body {
+            background-color: #000;
+            color: var(--terminal-green);
+            font-family: 'Fira Code', monospace;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-weight: 500;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- STANDARD TERMINAL STYLES --- */
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.6;
+        }
+
+        .glow-text {
+            text-shadow: var(--terminal-glow);
+        }
+        
+        .read-text {
+            text-shadow: none;
+            color: #ccffcc;
+        }
+
+        .border-glow {
+            border: 1px solid var(--terminal-green);
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #004400; 
+            border: 1px solid var(--terminal-green);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--terminal-green); 
+        }
+
+        .nav-btn.active {
+            background-color: var(--terminal-green);
+            color: black;
+            font-weight: 700;
+        }
+
+        .data-block {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .data-block:hover {
+            transform: translateY(-2px);
+            background-color: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }
+
+        #modal-overlay {
+            background-color: rgba(0, 0, 0, 0.95);
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.85rem;
+        }
+        th, td {
+            border: 1px solid #005500;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #002200;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #001100;
+        }
+        tr:hover {
+            background-color: #003300;
+        }
+
+        #boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .loader-bar {
+            width: 300px;
+            height: 20px;
+            border: 2px solid var(--terminal-green);
+            margin-top: 20px;
+            position: relative;
+        }
+        .loader-progress {
+            height: 100%;
+            background-color: var(--terminal-green);
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(#0f0 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.05;
+            z-index: -1;
+        }
+
+        /* --- ACCESSIBILITY MODE OVERRIDES --- */
+        body.accessible-mode {
+            background-color: #f8f9fa !important;
+            color: #111 !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        }
+
+        /* Hide decorative elements */
+        body.accessible-mode .scanlines,
+        body.accessible-mode .matrix-bg,
+        body.accessible-mode .glow-text,
+        body.accessible-mode .matrix-rain {
+            display: none !important;
+        }
+
+        /* Reset Colors for High Contrast */
+        body.accessible-mode header,
+        body.accessible-mode main,
+        body.accessible-mode footer,
+        body.accessible-mode #main-interface {
+            background-color: #ffffff !important;
+            color: #000 !important;
+            border-color: #000 !important;
+            text-shadow: none !important;
+        }
+
+        /* Reset Text Colors */
+        body.accessible-mode .text-green-100,
+        body.accessible-mode .text-green-200,
+        body.accessible-mode .text-green-300,
+        body.accessible-mode .text-green-400,
+        body.accessible-mode .text-green-500,
+        body.accessible-mode .text-green-600,
+        body.accessible-mode .text-green-700,
+        body.accessible-mode .read-text,
+        body.accessible-mode h1,
+        body.accessible-mode h2,
+        body.accessible-mode h3,
+        body.accessible-mode h4,
+        body.accessible-mode p,
+        body.accessible-mode span {
+            color: #000 !important;
+            text-shadow: none !important;
+        }
+
+        body.accessible-mode .text-white {
+            color: #000 !important;
+        }
+
+        /* Reset Buttons */
+        body.accessible-mode button,
+        body.accessible-mode .nav-btn {
+            background-color: #eee !important;
+            color: #000 !important;
+            border: 2px solid #000 !important;
+            box-shadow: none !important;
+            font-family: 'Segoe UI', sans-serif !important;
+            font-weight: bold !important;
+        }
+
+        body.accessible-mode .nav-btn.active {
+            background-color: #000 !important;
+            color: #fff !important;
+            text-decoration: underline;
+        }
+
+        body.accessible-mode button:hover {
+            background-color: #ddd !important;
+        }
+
+        /* Cards and Blocks */
+        body.accessible-mode .data-block {
+            background-color: #fff !important;
+            border: 2px solid #000 !important;
+            box-shadow: 4px 4px 0px #000 !important;
+            transform: none !important;
+        }
+        
+        body.accessible-mode .data-block:hover {
+            background-color: #f0f0f0 !important;
+        }
+
+        body.accessible-mode .data-block div { 
+            /* The tag on the card */
+            background-color: #000 !important;
+            color: #fff !important;
+        }
+
+        /* Modal Overrides */
+        body.accessible-mode #modal-overlay {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        body.accessible-mode #modal-overlay > div {
+            background-color: #fff !important;
+            border: 4px solid #000 !important;
+            box-shadow: 0 0 0 100vmax rgba(0,0,0,0.5) !important;
+            color: #000 !important;
+        }
+        body.accessible-mode #modal-overlay button {
+            border-color: #000 !important;
+            color: #000 !important;
+        }
+
+        /* Table Overrides */
+        body.accessible-mode table th {
+            background-color: #000 !important;
+            color: #fff !important;
+            border: 1px solid #000 !important;
+        }
+        body.accessible-mode table td {
+            border: 1px solid #000 !important;
+            color: #000 !important;
+        }
+        body.accessible-mode tr:nth-child(even) {
+            background-color: #f2f2f2 !important;
+        }
+        body.accessible-mode tr:hover {
+            background-color: #e6e6e6 !important;
+        }
+
+        /* Alerts */
+        body.accessible-mode .border-red-800,
+        body.accessible-mode .text-red-300,
+        body.accessible-mode .text-red-500 {
+            border-color: #d32f2f !important;
+            color: #d32f2f !important;
+            background-color: #ffebee !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+    <div class="matrix-bg"></div>
+
+    <!-- Boot Sequence -->
+    <div id="boot-screen">
+        <div class="text-xl font-bold glow-text mb-4">INITIALIZING SECURE CONNECTION...</div>
+        <div id="boot-text" class="text-xs text-green-700 h-24 w-80 overflow-hidden mb-4"></div>
+        <div class="loader-bar">
+            <div class="loader-progress" id="progress"></div>
+        </div>
+        <div id="access-msg" class="mt-4 text-green-400 opacity-0">ACCESS GRANTED</div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="bg-black border-2 border-green-500 w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_0_50px_rgba(0,255,0,0.2)] relative">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center bg-green-900 bg-opacity-30 p-4 border-b border-green-700">
+                <h2 id="modal-title" class="text-xl font-bold glow-text">PROTOCOL_DETAILS</h2>
+                <button onclick="closeModal()" class="text-green-500 hover:text-white font-bold border border-green-500 px-3 hover:bg-green-700 transition-colors" aria-label="Close Modal">X</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1" id="modal-body">
+                <!-- Injected via JS -->
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-green-800 bg-black text-right footer-modal">
+                 <button id="compare-btn" onclick="toggleComparison()" class="mr-4 text-sm bg-green-900 text-green-100 px-4 py-2 border border-green-600 hover:bg-green-600 hover:text-black transition-colors">
+                    [+] INITIALIZE_COMPARISON_MATRIX
+                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div id="main-interface" class="hidden flex-col h-screen max-w-7xl mx-auto w-full p-4">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center border-b border-green-900 pb-4 mb-6 bg-black bg-opacity-90 gap-4">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="w-12 h-12 border-glow flex items-center justify-center text-2xl font-bold bg-green-900 bg-opacity-20 icon-box">
+                    &#9763;
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold glow-text tracking-widest">YOUTH_DATA_PROTOCOL</h1>
+                    <p class="text-xs text-green-600 font-bold">SECURE TRAINING MODULE // V.3.1</p>
+                </div>
+            </div>
+            <div class="flex gap-4 items-center flex-wrap justify-end w-full md:w-auto">
+                <div class="text-xs text-right hidden lg:block text-green-500 info-panel">
+                    <p>USER: GUEST_ADMIN</p>
+                    <p>LOC: WORLDWIDE</p>
+                    <p id="clock">00:00:00</p>
+                </div>
+                <!-- Buttons -->
+                <div class="flex gap-2">
+                    <button onclick="toggleA11y()" id="a11y-btn" class="border-2 border-green-600 px-3 py-2 hover:bg-green-600 hover:text-black transition-colors font-bold text-sm bg-black text-green-400" aria-label="Activer le mode haute lisibilité" aria-pressed="false">
+                        👁 MODE LISIBLE : OFF
+                    </button>
+                    <button onclick="toggleLang()" class="border-2 border-green-600 px-3 py-2 hover:bg-green-600 hover:text-black transition-colors font-bold text-sm bg-black text-green-400" aria-label="Changer la langue">
+                        [ <span id="lang-btn-text">EN / FR</span> ]
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="flex flex-wrap gap-2 mb-6" id="nav-container" role="navigation">
+            <!-- Injected by JS -->
+        </nav>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto pr-2 relative border border-green-800 bg-black p-6 shadow-lg rounded-sm" id="content-area" role="main">
+            <!-- Content Injected by JS -->
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-4 border-t border-green-900 pt-2 text-center text-xs text-green-700 font-mono">
+            SYSTEM STATUS: STABLE | ENCRYPTION: AES-256 | © Kévin Le Gal 2025
+        </footer>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const content = {
+            fr: {
+                nav: ["01_CONSTAT", "02_RÉGLEMENTATIONS", "03_BONNES_PRATIQUES", "04_TERMINER"],
+                sections: {
+                    intro: {
+                        title: "01 // DIAGNOSTIC SYSTÈME : CONSTAT GÉNÉRAL",
+                        subtitle: "La vulnérabilité des données dans le travail jeunesse",
+                        body: [
+                            "Le secteur jeunesse traite une quantité massive de données sensibles (santé, situation familiale, identité, géolocalisation).",
+                            "La numérisation rapide des pratiques (réseaux sociaux, inscription en ligne, Discord/WhatsApp) a ouvert des brèches de sécurité critiques.",
+                            "CONSTAT CRITIQUE : La confiance est la monnaie du travail jeunesse. Une violation de données n'est pas seulement un problème technique, c'est une rupture de contrat moral avec le jeune.",
+                            "Les travailleurs jeunesse sont souvent des 'gardiens de données' sans formation adéquate, utilisant leurs outils personnels (BYOD) dans des environnements non sécurisés."
+                        ],
+                        alert: "ATTENTION : Le manque de protocole expose les mineurs au cyber-harcèlement, à l'usurpation d'identité et au profilage commercial."
+                    },
+                    regs: {
+                        title: "02 // PROTOCOLES GLOBAUX : CADRE LÉGAL",
+                        subtitle: "Cliquez sur un protocole ou accédez à la matrice comparative",
+                        compareMainBtn: "[ + ] ACCÉDER DIRECTEMENT À LA MATRICE COMPARATIVE",
+                        cards: [
+                            { id: 'rgpd', title: "RGPD / GDPR (Europe)", desc: "Le standard mondial de référence. Strict et complet." },
+                            { id: 'coppa', title: "COPPA (USA)", desc: "Protection spécifique pour les enfants de moins de 13 ans." },
+                            { id: 'un', title: "Principes UN / ONU", desc: "Droits fondamentaux de l'enfant dans l'environnement numérique." },
+                            { id: 'min', title: "Principe de Minimisation", desc: "La règle d'or opérationnelle : 'Besoin d'en connaitre'." }
+                        ],
+                        details: {
+                            rgpd: "Le Règlement Général sur la Protection des Données (RGPD) est une loi européenne qui protège la vie privée et les données personnelles. Pour le travail jeunesse, il impose de savoir exactement QUOI est collecté, POURQUOI, et OÙ cela est stocké. Les mineurs (âge variable selon pays, souvent 13-16 ans) bénéficient d'une protection renforcée.",
+                            coppa: "Le Children's Online Privacy Protection Act (COPPA) impose des exigences aux opérateurs de sites Web ou de services en ligne destinés aux enfants de moins de 13 ans. Il exige le consentement vérifiable des parents.",
+                            un: "La Convention relative aux droits de l'enfant s'applique au monde numérique. L'intérêt supérieur de l'enfant est la considération primordiale. Les enfants ont droit à la vie privée, à l'accès à l'information et à la protection contre les préjudices.",
+                            min: "La minimisation des données signifie que vous ne devez collecter que les données strictement nécessaires à l'objectif poursuivi. Si vous n'avez pas besoin de la date de naissance complète pour une activité, ne la demandez pas."
+                        },
+                        compareBtn: "[+] AFFICHER MATRICE COMPARATIVE (15 POINTS)",
+                        compareHide: "[-] MASQUER MATRICE",
+                        tableHeaders: ["Critère", "RGPD (UE)", "COPPA (USA)", "ONU (Intl)"]
+                    },
+                    practices: {
+                        title: "03 // OPÉRATIONS SÉCURISÉES : 20 BONNES PRATIQUES",
+                        subtitle: "Liste de contrôle opérationnelle pour le terrain",
+                        list: [
+                            "Verrouillage systématique des écrans (PC/Mobile) en cas d'absence.",
+                            "Utilisation de gestionnaires de mots de passe robustes.",
+                            "Authentification à double facteur (2FA) activée partout.",
+                            "Séparation stricte : Outils Pro vs Outils Perso.",
+                            "Chiffrement des disques durs externes et clés USB.",
+                            "Mises à jour logicielles automatiques activées.",
+                            "Pas de données sensibles (listes de noms) sur le Cloud public (Google Drive/Dropbox) sans cryptage.",
+                            "Utilisation de VPN sur les Wifi publics.",
+                            "Consentement éclairé signé par les tuteurs pour toute photo.",
+                            "Floutage des visages des mineurs sur les réseaux sociaux publics.",
+                            "Suppression automatique des données inactives après 2 ans (Droit à l'oubli).",
+                            "Utilisation de pseudonymes pour les fichiers internes sensibles.",
+                            "Désactivation de la géolocalisation sur les photos partagées.",
+                            "Charte informatique signée par l'équipe et les jeunes.",
+                            "Nettoyage régulier des conversations (WhatsApp/Signal/Discord).",
+                            "Vérification des paramètres de confidentialité des apps utilisées.",
+                            "Ne jamais envoyer de mots de passe par email.",
+                            "Sauvegardes (Backups) régulières et déconnectées du réseau.",
+                            "Plan de réponse en cas de fuite (Qui contacter ?).",
+                            "Formation continue annuelle sur la cybersécurité."
+                        ]
+                    },
+                    end: {
+                        title: "04 // FIN DE SESSION",
+                        msg: "Formation terminée. Le système va s'éteindre.",
+                        btn: "DÉCONNEXION"
+                    }
+                }
+            },
+            en: {
+                nav: ["01_STATUS", "02_REGULATIONS", "03_BEST_PRACTICES", "04_TERMINATE"],
+                sections: {
+                    intro: {
+                        title: "01 // SYSTEM DIAGNOSTIC: GENERAL STATUS",
+                        subtitle: "Data vulnerability in Youth Work",
+                        body: [
+                            "The youth sector processes massive amounts of sensitive data (health, family status, identity, geolocation).",
+                            "Rapid digitalization of practices (social media, online registration, Discord/WhatsApp) has opened critical security breaches.",
+                            "CRITICAL STATUS: Trust is the currency of youth work. A data breach is not just a technical glitch; it is a breach of the moral contract with the young person.",
+                            "Youth workers are often 'data guardians' without adequate training, using personal devices (BYOD) in unsecured environments."
+                        ],
+                        alert: "WARNING: Lack of protocol exposes minors to cyberbullying, identity theft, and commercial profiling."
+                    },
+                    regs: {
+                        title: "02 // GLOBAL PROTOCOLS: LEGAL FRAMEWORK",
+                        subtitle: "Click on a protocol or access the comparison matrix",
+                        compareMainBtn: "[ + ] ACCESS COMPARISON MATRIX DIRECTLY",
+                        cards: [
+                            { id: 'rgpd', title: "GDPR (Europe)", desc: "The global gold standard. Strict and comprehensive." },
+                            { id: 'coppa', title: "COPPA (USA)", desc: "Specific protection for children under 13." },
+                            { id: 'un', title: "UN Principles", desc: "Fundamental rights of the child in the digital environment." },
+                            { id: 'min', title: "Minimization Principle", desc: "The operational golden rule: 'Need to know only'." }
+                        ],
+                        details: {
+                            rgpd: "The General Data Protection Regulation (GDPR) is an EU law protecting privacy and personal data. For youth work, it mandates knowing exactly WHAT is collected, WHY, and WHERE it is stored. Minors (age varies by country, often 13-16) get enhanced protection.",
+                            coppa: "The Children's Online Privacy Protection Act (COPPA) places requirements on operators of websites or online services directed to children under 13. It requires verifiable parental consent.",
+                            un: "The Convention on the Rights of the Child applies to the digital world. The best interests of the child are the primary consideration. Children have rights to privacy, access to information, and protection from harm.",
+                            min: "Data minimization means you should only collect data strictly necessary for the purpose. If you don't need the full birthdate for an activity, don't ask for it."
+                        },
+                        compareBtn: "[+] SHOW COMPARISON MATRIX (15 POINTS)",
+                        compareHide: "[-] HIDE MATRIX",
+                        tableHeaders: ["Criteria", "GDPR (EU)", "COPPA (USA)", "UN (Intl)"]
+                    },
+                    practices: {
+                        title: "03 // SECURE OPS: 20 BEST PRACTICES",
+                        subtitle: "Operational Checklist for Fieldwork",
+                        list: [
+                            "Systematic screen locking (PC/Mobile) when away.",
+                            "Use of robust password managers.",
+                            "Two-Factor Authentication (2FA) enabled everywhere.",
+                            "Strict separation: Professional vs. Personal devices.",
+                            "Encryption of external hard drives and USB keys.",
+                            "Automatic software updates enabled.",
+                            "No sensitive data (name lists) on public Cloud (Drive/Dropbox) without encryption.",
+                            "Use of VPN on public Wifi networks.",
+                            "Informed consent signed by guardians for any media.",
+                            "Blurring minors' faces on public social media.",
+                            "Automatic deletion of inactive data after 2 years (Right to be forgotten).",
+                            "Use of pseudonyms for sensitive internal files.",
+                            "Disabling geolocation on shared photos.",
+                            "IT Charter signed by the team and the youth.",
+                            "Regular purging of chat logs (WhatsApp/Signal/Discord).",
+                            "Privacy setting audit of all apps used.",
+                            "Never send passwords via email.",
+                            "Regular backups stored offline.",
+                            "Incident Response Plan (Who to contact?).",
+                            "Annual cybersecurity refresher training."
+                        ]
+                    },
+                    end: {
+                        title: "04 // SESSION END",
+                        msg: "Training complete. System shutting down.",
+                        btn: "LOGOUT"
+                    }
+                }
+            }
+        };
+
+        const comparisonData = [
+            { id: 1,  criteria: { fr: "Zone Géographique", en: "Scope (Geography)" },        rgpd: "UE + Extraterritorial", coppa: "USA", un: "Global (196 pays)" },
+            { id: 2,  criteria: { fr: "Âge de l'enfant", en: "Age of Child" },               rgpd: "13 à 16 ans (selon pays)", coppa: "< 13 ans", un: "< 18 ans" },
+            { id: 3,  criteria: { fr: "Consentement Parental", en: "Parental Consent" },     rgpd: "Obligatoire (vérifiable)", coppa: "Strictement Obligatoire", un: "Encouragé / Droit de l'enfant" },
+            { id: 4,  criteria: { fr: "Droit à l'oubli", en: "Right to Erasure" },           rgpd: "Oui (Article 17)", coppa: "Oui (Sur demande)", un: "Principe fondamental" },
+            { id: 5,  criteria: { fr: "Minimisation Données", en: "Data Minimization" },     rgpd: "Principe clé", coppa: "Limité au nécessaire", un: "Protection vie privée" },
+            { id: 6,  criteria: { fr: "Sanctions Financières", en: "Fines/Penalties" },      rgpd: "Très lourdes (4% CA)", coppa: "Lourdes (par violation)", un: "Politique / Diplomatique" },
+            { id: 7,  criteria: { fr: "Notification Fuite", en: "Data Breach Notification" }, rgpd: "72 heures max", coppa: "Non spécifié (State laws)", un: "N/A" },
+            { id: 8,  criteria: { fr: "Données Sensibles", en: "Sensitive Data Categories" }, rgpd: "Catégories spéciales (art 9)", coppa: "Non spécifique", un: "Haute Protection" },
+            { id: 9,  criteria: { fr: "Droit d'accès", en: "Right to Access" },              rgpd: "Oui", coppa: "Oui (Parents)", un: "Oui (Enfant)" },
+            { id: 10, criteria: { fr: "Profilage Auto", en: "Automated Profiling" },         rgpd: "Droit de refus", coppa: "Restreint", un: "Déconseillé" },
+            { id: 11, criteria: { fr: "Privacy by Design", en: "Privacy by Design" },        rgpd: "Obligatoire", coppa: "Recommandé", un: "Standard attendu" },
+            { id: 12, criteria: { fr: "Portabilité Données", en: "Data Portability" },       rgpd: "Oui", coppa: "Non", un: "N/A" },
+            { id: 13, criteria: { fr: "Délégué (DPO)", en: "Data Officer (DPO)" },           rgpd: "Obligatoire (certains cas)", coppa: "Non", un: "N/A" },
+            { id: 14, criteria: { fr: "Langage Clair", en: "Plain Language" },               rgpd: "Adapté à l'enfant", coppa: "Avis clair aux parents", un: "Accessible à l'enfant" },
+            { id: 15, criteria: { fr: "Marketing Ciblé", en: "Targeted Marketing" },         rgpd: "Restreint/Interdit", coppa: "Interdit sans Opt-in", un: "Protection vs exploitation" }
+        ];
+
+        // --- STATE ---
+        let currentLang = 'fr';
+        let currentTab = 0;
+        let isComparisonVisible = false;
+        let isA11yMode = false;
+
+        // --- DOM ELEMENTS ---
+        const dom = {
+            boot: document.getElementById('boot-screen'),
+            bootText: document.getElementById('boot-text'),
+            progress: document.getElementById('progress'),
+            accessMsg: document.getElementById('access-msg'),
+            main: document.getElementById('main-interface'),
+            nav: document.getElementById('nav-container'),
+            content: document.getElementById('content-area'),
+            clock: document.getElementById('clock'),
+            langBtn: document.getElementById('lang-btn-text'),
+            modal: document.getElementById('modal-overlay'),
+            modalBody: document.getElementById('modal-body'),
+            modalTitle: document.getElementById('modal-title'),
+            compareBtn: document.getElementById('compare-btn'),
+            a11yBtn: document.getElementById('a11y-btn')
+        };
+
+        // --- BOOT SEQUENCE ---
+        function runBootSequence() {
+            const logs = [
+                "Loading Kernel...",
+                "Optimizing Display...",
+                "High Contrast Mode: READY",
+                "Connecting to secure server...",
+                "Handshake complete."
+            ];
+            
+            let i = 0;
+            const logInterval = setInterval(() => {
+                if (i < logs.length) {
+                    const p = document.createElement('div');
+                    p.innerText = `> ${logs[i]}`;
+                    dom.bootText.appendChild(p);
+                    dom.bootText.scrollTop = dom.bootText.scrollHeight;
+                    i++;
+                }
+            }, 300);
+
+            let width = 0;
+            const progInterval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(progInterval);
+                    clearInterval(logInterval);
+                    dom.accessMsg.classList.remove('opacity-0');
+                    setTimeout(() => {
+                        dom.boot.style.display = 'none';
+                        dom.main.classList.remove('hidden');
+                        dom.main.classList.add('flex');
+                        renderApp();
+                    }, 1000);
+                } else {
+                    width += 4;
+                    dom.progress.style.width = width + '%';
+                }
+            }, 30);
+        }
+
+        // --- CORE FUNCTIONS ---
+
+        function toggleLang() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            renderApp();
+            if(!dom.modal.classList.contains('hidden')) {
+               closeModal();
+            }
+        }
+
+        function toggleA11y() {
+            isA11yMode = !isA11yMode;
+            if (isA11yMode) {
+                document.body.classList.add('accessible-mode');
+                dom.a11yBtn.innerText = "👁 MODE LISIBLE : ON";
+                dom.a11yBtn.classList.remove('text-green-400');
+                dom.a11yBtn.classList.add('text-black', 'bg-white');
+                dom.a11yBtn.setAttribute('aria-pressed', 'true');
+            } else {
+                document.body.classList.remove('accessible-mode');
+                dom.a11yBtn.innerText = "👁 MODE LISIBLE : OFF";
+                dom.a11yBtn.classList.add('text-green-400');
+                dom.a11yBtn.classList.remove('text-black', 'bg-white');
+                dom.a11yBtn.setAttribute('aria-pressed', 'false');
+            }
+        }
+
+        function setTab(index) {
+            currentTab = index;
+            renderApp();
+        }
+
+        function renderApp() {
+            const data = content[currentLang];
+            dom.langBtn.innerText = currentLang.toUpperCase();
+
+            // Render Nav
+            dom.nav.innerHTML = '';
+            data.nav.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.className = `nav-btn px-4 py-2 border border-green-700 text-sm hover:bg-green-800 hover:text-white transition-all mb-2 ${index === currentTab ? 'active' : 'text-green-500'}`;
+                btn.innerText = `[ ${item} ]`;
+                btn.onclick = () => setTab(index);
+                // Accessibility Attributes
+                btn.setAttribute('aria-pressed', index === currentTab);
+                dom.nav.appendChild(btn);
+            });
+
+            // Render Content
+            dom.content.innerHTML = '';
+            
+            if (currentTab === 0) renderIntro(data.sections.intro);
+            else if (currentTab === 1) renderRegs(data.sections.regs);
+            else if (currentTab === 2) renderPractices(data.sections.practices);
+            else if (currentTab === 3) renderEnd(data.sections.end);
+        }
+
+        // --- RENDERERS ---
+
+        function renderIntro(data) {
+            let html = `
+                <div class="mb-6 text-3xl font-bold border-b border-green-800 pb-2 text-white">${data.title}</div>
+                <h3 class="text-xl text-green-300 mb-6 font-bold">> ${data.subtitle}</h3>
+                <div class="space-y-4 text-lg">
+            `;
+            
+            data.body.forEach(p => {
+                html += `<p class="leading-relaxed border-l-4 border-green-700 pl-4 py-2 bg-green-900 bg-opacity-20 read-text">${p}</p>`;
+            });
+
+            html += `
+                </div>
+                <div class="mt-8 border-2 border-red-800 bg-red-900 bg-opacity-10 p-4">
+                    <span class="text-red-500 font-bold">⚠ ALERT_SYSTEM:</span> 
+                    <span class="text-red-300 read-text">${data.alert}</span>
+                </div>
+            `;
+            dom.content.innerHTML = html;
+        }
+
+        function renderRegs(data) {
+            let html = `
+                <div class="mb-6 text-3xl font-bold text-white">${data.title}</div>
+                <p class="mb-4 text-green-300 font-bold">> ${data.subtitle}</p>
+                
+                <button onclick="openComparisonOnly()" class="mb-8 w-full border-2 border-green-500 bg-green-900 bg-opacity-20 py-3 hover:bg-green-500 hover:text-black font-bold transition-all text-green-100 flex items-center justify-center gap-2">
+                    ${data.compareMainBtn}
+                </button>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            `;
+
+            data.cards.forEach(card => {
+                html += `
+                    <button onclick="openProtocolModal('${card.id}', '${card.title}')" class="data-block border-2 border-green-700 p-6 relative overflow-hidden text-left w-full bg-black">
+                        <div class="absolute top-0 right-0 bg-green-800 text-white text-xs px-2 py-1 font-bold">CLICK_TO_ACCESS</div>
+                        <h4 class="text-xl font-bold mb-3 text-white underline decoration-green-500 decoration-2">${card.title}</h4>
+                        <p class="text-base text-green-100 font-light read-text">${card.desc}</p>
+                    </button>
+                `;
+            });
+
+            html += `</div>`;
+            dom.content.innerHTML = html;
+        }
+
+        function renderPractices(data) {
+            let html = `
+                <div class="mb-4 text-3xl font-bold text-white">${data.title}</div>
+                <div class="mb-6 flex justify-between items-end border-b border-gray-700 pb-2">
+                    <span class="text-green-300 font-bold">> ${data.subtitle}</span>
+                    <span class="text-xs text-green-500">TOTAL: 20 ITEMS</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-10">
+            `;
+
+            data.list.forEach((item, i) => {
+                const num = (i + 1).toString().padStart(2, '0');
+                html += `
+                    <div class="group flex items-start gap-3 p-3 border border-green-800 hover:border-green-400 hover:bg-green-900 hover:bg-opacity-40 transition-all bg-black bg-opacity-50">
+                        <span class="text-green-500 font-bold text-lg opacity-70 group-hover:opacity-100">[${num}]</span>
+                        <p class="text-base leading-tight text-green-100 group-hover:text-white read-text">${item}</p>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            dom.content.innerHTML = html;
+        }
+
+        function renderEnd(data) {
+             dom.content.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full text-center">
+                    <h2 class="text-4xl font-bold mb-4 text-white">${data.title}</h2>
+                    <p class="text-xl mb-8 text-green-200">${data.msg}</p>
+                    <button onclick="location.reload()" class="bg-red-700 text-white font-bold px-8 py-4 hover:bg-red-500 border-2 border-red-500 transition-all">
+                        ${data.btn}
+                    </button>
+                </div>
+             `;
+        }
+
+        // --- MODAL LOGIC ---
+
+        function openProtocolModal(id, title) {
+            const data = content[currentLang].sections.regs;
+            dom.modalTitle.innerText = title;
+            dom.compareBtn.innerText = data.compareBtn;
+            // Ensure button is visible (might have been hidden by main comparison view)
+            dom.compareBtn.classList.remove('hidden');
+            
+            isComparisonVisible = false;
+            
+            // Basic Description
+            let bodyHtml = `
+                <div class="text-lg mb-6 border-l-4 border-green-500 pl-4 py-2 bg-green-900 bg-opacity-10 read-text">
+                    ${data.details[id] || "DATA_MISSING"}
+                </div>
+                <div id="comparison-container" class="hidden mt-6">
+                    <h3 class="text-xl font-bold text-white mb-4 border-b border-green-700 pb-2">COMPARISON_MATRIX_LOADED</h3>
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>${data.tableHeaders[0]}</th>
+                                    <th>${data.tableHeaders[1]}</th>
+                                    <th>${data.tableHeaders[2]}</th>
+                                    <th>${data.tableHeaders[3]}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            // Generate Table Rows
+            comparisonData.forEach(row => {
+                bodyHtml += `
+                    <tr>
+                        <td class="font-bold text-green-300">${row.criteria[currentLang]}</td>
+                        <td class="text-green-100">${row.rgpd}</td>
+                        <td class="text-green-100">${row.coppa}</td>
+                        <td class="text-green-100">${row.un}</td>
+                    </tr>
+                `;
+            });
+
+            bodyHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            dom.modalBody.innerHTML = bodyHtml;
+            dom.modal.classList.remove('hidden');
+        }
+
+        function openComparisonOnly() {
+            const data = content[currentLang].sections.regs;
+            dom.modalTitle.innerText = "COMPARISON_MATRIX_FULL_VIEW";
+            // Hide the toggle button since table is already shown
+            dom.compareBtn.classList.add('hidden');
+            
+            let bodyHtml = `
+                <div id="comparison-container" class="mt-2">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>${data.tableHeaders[0]}</th>
+                                    <th>${data.tableHeaders[1]}</th>
+                                    <th>${data.tableHeaders[2]}</th>
+                                    <th>${data.tableHeaders[3]}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            comparisonData.forEach(row => {
+                bodyHtml += `
+                    <tr>
+                        <td class="font-bold text-green-300">${row.criteria[currentLang]}</td>
+                        <td class="text-green-100">${row.rgpd}</td>
+                        <td class="text-green-100">${row.coppa}</td>
+                        <td class="text-green-100">${row.un}</td>
+                    </tr>
+                `;
+            });
+
+            bodyHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            dom.modalBody.innerHTML = bodyHtml;
+            dom.modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            dom.modal.classList.add('hidden');
+        }
+
+        function toggleComparison() {
+            const container = document.getElementById('comparison-container');
+            const data = content[currentLang].sections.regs;
+            
+            isComparisonVisible = !isComparisonVisible;
+            
+            if (isComparisonVisible) {
+                container.classList.remove('hidden');
+                dom.compareBtn.innerText = data.compareHide;
+                // Auto scroll to table
+                setTimeout(() => {
+                    container.scrollIntoView({behavior: "smooth"});
+                }, 100);
+            } else {
+                container.classList.add('hidden');
+                dom.compareBtn.innerText = data.compareBtn;
+            }
+        }
+
+        // --- UTILS ---
+        function updateClock() {
+            const now = new Date();
+            dom.clock.innerText = now.toLocaleTimeString('en-US', {hour12: false});
+        }
+        setInterval(updateClock, 1000);
+
+        // --- INIT ---
+        window.onload = runBootSequence;
+
+    </script>
+</body>
+</html>
