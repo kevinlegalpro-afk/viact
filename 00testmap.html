@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijon Découverte</title>
+    <!-- Tailwind CSS pour le style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons pour les icônes -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Animation pour les blobs en arrière-plan */
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-stone-50 font-sans text-stone-800">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-red-800 p-1.5 rounded-lg">
+                    <i data-lucide="map-pin" class="text-white w-5 h-5"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-stone-900">Dijon<span class="text-red-800">Découverte</span></span>
+            </div>
+            <button onclick="scrollToMap()" class="text-sm font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 px-4 py-2 rounded-full transition-colors flex items-center gap-2">
+                Voir la carte <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="relative pt-32 pb-20 px-4">
+        <div class="max-w-4xl mx-auto text-center z-10 relative">
+            <div class="inline-block mb-4 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-semibold tracking-wide uppercase">
+                Bourgogne-Franche-Comté
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-stone-900 mb-6 leading-tight">
+                Bienvenue à <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-800 to-amber-700">Dijon</span>
+            </h1>
+            <p class="text-xl text-stone-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Découvrez l'élégance architecturale, la richesse historique et l'art de vivre d'une ville aux cent clochers.
+            </p>
+            
+            <div class="flex justify-center gap-4">
+                <button onclick="scrollToMap()" class="bg-red-800 hover:bg-red-900 text-white px-8 py-3 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg flex items-center gap-2">
+                    Explorer la ville <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Decorative background elements -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 opacity-20 pointer-events-none">
+            <div class="absolute top-20 left-10 w-64 h-64 bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+            <div class="absolute top-20 right-10 w-64 h-64 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+        </div>
+    </header>
+
+    <!-- Features Grid -->
+    <section class="py-16 px-4 bg-white">
+        <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+            
+            <!-- Card 1 -->
+            <div class="bg-amber-50 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl border border-stone-100">
+                <div class="bg-white w-14 h-14 rounded-xl flex items-center justify-center shadow-sm mb-6">
+                    <i data-lucide="building-2" class="w-8 h-8 text-amber-700"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-stone-900">Cité des Ducs</h3>
+                <p class="text-stone-600 leading-relaxed">
+                    Ancienne capitale du duché de Bourgogne, Dijon abrite un patrimoine architectural exceptionnel, dont le célèbre Palais des Ducs.
+                </p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-red-50 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl border border-stone-100">
+                <div class="bg-white w-14 h-14 rounded-xl flex items-center justify-center shadow-sm mb-6">
+                    <i data-lucide="utensils" class="w-8 h-8 text-red-800"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-stone-900">Gastronomie</h3>
+                <p class="text-stone-600 leading-relaxed">
+                    Mondialement connue pour sa moutarde, Dijon est aussi la porte d'entrée de la prestigieuse route des Grands Crus.
+                </p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-indigo-50 p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl border border-stone-100">
+                <div class="bg-white w-14 h-14 rounded-xl flex items-center justify-center shadow-sm mb-6">
+                    <i data-lucide="info" class="w-8 h-8 text-indigo-800"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-stone-900">La Chouette</h3>
+                <p class="text-stone-600 leading-relaxed">
+                    Symbole porte-bonheur de la ville. Touchez-la de la main gauche en faisant un vœu, et il se réalisera peut-être !
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Embedded Map Section -->
+    <section id="map-section" class="py-20 px-4 bg-stone-100">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center gap-2 text-amber-700 font-semibold mb-2 bg-amber-50 px-4 py-1 rounded-full">
+                    <i data-lucide="map" class="w-4 h-4"></i>
+                    <span>Itinéraire interactif</span>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-4">
+                    Explorez Dijon pas à pas
+                </h2>
+                <p class="text-stone-600 max-w-2xl mx-auto">
+                    Naviguez directement dans la carte ci-dessous pour découvrir les meilleurs restaurants, les monuments historiques et les secrets cachés de la ville.
+                </p>
+            </div>
+
+            <div class="bg-white p-2 md:p-4 rounded-3xl shadow-xl border border-stone-200 overflow-hidden relative">
+                <!-- Conteneur de l'iframe avec un ratio responsive -->
+                <div class="w-full h-[500px] md:h-[600px] rounded-2xl overflow-hidden bg-stone-200 relative">
+                    <div class="absolute inset-0 flex items-center justify-center text-stone-400 z-0">
+                        Chargement de la carte...
+                    </div>
+                    <iframe 
+                        src="https://www.google.com/maps/d/embed?mid=1l7RHiTu6XSMFVnjTGCF-SswEPuvu-Dc"
+                        width="100%" 
+                        height="100%" 
+                        style="border: 0;"
+                        allowfullscreen="" 
+                        loading="lazy"
+                        title="Carte de Dijon"
+                        class="relative z-10 w-full h-full"
+                    ></iframe>
+                </div>
+                
+                <div class="mt-4 flex justify-between items-center px-2">
+                    <span class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Guide Officiel</span>
+                    <a 
+                        href="https://www.google.com/maps/d/viewer?mid=1l7RHiTu6XSMFVnjTGCF-SswEPuvu-Dc" 
+                        target="_blank" 
+                        rel="noreferrer"
+                        class="text-sm text-red-800 hover:text-red-900 font-medium flex items-center gap-1"
+                    >
+                        Ouvrir en plein écran <i data-lucide="external-link" class="w-3 h-3"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-12 px-4 text-center">
+        <div class="flex items-center justify-center gap-2 mb-4 text-stone-200 font-bold text-lg">
+            <i data-lucide="wine" class="w-5 h-5"></i>
+            <span>Visiter Dijon</span>
+        </div>
+        <p class="text-sm">
+            © 2024 Guide Touristique de Dijon. La moutarde nous monte au nez !
+        </p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialiser les icônes Lucide
+        lucide.createIcons();
+
+        // Fonction de défilement doux vers la carte
+        function scrollToMap() {
+            document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
