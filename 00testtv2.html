@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module TV Interactif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            background-image: radial-gradient(#2a2a2a 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Effet de bruit (Static Noise) pour le zapping (FORT) */
+        .static-noise {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-radial-gradient(#000 0 0.0001%, #fff 0 0.0002%) 50% 0/2500px 2500px,
+                        repeating-conic-gradient(#000 0 0.0001%, #fff 0 0.0002%) 60% 60%/2500px 2500px;
+            background-blend-mode: difference;
+            animation: noise .2s infinite alternate;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            display: none;
+        }
+
+        /* Effet de grain permanent (SUBTIL & RÉGLABLE) */
+        .grain-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIj48ZmlsdGVyIGlkPSJnoiPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjY1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2cpIiBvcGFjaXR5PSIwLjUiLz48L3N2Zz4=');
+            opacity: 0; /* Controlé par JS */
+            pointer-events: none;
+            z-index: 15;
+            mix-blend-mode: overlay;
+        }
+
+        @keyframes noise {
+            100% { background-position: 50% 0, 60% 50%; }
+        }
+
+        /* Effet CRT (Scanlines) subtil sur l'écran */
+        .crt-overlay {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Animation d'extinction (Turn off) */
+        @keyframes turn-off {
+            0% { transform: scale(1, 1.3) translate3d(0, 0, 0); filter: brightness(1); opacity: 1; }
+            60% { transform: scale(1, 0.001) translate3d(0, 0, 0); filter: brightness(10); }
+            100% { animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06); transform: scale(0, 0.001) translate3d(0, 0, 0); opacity: 0; }
+        }
+        
+        @keyframes turn-on {
+            0% { transform: scale(1, 0.8) translate3d(0, 0, 0); filter: brightness(30); opacity: 0; }
+            100% { transform: scale(1, 1) translate3d(0, 0, 0); filter: brightness(1); opacity: 1; }
+        }
+
+        .tv-off .screen-content {
+            animation: turn-off 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+            animation-fill-mode: forwards;
+        }
+        
+        .tv-on .screen-content {
+            animation: turn-on 0.4s ease-out; /* Slight pop-in */
+            animation-fill-mode: forwards;
+        }
+
+        /* Boutons stylisés */
+        .control-btn {
+            box-shadow: 0 4px 0 #1f2937;
+            transition: all 0.1s;
+        }
+        .control-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1f2937;
+        }
+
+        /* LED Indicator */
+        .led {
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        .led.on {
+            background-color: #4ade80; /* Green */
+            box-shadow: 0 0 10px #4ade80;
+        }
+        .led.off {
+            background-color: #ef4444; /* Red */
+            box-shadow: 0 0 5px #ef4444;
+        }
+
+        .channel-osd {
+            font-family: 'VT323', monospace;
+            text-shadow: 2px 2px 0px #000;
+        }
+        
+        /* Helper pour cacher les effets */
+        .fx-disabled {
+            opacity: 0 !important;
+        }
+
+        /* Styles pour les Range Sliders Retro */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #d6d3d1;
+            border: 2px solid #57534e;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #44403c;
+            border-radius: 2px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        /* Drawer Animation */
+        .settings-drawer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, margin 0.4s;
+            opacity: 0;
+        }
+        .settings-drawer.open {
+            max-height: 200px; /* Ajuster selon le contenu */
+            opacity: 1;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 text-white selection:bg-pink-500">
+
+    <!-- TV Container -->
+    <div class="relative w-full max-w-4xl bg-stone-800 rounded-3xl p-6 shadow-2xl border-b-8 border-stone-900 border-r-8">
+        
+        <!-- Logo Brand -->
+        <div class="absolute top-2 left-1/2 transform -translate-x-1/2 text-stone-500 font-bold tracking-widest text-sm opacity-50">
+            RETROVISION 2000
+        </div>
+
+        <!-- Main Screen Area -->
+        <div class="relative bg-black rounded-2xl overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)] border-4 border-stone-700 aspect-video">
+            
+            <!-- Black Screen (Off State Background) -->
+            <div class="absolute inset-0 bg-black z-0"></div>
+
+            <!-- Video Content Wrapper -->
+            <!-- Note: Filters will be applied here via JS -->
+            <div id="screen-wrapper" class="relative w-full h-full z-10 opacity-0 transition-opacity duration-300">
+                <!-- YouTube Iframe -->
+                <iframe 
+                    id="tv-iframe"
+                    class="w-full h-full object-cover pointer-events-auto transition-all duration-200"
+                    src="" 
+                    title="YouTube video player" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerpolicy="strict-origin-when-cross-origin" 
+                    allowfullscreen>
+                </iframe>
+                
+                <!-- Grain Overlay (Permanent Noise) -->
+                <div id="grain-overlay" class="grain-overlay"></div>
+
+                <!-- CRT Scanline Overlay (Visual Effect) -->
+                <div id="crt-overlay" class="absolute inset-0 crt-overlay pointer-events-none z-20"></div>
+                
+                <!-- Channel Number OSD -->
+                <div id="channel-display" class="channel-osd absolute top-4 right-6 text-4xl text-green-400 opacity-0 transition-opacity duration-1000 z-30 pointer-events-none">
+                    CH 01
+                </div>
+            </div>
+
+            <!-- Static Noise Overlay (Zapping only) -->
+            <div id="static-noise" class="static-noise"></div>
+            
+            <!-- Screen Glare/Reflection (Subtle) -->
+            <div id="screen-glare" class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none z-40 rounded-2xl transition-opacity duration-300"></div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="mt-6 flex flex-col items-stretch px-4 bg-stone-700/50 p-4 rounded-xl border-t border-stone-600">
+            
+            <!-- Main Controls Row -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
+                <!-- Power Section -->
+                <div class="flex items-center gap-4">
+                    <div class="flex flex-col items-center gap-1">
+                        <div id="power-led" class="led off w-3 h-3 rounded-full bg-red-500 transition-colors duration-300"></div>
+                        <span class="text-[10px] uppercase text-stone-400 font-bold tracking-wider">Power</span>
+                    </div>
+                    <button onclick="togglePower()" class="control-btn bg-red-600 hover:bg-red-500 text-white w-12 h-12 rounded-full flex items-center justify-center border-b-4 border-red-800 focus:outline-none" title="Allumer/Éteindre">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Speaker Grille Visual -->
+                <div class="hidden md:flex flex-1 mx-8 h-8 gap-1 justify-center opacity-30">
+                    <div class="w-1 h-full bg-black rounded-full"></div>
+                    <div class="w-1 h-full bg-black rounded-full"></div>
+                    <div class="w-1 h-full bg-black rounded-full"></div>
+                    <div class="w-1 h-full bg-black rounded-full"></div>
+                    <div class="w-1 h-full bg-black rounded-full"></div>
+                    <div class="w-1 h-full bg-black rounded-full"></div>
+                    <div class="w-1 h-full bg-black rounded-full"></div>
+                    <div class="w-1 h-full bg-black rounded-full"></div>
+                </div>
+
+                <!-- Channel & Menu Controls -->
+                <div class="flex items-center gap-4">
+                    <!-- Prev Button -->
+                    <button onclick="changeChannel(-1)" class="control-btn bg-stone-600 hover:bg-stone-500 text-stone-200 px-4 py-2 rounded-lg font-bold border-b-4 border-stone-800 text-sm" title="Chaîne précédente">
+                        PRÉC
+                    </button>
+                    
+                    <!-- Channel Display -->
+                    <div class="flex flex-col items-center">
+                        <div class="bg-black px-3 py-1 rounded text-green-500 font-family-vt323 border border-stone-600">
+                            <span id="control-channel-num" class="font-mono">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Next Button -->
+                    <button onclick="changeChannel(1)" class="control-btn bg-stone-600 hover:bg-stone-500 text-stone-200 px-4 py-2 rounded-lg font-bold border-b-4 border-stone-800 text-sm" title="Chaîne suivante">
+                        SUIV
+                    </button>
+
+                    <div class="w-px h-8 bg-stone-600 mx-2"></div>
+
+                    <!-- Settings Toggle -->
+                    <button onclick="toggleSettings()" class="control-btn bg-stone-800 hover:bg-stone-900 text-xs text-stone-400 font-mono tracking-widest px-3 py-3 rounded border border-stone-600 border-b-4 active:border-b active:mt-1 active:mb-0" title="Ouvrir les réglages">
+                        MENU
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hidden Settings Drawer -->
+            <div id="settings-drawer" class="settings-drawer w-full border-t-2 border-stone-600 pt-4 bg-black/20 rounded-lg px-4 pb-2 shadow-inner">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xs font-mono text-stone-400 tracking-widest uppercase">Réglages d'image</span>
+                    <button onclick="resetSettings()" class="text-[10px] text-red-400 hover:text-red-300 font-mono underline cursor-pointer">RÉINITIALISER</button>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                    <!-- Brightness -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] text-stone-400 font-bold font-mono tracking-wider text-center">LUM</label>
+                        <input type="range" id="range-brightness" min="50" max="150" value="100" oninput="updatePictureSettings()">
+                    </div>
+                    <!-- Contrast -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] text-stone-400 font-bold font-mono tracking-wider text-center">CON</label>
+                        <input type="range" id="range-contrast" min="50" max="200" value="100" oninput="updatePictureSettings()">
+                    </div>
+                    <!-- Saturation -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] text-stone-400 font-bold font-mono tracking-wider text-center">COL</label>
+                        <input type="range" id="range-saturation" min="0" max="200" value="100" oninput="updatePictureSettings()">
+                    </div>
+                    <!-- Hue (Tint) -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] text-stone-400 font-bold font-mono tracking-wider text-center">TEINTE</label>
+                        <input type="range" id="range-hue" min="-90" max="90" value="0" oninput="updatePictureSettings()">
+                    </div>
+                    <!-- Grain (Noise) -->
+                    <div class="flex flex-col gap-1 col-span-2 md:col-span-1">
+                        <label class="text-[10px] text-stone-400 font-bold font-mono tracking-wider text-center">GRAIN</label>
+                        <input type="range" id="range-grain" min="0" max="40" value="0" oninput="updatePictureSettings()">
+                    </div>
+                </div>
+
+                <!-- FX Toggle included in drawer now -->
+                <div class="mt-4 flex justify-end border-t border-stone-600/50 pt-2">
+                     <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-stone-500 font-mono">SCANLINES & REFLETS</span>
+                        <div onclick="toggleEffects()" class="w-8 h-4 bg-stone-900 rounded-full p-0.5 cursor-pointer border border-stone-600 relative">
+                            <div id="fx-toggle-switch" class="w-3 h-3 bg-green-500 rounded-full shadow-md transform translate-x-4 transition-transform"></div>
+                        </div>
+                     </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Configuration des vidéos
+        const videoIds = [
+            "mKGFsDbvBsA", // Vidéo 1
+            "UrgwnvZcBR4", // Vidéo 2
+            "j7w2Gv7ueOc", // Vidéo 3
+            "lomBrws_MyE"  // Vidéo 4
+        ];
+
+        let currentChannelIndex = 0;
+        let isPoweredOn = false;
+        let effectsEnabled = true;
+        let isSettingsOpen = false;
+        
+        // Éléments DOM
+        const iframe = document.getElementById('tv-iframe');
+        const screenWrapper = document.getElementById('screen-wrapper');
+        const staticNoise = document.getElementById('static-noise');
+        const grainOverlay = document.getElementById('grain-overlay');
+        const channelDisplay = document.getElementById('channel-display');
+        const controlChannelNum = document.getElementById('control-channel-num');
+        const powerLed = document.getElementById('power-led');
+        const crtOverlay = document.getElementById('crt-overlay');
+        const screenGlare = document.getElementById('screen-glare');
+        const settingsDrawer = document.getElementById('settings-drawer');
+        const fxToggleSwitch = document.getElementById('fx-toggle-switch');
+
+        // Inputs
+        const rBright = document.getElementById('range-brightness');
+        const rCont = document.getElementById('range-contrast');
+        const rSat = document.getElementById('range-saturation');
+        const rHue = document.getElementById('range-hue');
+        const rGrain = document.getElementById('range-grain');
+
+        function togglePower() {
+            isPoweredOn = !isPoweredOn;
+
+            if (isPoweredOn) {
+                powerLed.classList.remove('off');
+                powerLed.classList.add('on');
+                screenWrapper.classList.remove('tv-off');
+                screenWrapper.classList.add('tv-on');
+                screenWrapper.style.opacity = '1';
+                loadChannel(currentChannelIndex);
+            } else {
+                powerLed.classList.remove('on');
+                powerLed.classList.add('off');
+                screenWrapper.classList.remove('tv-on');
+                screenWrapper.classList.add('tv-off');
+                setTimeout(() => {
+                    iframe.src = "";
+                    screenWrapper.style.opacity = '0';
+                    controlChannelNum.innerText = "--";
+                }, 500);
+            }
+        }
+
+        function changeChannel(direction) {
+            if (!isPoweredOn) return;
+
+            if (effectsEnabled) playStaticEffect();
+
+            currentChannelIndex += direction;
+            if (currentChannelIndex < 0) currentChannelIndex = videoIds.length - 1;
+            else if (currentChannelIndex >= videoIds.length) currentChannelIndex = 0;
+
+            const delay = effectsEnabled ? 300 : 50;
+            setTimeout(() => {
+                loadChannel(currentChannelIndex);
+            }, delay);
+        }
+
+        function playStaticEffect() {
+            staticNoise.style.display = 'block';
+            staticNoise.style.opacity = '0.8';
+            setTimeout(() => {
+                staticNoise.style.opacity = '0';
+                setTimeout(() => { staticNoise.style.display = 'none'; }, 200);
+            }, 400);
+        }
+
+        function toggleSettings() {
+            isSettingsOpen = !isSettingsOpen;
+            if (isSettingsOpen) {
+                settingsDrawer.classList.add('open');
+            } else {
+                settingsDrawer.classList.remove('open');
+            }
+        }
+
+        function updatePictureSettings() {
+            const b = rBright.value;
+            const c = rCont.value;
+            const s = rSat.value;
+            const h = rHue.value;
+            const g = rGrain.value;
+
+            // Appliquer les filtres CSS à l'iframe directement
+            iframe.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%) hue-rotate(${h}deg)`;
+            
+            // Appliquer le grain (opacity 0 to 0.4 max)
+            grainOverlay.style.opacity = g / 100;
+        }
+
+        function resetSettings() {
+            rBright.value = 100;
+            rCont.value = 100;
+            rSat.value = 100;
+            rHue.value = 0;
+            rGrain.value = 0;
+            updatePictureSettings();
+        }
+
+        function toggleEffects() {
+            effectsEnabled = !effectsEnabled;
+            
+            if (effectsEnabled) {
+                crtOverlay.classList.remove('fx-disabled');
+                screenGlare.classList.remove('fx-disabled');
+                fxToggleSwitch.classList.remove('translate-x-0', 'bg-stone-500');
+                fxToggleSwitch.classList.add('translate-x-4', 'bg-green-500');
+            } else {
+                crtOverlay.classList.add('fx-disabled');
+                screenGlare.classList.add('fx-disabled');
+                fxToggleSwitch.classList.remove('translate-x-4', 'bg-green-500');
+                fxToggleSwitch.classList.add('translate-x-0', 'bg-stone-500');
+            }
+        }
+
+        function loadChannel(index) {
+            const videoId = videoIds[index];
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&rel=0&playsinline=1&modestbranding=1`;
+            iframe.src = embedUrl;
+
+            const channelNum = (index + 1).toString().padStart(2, '0');
+            channelDisplay.innerText = `CH ${channelNum}`;
+            controlChannelNum.innerText = channelNum;
+
+            if (effectsEnabled) {
+                channelDisplay.style.opacity = '1';
+                setTimeout(() => { channelDisplay.style.opacity = '0'; }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
