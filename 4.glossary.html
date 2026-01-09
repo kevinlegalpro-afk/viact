@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glossaire Youth Project - Lexique E-learning</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #f97316;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        /* --- Global Reset & Typography --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* --- Layout --- */
+        header { background: var(--surface); padding: 1rem 2rem; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+        .logo span { color: var(--secondary); }
+        
+        nav { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 5px; }
+        nav button { background: none; border: none; padding: 0.5rem 1rem; cursor: pointer; color: var(--text-light); font-weight: 600; border-radius: var(--radius); transition: all 0.2s; white-space: nowrap; }
+        nav button:hover { background: #eff6ff; color: var(--primary); }
+        nav button.active { background: var(--primary); color: white; }
+
+        .controls { display: flex; gap: 1rem; align-items: center; }
+        .lang-switch { font-weight: bold; cursor: pointer; padding: 0.25rem 0.5rem; border: 2px solid var(--text-light); border-radius: 6px; }
+        
+        main { flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; padding: 2rem; }
+        
+        /* --- Views --- */
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Dashboard --- */
+        .intro-box { background: linear-gradient(135deg, #eff6ff, #ffffff); padding: 2rem; border-radius: var(--radius); border-left: 6px solid var(--secondary); margin-bottom: 2rem; box-shadow: var(--shadow); }
+        .intro-box h1 { font-size: 1.5rem; color: var(--primary-dark); margin-bottom: 0.5rem; }
+        .intro-box p { color: var(--text); font-size: 1.05rem; max-width: 800px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); text-align: center; }
+        .stat-val { font-size: 2.5rem; font-weight: 800; color: var(--primary); display: block; }
+        .stat-label { color: var(--text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+        .cat-card { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border-left: 5px solid var(--primary); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow); }
+        .cat-card:hover { transform: translateY(-3px); }
+        .cat-card h3 { margin-bottom: 0.5rem; }
+        .cat-card p { font-size: 0.9rem; color: var(--text-light); }
+
+        /* --- Search & Filter --- */
+        .search-bar { width: 100%; padding: 1rem; font-size: 1.1rem; border: 2px solid #e2e8f0; border-radius: var(--radius); margin-bottom: 1rem; }
+        .search-bar:focus { outline: none; border-color: var(--primary); }
+        
+        .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+        .filter-tag { padding: 0.4rem 0.8rem; background: #e2e8f0; border-radius: 20px; font-size: 0.85rem; cursor: pointer; user-select: none; }
+        .filter-tag.active { background: var(--primary); color: white; }
+
+        .results-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        
+        /* --- Term Card Component --- */
+        .term-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: 0.2s; position: relative; }
+        .term-card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .term-header { padding: 1.5rem; background: linear-gradient(to right, #f8fafc, #fff); border-bottom: 1px solid #e2e8f0; }
+        .term-category { font-size: 0.75rem; text-transform: uppercase; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem; display: block; }
+        .term-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
+        
+        /* Modal Style for Full Card */
+        dialog { border: none; border-radius: var(--radius); width: 90%; max-width: 600px; padding: 0; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25); margin: auto; }
+        dialog::backdrop { background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+        .modal-content { padding: 2rem; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
+        
+        .card-section { margin-bottom: 1.5rem; }
+        .card-section h4 { font-size: 0.9rem; text-transform: uppercase; color: var(--text-light); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .card-def { font-size: 1.1rem; line-height: 1.7; }
+        .card-example { background: #fff7ed; padding: 1rem; border-radius: 8px; border-left: 4px solid var(--secondary); font-style: italic; }
+        .card-confusion { background: #fef2f2; padding: 1rem; border-radius: 8px; color: #991b1b; }
+        
+        .quiz-box { background: #f0fdf4; padding: 1.5rem; border-radius: 8px; margin-top: 2rem; }
+        .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+        .quiz-btn { padding: 0.75rem; border: 1px solid #bbf7d0; background: white; border-radius: 6px; text-align: left; cursor: pointer; }
+        .quiz-btn:hover { background: #dcfce7; }
+        .quiz-btn.correct { background: var(--success); color: white; border-color: var(--success); }
+        .quiz-btn.wrong { background: var(--danger); color: white; border-color: var(--danger); }
+        .quiz-btn:disabled { cursor: default; opacity: 0.8; }
+
+        /* --- Review Mode --- */
+        .review-container { max-width: 600px; margin: 0 auto; text-align: center; }
+        .flashcard { background: var(--surface); height: 300px; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; flex-direction: column; margin-bottom: 2rem; padding: 2rem; cursor: pointer; perspective: 1000px; position: relative; }
+        .flashcard-content { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; backface-visibility: hidden; transition: transform 0.6s; }
+        .flashcard.flipped .front { display: none; } 
+        .flashcard:not(.flipped) .back { display: none; }
+        
+        .review-actions { display: flex; gap: 1rem; justify-content: center; }
+        .review-btn { padding: 0.8rem 2rem; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; color: white; transition: transform 0.1s; }
+        .review-btn:active { transform: scale(0.95); }
+        .btn-hard { background: var(--danger); }
+        .btn-good { background: var(--success); }
+        .btn-easy { background: var(--primary); }
+
+        /* --- Context Mode --- */
+        .context-text { line-height: 2; font-size: 1.1rem; background: var(--surface); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); }
+        .context-line { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px dashed #e2e8f0; }
+        .context-line:last-child { border-bottom: none; margin-bottom: 0; }
+        .context-highlight { background-color: #fef08a; padding: 2px 4px; border-radius: 4px; cursor: help; border-bottom: 2px solid var(--secondary); position: relative; font-weight: 500; }
+        .context-highlight:hover { background-color: #fde047; }
+        
+        footer { background: #1e293b; color: white; padding: 2rem; margin-top: auto; text-align: center; }
+        .data-controls button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin: 0 0.5rem; }
+        
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start; }
+            nav { width: 100%; }
+            .controls { width: 100%; justify-content: space-between; margin-top: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <span>⚡</span> <span id="app-title">Glossaire Youth Project</span>
+    </div>
+    <nav>
+        <button onclick="router('home')" id="nav-home" class="active">Accueil</button>
+        <button onclick="router('search')" id="nav-search">Explorer</button>
+        <button onclick="router('review')" id="nav-review">Réviser (SRS)</button>
+        <button onclick="router('context')" id="nav-context">Contexte</button>
+        <button onclick="router('quiz')" id="nav-quiz">Quiz Catégorie</button>
+    </nav>
+    <div class="controls">
+        <button class="lang-switch" onclick="toggleLang()" aria-label="Switch Language">FR | EN</button>
+    </div>
+</header>
+
+<main id="app">
+    <!-- View: Home -->
+    <section id="view-home" class="view active">
+        <!-- Intro Box -->
+        <div class="intro-box">
+            <h1 data-i18n="intro_title">Bienvenue sur le Glossaire</h1>
+            <p data-i18n="intro_text">
+                La maîtrise de ce vocabulaire technique est essentielle pour échanger efficacement avec vos partenaires européens et gérer vos projets jeunesse en toute sérénité. Comprendre les bons termes, c'est éviter les malentendus et sécuriser vos financements.
+            </p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-val" id="stat-total">0</span>
+                <span class="stat-label" data-i18n="total_terms">Termes Disponibles</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-val" id="stat-seen" style="color:var(--secondary)">0</span>
+                <span class="stat-label" data-i18n="seen">Consultés</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-val" id="stat-mastered" style="color:var(--success)">0</span>
+                <span class="stat-label" data-i18n="mastered">Maîtrisés</span>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 1rem;" data-i18n="explore_cat">Explorer par Catégorie</h2>
+        <div class="categories-grid" id="home-categories">
+            <!-- Injected via JS -->
+        </div>
+    </section>
+
+    <!-- View: Search -->
+    <section id="view-search" class="view">
+        <input type="text" class="search-bar" id="search-input" placeholder="Rechercher un terme (ex: Budget, Subvention...)" oninput="handleSearch()">
+        
+        <div class="filters">
+            <span class="filter-tag" onclick="toggleFilter('level', 'essentiel')">Essentiel</span>
+            <span class="filter-tag" onclick="toggleFilter('level', 'avancé')">Avancé</span>
+            <span class="filter-tag" onclick="toggleFilter('role', 'coordo')">Coordination</span>
+            <span class="filter-tag" onclick="toggleFilter('role', 'anim')">Animation</span>
+        </div>
+
+        <div class="results-list" id="search-results">
+            <!-- Results injected here -->
+        </div>
+    </section>
+
+    <!-- View: Review (SRS) -->
+    <section id="view-review" class="view">
+        <div class="review-container">
+            <h2 data-i18n="daily_review">Révision du jour</h2>
+            <p id="review-count-display" style="margin-bottom: 1rem; color: var(--text-light);"></p>
+            
+            <div id="flashcard-area">
+                <div class="flashcard" onclick="flipCard(this)">
+                    <div class="front">
+                        <h3>Chargement...</h3>
+                        <p>(Cliquez pour révéler)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="review-actions" id="review-btns" style="visibility: hidden;">
+                <button class="review-btn btn-hard" onclick="processReview(0)" data-i18n="again">À revoir</button>
+                <button class="review-btn btn-good" onclick="processReview(3)" data-i18n="good">Bien</button>
+                <button class="review-btn btn-easy" onclick="processReview(5)" data-i18n="easy">Facile</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- View: Context -->
+    <section id="view-context" class="view">
+        <h2 data-i18n="context_title">Extraits d'Appel à Projets</h2>
+        <p data-i18n="context_desc" style="margin-bottom: 1.5rem; color: var(--text-light);">5 phrases au hasard pour s'entraîner.</p>
+        
+        <div class="context-text" id="context-content">
+            <!-- Content injected via JS -->
+        </div>
+        <button onclick="renderContext()" style="margin-top:1.5rem; padding:0.8rem 1.5rem; background:var(--primary); color:white; border:none; border-radius:var(--radius); cursor:pointer;">⟳ Nouvelles Phrases / New Sentences</button>
+    </section>
+
+    <!-- View: Category Quiz -->
+    <section id="view-quiz" class="view">
+        <h2 data-i18n="quiz_title">Quiz par Catégorie</h2>
+        <div class="categories-grid" id="quiz-categories"></div>
+        <div id="active-quiz-container" style="display:none; margin-top:2rem;">
+            <div id="quiz-question-area"></div>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <div class="data-controls">
+        <button onclick="resetData()">Reset Progress</button>
+        <button onclick="exportData()">Export JSON</button>
+        <button onclick="importData()">Import JSON</button>
+    </div>
+    <p style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.7;">Copyright Kévin Le Gal 2026</p>
+</footer>
+
+<!-- Term Detail Modal -->
+<dialog id="term-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <span class="term-category" id="modal-cat">CAT</span>
+                <h2 id="modal-title">Term Title</h2>
+            </div>
+            <button class="close-btn" onclick="document.getElementById('term-modal').close()">×</button>
+        </div>
+        
+        <div class="card-section">
+            <h4 data-i18n="definition">Définition</h4>
+            <p class="card-def" id="modal-def">...</p>
+        </div>
+
+        <div class="card-section">
+            <h4 data-i18n="use">À quoi ça sert ?</h4>
+            <p id="modal-use">...</p>
+        </div>
+
+        <div class="card-section">
+            <div class="card-example" id="modal-ex">...</div>
+        </div>
+
+        <div class="card-section" id="modal-confusion-box">
+            <div class="card-confusion">
+                <strong>⚠️ <span data-i18n="confusion">Ne pas confondre avec :</span></strong> <span id="modal-conf-term"></span>
+                <br><span id="modal-conf-desc" style="font-size: 0.9rem"></span>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<script>
+/**
+ * DATA & STATE MANAGEMENT
+ */
+
+// Categories Dictionary
+const CATEGORIES = {
+    budget: { fr: "Budget & Compta", en: "Budget & Accounting", icon: "💰" },
+    funding: { fr: "Financement", en: "Funding & Grants", icon: "🏦" },
+    manage: { fr: "Pilotage Projet", en: "Project Management", icon: "🧭" },
+    compliance: { fr: "Conformité", en: "Compliance & Rules", icon: "📋" },
+    youth: { fr: "Jeunesse & Mobilité", en: "Youth & Mobility", icon: "🌍" },
+    partner: { fr: "Partenariats", en: "Partnerships", icon: "🤝" }
+};
+
+// UI Translations
+const I18N = {
+    fr: {
+        app_title: "Glossaire Youth Project",
+        intro_title: "Bienvenue sur le Glossaire",
+        intro_text: "La maîtrise de ce vocabulaire technique est essentielle pour échanger efficacement avec vos partenaires européens et gérer vos projets jeunesse en toute sérénité. Comprendre les bons termes, c'est éviter les malentendus et sécuriser vos financements.",
+        total_terms: "Termes Disponibles", seen: "Consultés", mastered: "Maîtrisés",
+        explore_cat: "Explorer par catégorie", daily_review: "Révision du jour",
+        again: "À revoir", good: "Bien", easy: "Facile",
+        definition: "Définition", use: "À quoi ça sert ?", confusion: "Ne pas confondre",
+        mini_quiz: "Micro-Quiz", context_title: "Mise en situation", 
+        context_desc: "Identifiez les termes dans un texte d'appel à projets réaliste.",
+        quiz_title: "Quiz Thématique"
+    },
+    en: {
+        app_title: "Youth Project Glossary",
+        intro_title: "Welcome to the Glossary",
+        intro_text: "Mastering this technical vocabulary is essential for effective communication with your European partners and for managing your youth projects with confidence. Understanding the right terms helps avoid misunderstandings and secures your funding.",
+        total_terms: "Available Terms", seen: "Seen", mastered: "Mastered",
+        explore_cat: "Explore by Category", daily_review: "Daily Review",
+        again: "Again", good: "Good", easy: "Easy",
+        definition: "Definition", use: "Purpose", confusion: "Do not confuse with",
+        mini_quiz: "Micro-Quiz", context_title: "Context Mode",
+        context_desc: "Identify terms within a realistic project call text.",
+        quiz_title: "Thematic Quiz"
+    }
+};
+
+// Context Sentences Pool (using [[Term]] syntax for auto-linking)
+const CONTEXT_TEMPLATES = {
+    fr: [
+        "Le [[Comité de pilotage]] doit valider les [[Dépenses éligibles]] avant le prochain [[Jalon]].",
+        "Attention à bien conserver chaque [[Pièce comptable]] pour l'[[Audit]] final.",
+        "Le [[Chef de file]] est responsable de la [[Coordination]] du [[Consortium]].",
+        "Nous devons réduire les [[Frais de fonctionnement]] pour ne pas dépasser le [[Budget plafond]].",
+        "L'[[Éligibilité]] des participants dépend de leur âge et de leur lieu de résidence.",
+        "Ce projet vise l'[[Inclusion]] des [[NEET]] via l'[[Éducation non formelle]].",
+        "Le [[Bilan financier]] doit faire apparaître clairement le [[Cofinancement]].",
+        "En cas de [[Force majeure]], consultez la [[Convention de subvention]].",
+        "Les [[Bénévoles]] doivent signer une [[Feuille d'émargement]] à chaque activité.",
+        "Le [[Rapport narratif]] doit démontrer l'atteinte des [[Objectifs spécifiques]].",
+        "La [[Mobilité internationale]] favorise le développement des [[Compétences clés]].",
+        "Il faut vérifier la [[Base légale]] pour le traitement des données ([[RGPD]]).",
+        "Le [[Taux de cofinancement]] est fixé à 80% du [[Coût total]].",
+        "Une [[Analyse des risques]] est nécessaire avant le lancement des [[Activités]].",
+        "Le [[Versement du solde]] n'interviendra qu'après validation du [[Rapport final]].",
+        "Les [[Frais de séjour]] sont calculés sur la base d'un [[Forfait]].",
+        "Chaque [[Partenaire]] doit respecter les [[Règles de communication]] visuelles.",
+        "L'[[Apprentissage interculturel]] est au cœur de cet [[Échange de jeunes]].",
+        "Attention au [[Double financement]] : une même facture ne peut être déclarée deux fois.",
+        "La [[Réunion de lancement]] permettra de définir le [[Plan d'action]] détaillé."
+    ],
+    en: [
+        "The [[Steering Committee]] must validate [[Eligible Costs]] before the next [[Milestone]].",
+        "Make sure to keep every [[Accounting Document]] for the final [[Audit]].",
+        "The [[Lead Partner]] is responsible for the [[Coordination]] of the [[Consortium]].",
+        "We must reduce [[Operating Costs]] to stay under the [[Budget Ceiling]].",
+        "Participant [[Eligibility]] depends on age and place of residence.",
+        "This project aims at the [[Inclusion]] of [[NEET]] youth through [[Non-formal Education]].",
+        "The [[Financial Statement]] must clearly show the [[Co-financing]].",
+        "In case of [[Force Majeure]], consult the [[Grant Agreement]].",
+        "Volunteers must sign an [[Attendance Sheet]] for every activity.",
+        "The [[Narrative Report]] must demonstrate the achievement of [[Specific Objectives]].",
+        "[[International Mobility]] fosters the development of [[Key Competences]].",
+        "Check the [[Legal Basis]] for data processing ([[GDPR]]).",
+        "The [[Co-financing Rate]] is set at 80% of the [[Total Cost]].",
+        "A [[Risk Analysis]] is required before starting [[Activities]].",
+        "The [[Balance Payment]] will only occur after approval of the [[Final Report]].",
+        "[[Subsistence Costs]] are calculated based on a [[Lump Sum]].",
+        "Each [[Partner]] must respect the visual [[Communication Rules]].",
+        "[[Intercultural Learning]] is at the heart of this [[Youth Exchange]].",
+        "Beware of [[Double Funding]]: the same invoice cannot be declared twice.",
+        "The [[Kick-off Meeting]] will define the detailed [[Action Plan]]."
+    ]
+};
+
+// --- DATA GENERATION FACTORY ---
+function createTerm(id, cat, level, frTerm, enTerm, frDef, enDef) {
+    return {
+        id, category: cat, level,
+        stats: { seen: 0, box: 0, nextReview: 0 },
+        fr: { term: frTerm, def: frDef, use: `Concept clé de ${CATEGORIES[cat].fr}.`, example: `Voir contexte pour exemple.`, confusions: null },
+        en: { term: enTerm, def: enDef, use: `Key concept of ${CATEGORIES[cat].en}.`, example: `See context mode for examples.`, confusions: null }
+    };
+}
+
+// FULL DATA WITH REAL DEFINITIONS (Updated)
+const FULL_DATA = [
+    // A) Budget
+    ["budget", "Budget prévisionnel", "Estimated Budget", 
+        "Estimation chiffrée de l'ensemble des recettes et dépenses prévues pour la réalisation du projet.",
+        "Quantitative forecast of all income and expenses expected for the project implementation."],
+    ["budget", "Budget réalisé", "Actual Budget", 
+        "État réel des dépenses et recettes constatées à la fin du projet, preuves à l'appui.",
+        "Real state of expenses and income recorded at the end of the project, supported by evidence."],
+    ["budget", "Écart budgétaire", "Budget Variance", 
+        "Différence constatée entre le montant prévu au budget et le montant réellement dépensé.",
+        "Difference observed between the budgeted amount and the amount actually spent."],
+    ["budget", "Recettes", "Income / Revenue", 
+        "Sommes d'argent encaissées par la structure (subventions, ventes, dons) pour financer le projet.",
+        "Money received by the organization (grants, sales, donations) to fund the project."],
+    ["budget", "Dépenses", "Expenses", 
+        "Sommes d'argent sorties pour payer les coûts liés à l'activité du projet.",
+        "Money paid out to cover costs related to project activity."],
+    ["budget", "Charges fixes", "Fixed Costs", 
+        "Dépenses récurrentes indépendantes de l'activité du projet (loyer, assurances, abonnements).",
+        "Recurring expenses independent of project activity (rent, insurance, subscriptions)."],
+    ["budget", "Coût unitaire", "Unit Cost", 
+        "Coût d'une seule unité (ex: coût d'un repas par personne, coût d'un billet).",
+        "Cost of a single unit (e.g., cost of one meal per person, cost of one ticket)."],
+    ["budget", "Coût complet", "Full Cost", 
+        "Totalité des charges (directes et indirectes) imputables à un produit ou un projet.",
+        "Total charges (direct and indirect) attributable to a product or project."],
+    ["budget", "Coût marginal", "Marginal Cost", 
+        "Coût supplémentaire engendré par la production d'une unité additionnelle (ex: un participant en plus).",
+        "Additional cost incurred by producing one extra unit (e.g., one extra participant)."],
+    ["budget", "Coût direct", "Direct Cost", 
+        "Dépense directement liée à la réalisation du projet (ex: achat de matériel pédagogique).",
+        "Expense directly linked to the project implementation (e.g., purchase of educational material)."],
+    ["budget", "Frais de structure", "Administrative Costs", 
+        "Coûts généraux de fonctionnement de l'organisation non affectables directement à un projet précis.",
+        "General operating costs of the organization not directly assignable to a specific project."],
+    ["budget", "Frais de fonctionnement", "Operating Costs", 
+        "Dépenses courantes nécessaires à l'activité (électricité, fournitures, télécoms).",
+        "Current expenses necessary for activity (electricity, supplies, telecoms)."],
+    ["budget", "Frais de personnel", "Staff Costs", 
+        "Salaires et charges sociales des employés travaillant sur le projet.",
+        "Salaries and social security contributions of employees working on the project."],
+    ["budget", "Charges sociales", "Social Charges", 
+        "Cotisations versées aux organismes sociaux (santé, retraite) en plus du salaire net.",
+        "Contributions paid to social security bodies (health, pension) on top of net salary."],
+    ["budget", "Frais de déplacement", "Travel Costs", 
+        "Coûts liés aux trajets (train, avion, bus) pour les besoins du projet.",
+        "Costs related to journeys (train, plane, bus) for project needs."],
+    ["budget", "Frais de séjour", "Subsistence Costs", 
+        "Coûts couvrant l'hébergement et les repas lors d'un déplacement ou d'une activité.",
+        "Costs covering accommodation and meals during travel or activity."],
+    ["budget", "Frais de location", "Rental Costs", 
+        "Dépenses pour la location de salles, d'équipement ou de véhicules.",
+        "Expenses for renting rooms, equipment, or vehicles."],
+    ["budget", "Achats / fournitures", "Purchases / Supplies", 
+        "Acquisition de biens consommables ou de petit matériel nécessaire au projet.",
+        "Acquisition of consumable goods or small equipment necessary for the project."],
+    ["budget", "Prestation", "Service Provision", 
+        "Service fourni par un tiers contre rémunération (ex: traiteur, formateur externe).",
+        "Service provided by a third party for payment (e.g., caterer, external trainer)."],
+    ["budget", "Sous-traitance", "Subcontracting", 
+        "Délégation d'une partie des tâches du projet à une entreprise extérieure.",
+        "Delegation of part of the project tasks to an external company."],
+    ["budget", "Contribution en nature", "In-kind Contribution", 
+        "Apport non financier au projet (ex: prêt de salle gratuit, don de matériel).",
+        "Non-financial contribution to the project (e.g., free room loan, equipment donation)."],
+    ["budget", "Mise à disposition", "Making Available", 
+        "Fait de prêter du personnel ou du matériel sans facturation directe.",
+        "Act of lending staff or equipment without direct invoicing."],
+    ["budget", "Valorisation du bénévolat", "Volunteering Valuation", 
+        "Estimation comptable de la valeur du temps de travail des bénévoles.",
+        "Accounting estimate of the value of volunteers' working time."],
+    ["budget", "Indemnités", "Allowances", 
+        "Sommes versées pour compenser des frais ou un service (ex: indemnité de stage).",
+        "Sums paid to compensate for expenses or a service (e.g., internship allowance)."],
+    ["budget", "Per diem", "Per Diem", 
+        "Indemnité journalière forfaitaire versée pour couvrir les frais de vie en déplacement.",
+        "Daily flat-rate allowance paid to cover living expenses while traveling."],
+    ["budget", "Taux journalier", "Daily Rate", 
+        "Coût d'une journée de travail d'une personne, utilisé pour calculer les frais de personnel.",
+        "Cost of one person's working day, used to calculate staff costs."],
+    ["budget", "Temps de travail (ETP)", "Working Time (FTE)", 
+        "Mesure du travail fourni (Équivalent Temps Plein). 1 ETP = 1 personne à temps plein.",
+        "Measure of work provided (Full Time Equivalent). 1 FTE = 1 full-time person."],
+    ["budget", "Immobilisation", "Fixed Asset", 
+        "Bien durable (ordinateur, véhicule) utilisé par l'association sur plusieurs années.",
+        "Durable asset (computer, vehicle) used by the organization over several years."],
+    ["budget", "Amortissement", "Depreciation", 
+        "Constatation comptable de la perte de valeur d'un bien durable avec le temps.",
+        "Accounting recognition of the loss of value of a durable asset over time."],
+    ["budget", "TVA", "VAT", 
+        "Taxe sur la Valeur Ajoutée payée sur les achats. Souvent non éligible si récupérable.",
+        "Value Added Tax paid on purchases. Often ineligible if recoverable."],
+    ["budget", "Hors taxes (HT)", "Excluding Tax", 
+        "Prix d'un bien ou service sans la TVA.",
+        "Price of a good or service without VAT."],
+    ["budget", "Facture", "Invoice", 
+        "Document commercial détaillant les produits vendus et la somme à payer. Preuve essentielle.",
+        "Commercial document detailing products sold and amount to pay. Essential proof."],
+    ["budget", "Devis", "Quote", 
+        "Estimation écrite du prix proposée par un fournisseur avant la vente.",
+        "Written price estimate proposed by a supplier before the sale."],
+    ["budget", "Bon de commande", "Purchase Order", 
+        "Document confirmant la volonté d'acheter un bien ou service au prix du devis.",
+        "Document confirming the intention to buy a good or service at the quoted price."],
+    ["budget", "Note de frais", "Expense Claim", 
+        "Document récapitulant les frais avancés par un bénévole/salarié pour remboursement.",
+        "Document summarizing expenses advanced by a volunteer/employee for reimbursement."],
+    ["budget", "Reçu", "Receipt", 
+        "Preuve de paiement délivrée après règlement d'un achat.",
+        "Proof of payment issued after settlement of a purchase."],
+    ["budget", "Pièce comptable", "Accounting Document", 
+        "Tout document (facture, reçu) justifiant une écriture dans les comptes.",
+        "Any document (invoice, receipt) justifying an entry in the accounts."],
+    ["budget", "Trésorerie", "Cash Flow", 
+        "Ensemble de l'argent disponible immédiatement (caisse et banque).",
+        "Total money available immediately (cash and bank)."],
+    ["budget", "Plan de trésorerie", "Cash Flow Forecast", 
+        "Tableau prévisionnel des entrées et sorties d'argent mois par mois.",
+        "Forecast table of money inflows and outflows month by month."],
+    ["budget", "BFR", "Working Capital Req.", 
+        "Besoin en Fonds de Roulement : argent nécessaire pour couvrir le décalage entre dépenses et recettes.",
+        "Money needed to cover the gap between expenses and income receipts."],
+    ["budget", "Avance de trésorerie", "Cash Advance", 
+        "Somme prêtée ou versée en amont pour permettre de démarrer les actions.",
+        "Sum lent or paid upfront to allow actions to start."],
+    ["budget", "Imprévu", "Contingency", 
+        "Réserve budgétaire (souvent limitée à 5-10%) pour couvrir les aléas du projet.",
+        "Budget reserve (often limited to 5-10%) to cover project contingencies."],
+    ["budget", "Seuil de rentabilité", "Break-even Point", 
+        "Niveau d'activité à partir duquel le projet ne perd plus d'argent (Recettes = Dépenses).",
+        "Activity level at which the project stops losing money (Income = Expenses)."],
+
+    // B) Funding
+    ["funding", "Appel à projets (AAP)", "Call for Proposals", 
+        "Procédure par laquelle un financeur invite à proposer des projets pour obtenir des fonds.",
+        "Procedure where a funder invites project proposals to award funding."],
+    ["funding", "Cahier des charges", "Terms of Reference", 
+        "Document décrivant précisément les besoins et règles de l'appel à projets.",
+        "Document precisely describing the needs and rules of the call for proposals."],
+    ["funding", "Éligibilité", "Eligibility", 
+        "Ensemble des conditions (âge, pays, statut) à remplir pour pouvoir postuler.",
+        "Set of conditions (age, country, status) to fulfill to apply."],
+    ["funding", "Critères de sélection", "Selection Criteria", 
+        "Éléments sur lesquels les projets seront jugés (pertinence, impact, budget).",
+        "Elements on which projects will be judged (relevance, impact, budget)."],
+    ["funding", "Dépenses éligibles", "Eligible Costs", 
+        "Dépenses qui respectent les règles du financeur et peuvent être remboursées.",
+        "Expenses that comply with funder rules and can be reimbursed."],
+    ["funding", "Taux de cofinancement", "Co-financing Rate", 
+        "Pourcentage du budget total pris en charge par le financeur (ex: 80%).",
+        "Percentage of the total budget covered by the funder (e.g., 80%)."],
+    ["funding", "Cofinancement", "Co-financing", 
+        "Partie du budget apportée par d'autres sources (fonds propres, autres subventions).",
+        "Part of the budget provided by other sources (own funds, other grants)."],
+    ["funding", "Autofinancement", "Self-financing", 
+        "Fonds apportés directement par la structure porteuse du projet.",
+        "Funds provided directly by the organization leading the project."],
+    ["funding", "Subvention", "Grant", 
+        "Aide financière publique ou privée sans contrepartie directe, pour un but d'intérêt général.",
+        "Public or private financial aid without direct return, for general interest goals."],
+    ["funding", "Convention", "Grant Agreement", 
+        "Contrat juridique signé entre le financeur et le bénéficiaire fixant les règles.",
+        "Legal contract signed between the funder and the beneficiary setting the rules."],
+    ["funding", "Marché public", "Public Procurement", 
+        "Contrat où une autorité publique achète des services/biens (différent d'une subvention).",
+        "Contract where a public authority buys services/goods (different from a grant)."],
+    ["funding", "Coûts réels", "Actual Costs", 
+        "Mode de financement basé sur le remboursement des factures réelles au centime près.",
+        "Funding mode based on reimbursing actual invoices to the penny."],
+    ["funding", "Forfait (Lump sum)", "Lump Sum", 
+        "Somme globale versée pour un résultat, sans avoir à justifier chaque facture.",
+        "Global sum paid for a result, without having to justify every invoice."],
+    ["funding", "Coûts unitaires", "Unit Costs", 
+        "Montant fixe alloué par unité (ex: X€ par km, Y€ par jour).",
+        "Fixed amount allocated per unit (e.g., X€ per km, Y€ per day)."],
+    ["funding", "Acompte", "Pre-financing", 
+        "Premier versement de la subvention (souvent 70-80%) au début du projet.",
+        "First installment of the grant (often 70-80%) at the start of the project."],
+    ["funding", "Solde", "Balance Payment", 
+        "Dernier versement effectué après validation du rapport final.",
+        "Last payment made after validation of the final report."],
+    ["funding", "Rapport narratif", "Narrative Report", 
+        "Document décrivant le déroulement, les activités et l'impact du projet.",
+        "Document describing the progress, activities, and impact of the project."],
+    ["funding", "Rapport financier", "Financial Report", 
+        "Tableau récapitulatif de toutes les dépenses et recettes du projet.",
+        "Summary table of all project expenses and income."],
+    ["funding", "Justificatifs", "Supporting Docs", 
+        "Preuves matérielles des dépenses (factures, billets) et des activités (listes de présence).",
+        "Material proofs of expenses (invoices, tickets) and activities (attendance lists)."],
+    ["funding", "Audit", "Audit", 
+        "Vérification approfondie de la gestion financière et comptable du projet.",
+        "In-depth verification of the project's financial and accounting management."],
+    ["funding", "Double financement", "Double Funding", 
+        "Pratique illégale consistant à se faire rembourser la même facture deux fois.",
+        "Illegal practice of getting reimbursed for the same invoice twice."],
+
+    // C) Management
+    ["manage", "Objectif général", "General Objective", 
+        "But à long terme auquel le projet contribue (ex: réduire le chômage).",
+        "Long-term goal to which the project contributes (e.g., reduce unemployment)."],
+    ["manage", "Objectifs spécifiques", "Specific Objectives", 
+        "Résultats concrets et mesurables visés par le projet à court terme.",
+        "Concrete and measurable results targeted by the project in the short term."],
+    ["manage", "Livrables", "Deliverables", 
+        "Produits tangibles créés par le projet (guide, site web, vidéo).",
+        "Tangible products created by the project (guide, website, video)."],
+    ["manage", "Jalons", "Milestones", 
+        "Étapes clés ou points de contrôle marquant l'avancement du projet.",
+        "Key stages or checkpoints marking project progress."],
+    ["manage", "Rétroplanning", "Backward Planning", 
+        "Méthode de planification partant de la date de fin pour fixer les étapes intermédiaires.",
+        "Planning method starting from the end date to set intermediate steps."],
+    ["manage", "Chemin critique", "Critical Path", 
+        "Séquence de tâches qui ne peuvent pas être retardées sans retarder tout le projet.",
+        "Sequence of tasks that cannot be delayed without delaying the whole project."],
+    ["manage", "Risque", "Risk", 
+        "Événement incertain pouvant affecter négativement le projet.",
+        "Uncertain event that could negatively affect the project."],
+    ["manage", "Gouvernance", "Governance", 
+        "Manière dont les décisions sont prises et les responsabilités réparties.",
+        "How decisions are made and responsibilities distributed."],
+    ["manage", "Parties prenantes", "Stakeholders", 
+        "Tous les acteurs impliqués ou impactés par le projet (partenaires, public, élus).",
+        "All actors involved or impacted by the project (partners, public, officials)."],
+    ["manage", "Comité de pilotage", "Steering Committee", 
+        "Groupe de décideurs qui supervise la direction stratégique du projet.",
+        "Group of decision-makers supervising the strategic direction of the project."],
+    ["manage", "Kick-off", "Kick-off Meeting", 
+        "Réunion de lancement officiel du projet avec l'équipe et les partenaires.",
+        "Official launch meeting of the project with the team and partners."],
+    ["manage", "Indicateurs (KPI)", "KPI", 
+        "Données chiffrées permettant de mesurer la performance et l'atteinte des objectifs.",
+        "Numerical data used to measure performance and goal achievement."],
+    ["manage", "Évaluation", "Evaluation", 
+        "Analyse des résultats du projet pour déterminer sa valeur et son efficacité.",
+        "Analysis of project results to determine its value and effectiveness."],
+    ["manage", "Dissémination", "Dissemination", 
+        "Action de faire connaître et partager les résultats du projet au grand public.",
+        "Action of promoting and sharing project results with the general public."],
+    ["manage", "Impact", "Impact", 
+        "Effets à long terme du projet sur les participants et la société.",
+        "Long-term effects of the project on participants and society."],
+
+    // D) Compliance
+    ["compliance", "Traçabilité", "Traceability", 
+        "Capacité à retrouver l'historique et la justification de chaque opération financière.",
+        "Ability to trace the history and justification of every financial operation."],
+    ["compliance", "Archivage", "Archiving", 
+        "Conservation obligatoire des documents du projet (souvent 5 ou 10 ans).",
+        "Mandatory preservation of project documents (often 5 or 10 years)."],
+    ["compliance", "Feuille d'émargement", "Sign-in Sheet", 
+        "Liste signée par les participants prouvant leur présence physique.",
+        "List signed by participants proving their physical presence."],
+    ["compliance", "RGPD", "GDPR", 
+        "Règlement européen encadrant la collecte et la protection des données personnelles.",
+        "European regulation governing the collection and protection of personal data."],
+    ["compliance", "Consentement", "Consent", 
+        "Accord explicite d'une personne pour l'utilisation de son image ou de ses données.",
+        "Explicit agreement of a person for the use of their image or data."],
+    ["compliance", "Responsabilité civile", "Liability Insurance", 
+        "Assurance couvrant les dommages causés à autrui durant le projet.",
+        "Insurance covering damages caused to others during the project."],
+    ["compliance", "Safeguarding", "Safeguarding", 
+        "Mesures pour protéger la santé, le bien-être et les droits des participants vulnérables.",
+        "Measures to protect the health, well-being, and rights of vulnerable participants."],
+    ["compliance", "Inclusion", "Inclusion", 
+        "Démarche visant à intégrer tous les jeunes, notamment ceux avec moins d'opportunités.",
+        "Approach aiming to integrate all youth, especially those with fewer opportunities."],
+    ["compliance", "Non-discrimination", "Non-discrimination", 
+        "Principe d'égalité de traitement peu importe le genre, l'origine ou la religion.",
+        "Principle of equal treatment regardless of gender, origin, or religion."],
+
+    // E) Youth & Mobility (ENRICHED)
+    ["youth", "Travail de jeunesse", "Youth Work", 
+        "Activités socio-éducatives pour les jeunes, hors du cadre scolaire et familial.",
+        "Socio-educational activities for young people, outside school and family."],
+    ["youth", "Éducation non formelle", "Non-formal Edu.", 
+        "Apprentissage structuré mais volontaire, basé sur l'expérience (hors école).",
+        "Structured but voluntary learning, based on experience (outside school)."],
+    ["youth", "Apprentissage informel", "Informal Learning", 
+        "Apprentissage découlant des activités de la vie quotidienne, non structuré ni certifié.",
+        "Learning resulting from daily life activities, not structured or certified."],
+    ["youth", "Youthpass", "Youthpass", 
+        "Outil européen de reconnaissance des compétences acquises lors de projets jeunesse.",
+        "European tool for recognizing skills acquired during youth projects."],
+    ["youth", "NEET", "NEET", 
+        "Acronyme désignant les jeunes 'Not in Education, Employment, or Training'. Public prioritaire des programmes d'inclusion.",
+        "Acronym for young people 'Not in Education, Employment, or Training'. Priority target group for inclusion programs."],
+    ["youth", "Moins d'opportunités", "Fewer Opportunities", 
+        "Jeunes rencontrant des obstacles (économiques, sociaux, géographiques, santé) limitant leur accès aux projets.",
+        "Young people facing obstacles (economic, social, geographical, health) limiting their access to projects."],
+    ["youth", "Mobilité", "Mobility", 
+        "Déplacement physique dans un autre pays pour une période d'apprentissage ou de volontariat.",
+        "Physical travel to another country for a learning or volunteering period."],
+    ["youth", "Volontariat (CES)", "Volunteering (ESC)", 
+        "Engagement solidaire à plein temps dans un autre pays, soutenu par le Corps Européen de Solidarité.",
+        "Full-time solidarity commitment in another country, supported by the European Solidarity Corps."],
+    ["youth", "Échange de jeunes", "Youth Exchange", 
+        "Rencontre de groupes de jeunes de différents pays autour d'un thème commun pour des activités partagées.",
+        "Meeting of groups of young people from different countries around a common theme for shared activities."],
+    ["youth", "Facilitation", "Facilitation", 
+        "Rôle consistant à accompagner un groupe pour favoriser l'apprentissage, la participation et la coopération.",
+        "Role consisting of guiding a group to foster learning, participation, and cooperation."],
+    ["youth", "Apprentissage par les pairs", "Peer Learning", 
+        "Méthode pédagogique où les participants apprennent les uns des autres grâce au partage d'expériences.",
+        "Educational method where participants learn from each other through experience sharing."],
+    ["youth", "Compétences clés", "Key Competences", 
+        "Ensemble de 8 compétences définies par l'UE nécessaires à l'épanouissement personnel (ex: multilinguisme, numérique).",
+        "Set of 8 competences defined by the EU necessary for personal fulfillment (e.g., multilingualism, digital)."],
+    ["youth", "Dialogue UE Jeunesse", "EU Youth Dialogue", 
+        "Mécanisme de dialogue entre les jeunes et les décideurs politiques pour prendre en compte la voix de la jeunesse.",
+        "Dialogue mechanism between young people and policy makers to take youth voices into account."],
+    ["youth", "Animateur de jeunesse", "Youth Worker", 
+        "Professionnel ou bénévole travaillant directement avec les jeunes pour soutenir leur développement personnel.",
+        "Professional or volunteer working directly with young people to support their personal development."],
+    ["youth", "Mentor", "Mentor", 
+        "Personne locale accompagnant individuellement un volontaire ou un participant pour faciliter son intégration.",
+        "Local person providing individual support to a volunteer or participant to facilitate their integration."],
+    ["youth", "Préparation au départ", "Pre-departure Training", 
+        "Formation obligatoire avant une mobilité pour préparer le participant (culture, sécurité, attentes).",
+        "Mandatory training before mobility to prepare the participant (culture, safety, expectations)."],
+    ["youth", "Citoyenneté active", "Active Citizenship", 
+        "Participation engagée des individus à la vie de leur communauté et à la démocratie.",
+        "Engaged participation of individuals in the life of their community and democracy."],
+    ["youth", "Employabilité", "Employability", 
+        "Capacité d'une personne à obtenir et maintenir un emploi grâce à ses compétences et expériences.",
+        "Ability of a person to gain and maintain employment thanks to their skills and experiences."],
+    ["youth", "Empowerment", "Empowerment", 
+        "Processus d'autonomisation permettant aux jeunes de prendre le contrôle de leur vie et d'agir.",
+        "Process of gaining autonomy allowing young people to take control of their lives and act."],
+    ["youth", "Gestion de conflit", "Conflict Management", 
+        "Techniques et approches pour prévenir et résoudre les tensions au sein d'un groupe multiculturel.",
+        "Techniques and approaches to prevent and solve tensions within a multicultural group."],
+    ["youth", "Dynamique de groupe", "Group Dynamics", 
+        "Étude et gestion des interactions et des processus qui se déroulent au sein d'un groupe.",
+        "Study and management of interactions and processes occurring within a group."],
+    ["youth", "Cadre sécurisant", "Safe Space", 
+        "Environnement bienveillant où les participants se sentent libres de s'exprimer sans jugement.",
+        "Caring environment where participants feel free to express themselves without judgment."],
+    ["youth", "Brise-glace", "Ice-breaker", 
+        "Activité ludique courte utilisée au début d'une session pour créer une atmosphère détendue.",
+        "Short playful activity used at the start of a session to create a relaxed atmosphere."],
+
+    // F) Partners
+    ["partner", "Consortium", "Consortium", 
+        "Regroupement de plusieurs organisations partenaires pour mener un projet commun.",
+        "Grouping of several partner organizations to lead a joint project."],
+    ["partner", "Chef de file (Lead)", "Lead Partner", 
+        "Organisation responsable du contrat, de la gestion globale et du budget.",
+        "Organization responsible for the contract, global management, and budget."],
+    ["partner", "Partenaire associé", "Associated Partner", 
+        "Structure qui contribue au projet sans gérer de budget ni signer le contrat.",
+        "Organization contributing to the project without managing budget or signing the contract."],
+    ["partner", "Mandat", "Mandate", 
+        "Document autorisant le chef de file à agir au nom des partenaires.",
+        "Document authorizing the lead partner to act on behalf of the partners."],
+    ["partner", "Convention de partenariat", "Partnership Agmt.", 
+        "Contrat interne au consortium définissant les rôles et la gestion des conflits.",
+        "Internal consortium contract defining roles and conflict management."]
+];
+
+// DATA GENERATION
+let TERMS = [];
+
+// Helper to slugify ID
+const makeId = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_").substring(0, 20);
+
+// Generate all terms from FULL_DATA
+FULL_DATA.forEach(item => {
+    // Structure: [0:cat, 1:frTerm, 2:enTerm, 3:frDef, 4:enDef]
+    let id = makeId(item[1]);
+    let counter = 1;
+    while(TERMS.find(t => t.id === id)) { id = makeId(item[1]) + "_" + counter++; }
+
+    let t = createTerm(id, item[0], "intermediaire", item[1], item[2], item[3], item[4]);
+    
+    // Enrich context usage for specific items based on category
+    if(item[0] === "budget") {
+        t.fr.use = "Essentiel pour la gestion financière et le reporting.";
+        t.en.use = "Essential for financial management and reporting.";
+    }
+    
+    TERMS.push(t);
+});
+
+// App State
+let state = {
+    lang: 'fr',
+    terms: TERMS,
+    filter: { level: null, role: null },
+    reviewQueue: []
+};
+
+// --- CORE FUNCTIONS ---
+
+function init() {
+    loadProgress();
+    renderStats();
+    renderCategories();
+    renderContext(); // Initial random context load
+    updateUIText();
+}
+
+function router(viewName) {
+    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(`view-${viewName}`).classList.add('active');
+    document.getElementById(`nav-${viewName}`).classList.add('active');
+
+    if(viewName === 'review') initReviewSession();
+    if(viewName === 'search') handleSearch();
+    if(viewName === 'quiz') renderQuizMenu();
+}
+
+function toggleLang() {
+    state.lang = state.lang === 'fr' ? 'en' : 'fr';
+    updateUIText();
+    router('home'); 
+    init();
+}
+
+function updateUIText() {
+    document.getElementById('app-title').textContent = I18N[state.lang].app_title; // Update Header Title manually
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if(I18N[state.lang][key]) el.textContent = I18N[state.lang][key];
+    });
+}
+
+// --- RENDERERS ---
+
+function renderStats() {
+    const total = state.terms.length;
+    const seen = state.terms.filter(t => t.stats && t.stats.seen > 0).length;
+    const mastered = state.terms.filter(t => t.stats && t.stats.box >= 4).length; 
+
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-seen').textContent = seen;
+    document.getElementById('stat-mastered').textContent = mastered;
+}
+
+function renderCategories() {
+    const grid = document.getElementById('home-categories');
+    grid.innerHTML = '';
+    Object.keys(CATEGORIES).forEach(key => {
+        const cat = CATEGORIES[key];
+        const count = state.terms.filter(t => t.category === key).length;
+        const div = document.createElement('div');
+        div.className = 'cat-card';
+        div.onclick = () => { router('search'); document.getElementById('search-input').value = cat[state.lang]; handleSearch(); };
+        div.innerHTML = `<h3>${cat.icon} ${cat[state.lang]}</h3><p>${count} terms</p>`;
+        grid.appendChild(div);
+    });
+}
+
+// --- CONTEXT ENGINE ---
+
+function renderContext() {
+    const container = document.getElementById('context-content');
+    container.innerHTML = '';
+    
+    const pool = CONTEXT_TEMPLATES[state.lang];
+    // Pick 5 random unique sentences
+    const selected = pool.sort(() => 0.5 - Math.random()).slice(0, 5);
+
+    selected.forEach(sentence => {
+        // Regex to find [[Term]] and replace with clickable span
+        const processed = sentence.replace(/\[\[(.*?)\]\]/g, (match, p1) => {
+            // Find ID based on text name (loosely)
+            const cleanText = p1.toLowerCase().trim();
+            const term = state.terms.find(t => 
+                t[state.lang].term.toLowerCase().includes(cleanText) ||
+                (state.lang === 'fr' && t.fr.term.toLowerCase().includes(cleanText)) ||
+                (state.lang === 'en' && t.en.term.toLowerCase().includes(cleanText))
+            );
+            
+            if (term) {
+                return `<span class="context-highlight" onclick="openModal('${term.id}')">${p1}</span>`;
+            } else {
+                return `<strong>${p1}</strong>`; // Fallback if typo in template
+            }
+        });
+
+        const p = document.createElement('div');
+        p.className = 'context-line';
+        p.innerHTML = processed;
+        container.appendChild(p);
+    });
+}
+
+function handleSearch() {
+    const query = document.getElementById('search-input').value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const container = document.getElementById('search-results');
+    container.innerHTML = '';
+
+    const results = state.terms.filter(t => {
+        const data = t[state.lang];
+        const catName = CATEGORIES[t.category] ? CATEGORIES[t.category][state.lang] : "";
+        const matchesQuery = data.term.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(query) || 
+                             catName.toLowerCase().includes(query);
+        const matchesLevel = state.filter.level ? t.level === state.filter.level : true;
+        
+        return matchesQuery && matchesLevel;
+    });
+
+    results.forEach(t => {
+        const data = t[state.lang];
+        const el = document.createElement('div');
+        el.className = 'term-card';
+        el.onclick = () => openModal(t.id);
+        el.innerHTML = `
+            <div class="term-header">
+                <span class="term-category">${CATEGORIES[t.category][state.lang]}</span>
+                <div class="term-title">${data.term}</div>
+                <div style="font-size:0.9rem; color:var(--text-light)">${data.def.substring(0, 60)}...</div>
+            </div>
+        `;
+        container.appendChild(el);
+    });
+}
+
+function toggleFilter(type, val) {
+    if(state.filter[type] === val) state.filter[type] = null;
+    else state.filter[type] = val;
+    document.querySelectorAll('.filter-tag').forEach(btn => {
+        if(btn.textContent.toLowerCase().includes(val)) btn.classList.toggle('active');
+        else if(btn.getAttribute('onclick').includes(type)) btn.classList.remove('active');
+    });
+    handleSearch();
+}
+
+// --- MODAL & DETAILS ---
+
+function openModal(id) {
+    const term = state.terms.find(t => t.id === id);
+    if(!term) return;
+
+    if (!term.stats) term.stats = { seen: 0, box: 0, nextReview: 0 };
+    term.stats.seen++;
+    saveProgress();
+    renderStats();
+
+    const data = term[state.lang];
+    const modal = document.getElementById('term-modal');
+    
+    document.getElementById('modal-cat').textContent = CATEGORIES[term.category][state.lang];
+    document.getElementById('modal-title').textContent = data.term;
+    document.getElementById('modal-def').textContent = data.def;
+    document.getElementById('modal-use').textContent = data.use;
+    document.getElementById('modal-ex').textContent = data.example;
+
+    const confBox = document.getElementById('modal-confusion-box');
+    if (data.confusions) {
+        confBox.style.display = 'block';
+        document.getElementById('modal-conf-term').textContent = data.confusions.term;
+        document.getElementById('modal-conf-desc').textContent = data.confusions.note;
+    } else {
+        confBox.style.display = 'none';
+    }
+    modal.showModal();
+}
+
+// --- SRS REVIEW SYSTEM ---
+
+function initReviewSession() {
+    const now = Date.now();
+    state.reviewQueue = state.terms.filter(t => t.stats && t.stats.nextReview <= now)
+                                   .sort(() => 0.5 - Math.random())
+                                   .slice(0, 10);
+    
+    if(state.reviewQueue.length === 0) {
+        document.getElementById('flashcard-area').innerHTML = `<div style="text-align:center; padding:3rem;"><h3>🎉 ${state.lang === 'fr' ? 'Tout est à jour !' : 'All caught up!'}</h3><p>Revenez demain.</p></div>`;
+        document.getElementById('review-btns').style.visibility = 'hidden';
+        return;
+    }
+    
+    document.getElementById('review-count-display').textContent = `${state.reviewQueue.length} ${state.lang === 'fr' ? 'termes à revoir' : 'terms to review'}`;
+    showNextCard();
+}
+
+let currentReviewTerm = null;
+
+function showNextCard() {
+    if(state.reviewQueue.length === 0) {
+        initReviewSession();
+        return;
+    }
+    
+    currentReviewTerm = state.reviewQueue[0];
+    const data = currentReviewTerm[state.lang];
+    
+    const html = `
+        <div class="flashcard" onclick="flipCard(this)">
+            <div class="flashcard-content front">
+                <div class="term-category" style="margin-bottom:1rem">${CATEGORIES[currentReviewTerm.category][state.lang]}</div>
+                <h3 style="font-size:1.8rem;">${data.term}</h3>
+                <p style="margin-top:2rem; font-size:0.8rem; color:var(--text-light);">(Tap to flip)</p>
+            </div>
+            <div class="flashcard-content back">
+                <p style="font-size:1.1rem; line-height:1.6; padding:1rem">${data.def}</p>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('flashcard-area').innerHTML = html;
+    document.getElementById('review-btns').style.visibility = 'hidden';
+}
+
+function flipCard(el) {
+    if(!el.classList.contains('flipped')) {
+        el.classList.add('flipped');
+        document.getElementById('review-btns').style.visibility = 'visible';
+    }
+}
+
+function processReview(quality) {
+    const term = currentReviewTerm;
+    if (quality === 0) { term.stats.box = 0; } else { term.stats.box += 1; }
+    
+    const intervals = [1, 3, 7, 14, 30, 90];
+    const days = intervals[Math.min(term.stats.box, intervals.length - 1)];
+    term.stats.nextReview = Date.now() + (days * 24 * 60 * 60 * 1000);
+    
+    state.reviewQueue.shift();
+    saveProgress();
+    showNextCard();
+}
+
+// --- DYNAMIC QUIZ MODE ---
+
+function renderQuizMenu() {
+    const grid = document.getElementById('quiz-categories');
+    grid.innerHTML = '';
+    document.getElementById('active-quiz-container').style.display = 'none';
+
+    Object.keys(CATEGORIES).forEach(key => {
+        const cat = CATEGORIES[key];
+        const div = document.createElement('div');
+        div.className = 'cat-card';
+        div.innerHTML = `<h3>${cat.icon} ${cat[state.lang]}</h3><p>Start Quiz</p>`;
+        div.onclick = () => startQuiz(key);
+        grid.appendChild(div);
+    });
+}
+
+function startQuiz(catKey) {
+    // Get all terms in this category
+    const pool = state.terms.filter(t => t.category === catKey);
+    
+    if(pool.length < 4) {
+        alert("Not enough terms in this category for a quiz yet.");
+        return;
+    }
+
+    // Pick 5 random questions
+    const selectedTerms = pool.sort(() => 0.5 - Math.random()).slice(0, 5);
+    
+    document.getElementById('quiz-categories').innerHTML = ''; // Clear menu
+    const container = document.getElementById('active-quiz-container');
+    container.style.display = 'block';
+    
+    let html = `<h3>Quiz: ${CATEGORIES[catKey][state.lang]}</h3>`;
+    
+    selectedTerms.forEach((term, i) => {
+        // Generate Dynamic Question
+        const qData = generateDynamicQuestion(term, pool);
+        
+        html += `
+            <div style="background:white; padding:1.5rem; margin-bottom:1rem; border-radius:8px; box-shadow:var(--shadow)">
+                <p style="margin-bottom:1rem; font-size:1.1rem"><strong>${i+1}. ${qData.q}</strong></p>
+                <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                    ${qData.choices.map((c, idx) => `
+                        <button class="quiz-btn" onclick="checkQuizAnswer(this, ${c.isCorrect})">${c.text}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    html += `<button onclick="renderQuizMenu()" style="margin-top:2rem; padding:0.5rem 1rem; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer">Retour / Back</button>`;
+    
+    document.getElementById('quiz-question-area').innerHTML = html;
+}
+
+function generateDynamicQuestion(correctTerm, allTermsInCat) {
+    // Type 0: Find Definition of Term
+    // Type 1: Find Term for Definition
+    const type = Math.random() > 0.5 ? 0 : 1;
+    
+    // Get distractors (wrong answers)
+    const others = allTermsInCat.filter(t => t.id !== correctTerm.id).sort(() => 0.5 - Math.random()).slice(0, 2);
+    
+    let qText = "";
+    let choices = [];
+
+    if (type === 0) {
+        // Definition Finding
+        qText = state.lang === 'fr' 
+            ? `Quelle est la définition de : <em>${correctTerm.fr.term}</em> ?` 
+            : `What is the definition of: <em>${correctTerm.en.term}</em> ?`;
+            
+        choices = [
+            { text: correctTerm[state.lang].def, isCorrect: true },
+            { text: others[0][state.lang].def, isCorrect: false },
+            { text: others[1][state.lang].def, isCorrect: false }
+        ];
+    } else {
+        // Term Finding
+        qText = state.lang === 'fr'
+            ? `Quel terme correspond à : "<em>${correctTerm.fr.def}</em>" ?`
+            : `Which term corresponds to: "<em>${correctTerm.en.def}</em>" ?`;
+
+        choices = [
+            { text: correctTerm[state.lang].term, isCorrect: true },
+            { text: others[0][state.lang].term, isCorrect: false },
+            { text: others[1][state.lang].term, isCorrect: false }
+        ];
+    }
+
+    // Shuffle choices
+    choices.sort(() => 0.5 - Math.random());
+    return { q: qText, choices: choices };
+}
+
+function checkQuizAnswer(btn, isCorrect) {
+    const parent = btn.parentElement;
+    Array.from(parent.children).forEach(b => b.disabled = true);
+    
+    if(isCorrect) {
+        btn.classList.add('correct');
+        btn.innerHTML += " ✅";
+    } else {
+        btn.classList.add('wrong');
+        // Reveal correct one
+        // Note: In this simple implementation we don't know easily which other button is correct visually
+        // But since user clicked wrong, they know it's wrong.
+    }
+}
+
+// --- PERSISTENCE ---
+
+function saveProgress() {
+    const saveData = state.terms.map(t => ({ id: t.id, stats: t.stats }));
+    localStorage.setItem('youthMasterProgress', JSON.stringify(saveData));
+}
+
+function loadProgress() {
+    const saved = localStorage.getItem('youthMasterProgress');
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        parsed.forEach(p => {
+            const term = state.terms.find(t => t.id === p.id);
+            if (term) term.stats = p.stats;
+        });
+    }
+}
+
+function resetData() {
+    if(confirm("Effacer toute la progression ? / Reset all progress?")) {
+        localStorage.removeItem('youthMasterProgress');
+        location.reload();
+    }
+}
+
+function exportData() {
+    const data = JSON.stringify(state.terms.map(t => ({ id: t.id, stats: t.stats })));
+    
+    // Fallback for iframe restrictions
+    const textArea = document.createElement("textarea");
+    textArea.value = data;
+    
+    // Ensure it's not visible but part of DOM
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        alert("Progression copiée ! / Progress copied!");
+    } catch (err) {
+        console.error('Fallback: Oops, unable to copy', err);
+        alert("Erreur lors de la copie / Error copying");
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function importData() {
+    const data = prompt("Collez le code JSON ici / Paste JSON here:");
+    if(data) {
+        try {
+            const parsed = JSON.parse(data);
+            localStorage.setItem('youthMasterProgress', data);
+            location.reload();
+        } catch(e) { alert("Invalid JSON"); }
+    }
+}
+
+// Start App
+window.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
