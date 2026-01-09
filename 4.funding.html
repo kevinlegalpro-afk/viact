@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Financement & Exigences</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .transition-all-300 {
+            transition: all 0.3s ease;
+        }
+        /* Custom Scrollbar for tables/content */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        .modal-overlay {
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- DATA CONTENT (Bilingual) ---
+        const content = {
+            fr: {
+                title: "Financement dans le travail jeunesse",
+                subtitle: "Identifier des financements pertinents et décoder les appels à projets.",
+                nav: ["Introduction", "Test: Go/No-Go", "Panorama", "Décodeur", "Matching"],
+                intro: {
+                    title: "Objectif du module",
+                    text: "Plutôt que de traiter le financement comme une course, apprenez à décider rapidement si une candidature est utile et soutenable, puis à transformer les exigences du financeur en éléments concrets."
+                },
+                quiz: {
+                    title: "Questionnaire : Est-ce que ça vaut le coup ?",
+                    intro: "Avant de vous lancer dans un dossier, prenez 5 minutes pour faire ce test.",
+                    questions: [
+                        { q: "Alignement réel avec ta mission", desc: "Le financeur demande-t-il quelque chose qui colle naturellement à votre projet ?", options: [
+                            { txt: "Oui, c’est exactement notre cœur d’action.", pts: 3 },
+                            { txt: "Oui, mais il faut ajuster un peu (≤ 10–15% du projet).", pts: 2 },
+                            { txt: "Il faut modifier beaucoup (jusqu’à 30–40%).", pts: 1 },
+                            { txt: "On ferait surtout ça “pour avoir les fonds”.", pts: 0 }
+                        ]},
+                        { q: "Capacité de montage (avant le dépôt)", desc: "À l’échelle de ton équipe, vous pouvez consacrer combien d’heures avant dépôt ?", options: [
+                            { txt: "On a le temps prévu (et quelqu’un responsable).", pts: 3 },
+                            { txt: "Ça va être serré mais faisable en priorisant.", pts: 2 },
+                            { txt: "On n’a pas le temps, on “improvisera”.", pts: 1 },
+                            { txt: "Personne n’a de créneau réaliste.", pts: 0 }
+                        ]},
+                        { q: "Coût admin vs. montant utile", desc: "Le financement reste-t-il “rentable” après gestion ?", options: [
+                            { txt: "Oui, le gain net est clair.", pts: 3 },
+                            { txt: "Oui, mais à condition de simplifier fortement.", pts: 2 },
+                            { txt: "C’est limite : on risque d’y perdre en énergie.", pts: 1 },
+                            { txt: "Non, ça ne couvre pas l’effort.", pts: 0 }
+                        ]},
+                        { q: "Trésorerie / avance de frais", desc: "Le financement est-il versé en avance ?", options: [
+                            { txt: "Oui (avance suffisante) ou trésorerie solide.", pts: 3 },
+                            { txt: "Partiellement, mais on peut avancer sans risque.", pts: 2 },
+                            { txt: "Versement tardif, et l’avance est incertaine.", pts: 1 },
+                            { txt: "On ne peut pas avancer → risque de blocage.", pts: 0 }
+                        ]},
+                        { q: "Cofinancement / reste à charge", desc: "Pouvez-vous sécuriser le cofinancement ?", options: [
+                            { txt: "Pas de cofinancement ou déjà acquis.", pts: 3 },
+                            { txt: "Requis mais très probable.", pts: 2 },
+                            { txt: "Flou, pas encore de solution.", pts: 1 },
+                            { txt: "Nécessaire et impossible à ce stade.", pts: 0 }
+                        ]},
+                        { q: "Éligibilité “sans interprétation”", desc: "Êtes-vous clairement éligibles ?", options: [
+                            { txt: "Oui, c’est évident.", pts: 3 },
+                            { txt: "Oui, mais 1 point demande confirmation.", pts: 2 },
+                            { txt: "Plusieurs points sont ambigus.", pts: 1 },
+                            { txt: "Probablement pas éligibles / forçage.", pts: 0 }
+                        ]},
+                        { q: "Charge de preuves", desc: "Pouvez-vous produire les justificatifs facilement ?", options: [
+                            { txt: "Oui, on a déjà un système simple.", pts: 3 },
+                            { txt: "Oui, mais besoin d'un outil léger.", pts: 2 },
+                            { txt: "Compliqué, on ne sait pas faire.", pts: 1 },
+                            { txt: "Impossible de fournir ce qui est demandé.", pts: 0 }
+                        ]},
+                        { q: "Reporting / indicateurs", desc: "Les indicateurs sont-ils réalistes ?", options: [
+                            { txt: "Oui, cohérent et mesurable simplement.", pts: 3 },
+                            { txt: "Oui, mais il faut adapter notre suivi.", pts: 2 },
+                            { txt: "Non, chiffres “artificiels”.", pts: 1 },
+                            { txt: "Incompatible avec notre réalité.", pts: 0 }
+                        ]},
+                        { q: "Calendrier de réalisation", desc: "Les dates sont-elles compatibles ?", options: [
+                            { txt: "Oui, tout colle.", pts: 3 },
+                            { txt: "Ça colle, mais ajustement nécessaire.", pts: 2 },
+                            { txt: "Très tendus sur les délais.", pts: 1 },
+                            { txt: "Incompatible.", pts: 0 }
+                        ]},
+                        { q: "Complexité partenariale", desc: "Le financement impose-t-il des partenaires ?", options: [
+                            { txt: "Peu ou pas / partenaires actifs.", pts: 3 },
+                            { txt: "Oui, mais gérable.", pts: 2 },
+                            { txt: "Oui, coordination complexe, friction.", pts: 1 },
+                            { txt: "Trop de dépendances externes.", pts: 0 }
+                        ]},
+                        { q: "Contraintes “invisibles”", desc: "Logos, RGPD, règles d’achat : c’est maîtrisable ?", options: [
+                            { txt: "Oui, on sait faire / standard.", pts: 3 },
+                            { txt: "Oui, mais checklist nécessaire.", pts: 2 },
+                            { txt: "Risque d’oubli / obligations nouvelles.", pts: 1 },
+                            { txt: "Risque de non-conformité.", pts: 0 }
+                        ]},
+                        { q: "Risque global vs. bénéfice", desc: "Si ce financement tombe à l’eau, que se passe-t-il ?", options: [
+                            { txt: "Le projet tient quand même (plan B).", pts: 3 },
+                            { txt: "Le projet est réduit mais viable.", pts: 2 },
+                            { txt: "Le projet dépend fortement de ça.", pts: 1 },
+                            { txt: "On se met en difficulté.", pts: 0 }
+                        ]}
+                    ],
+                    results: {
+                        high: { title: "GO (25–36)", text: "On candidate : c’est cohérent et soutenable.", color: "bg-emerald-100 text-emerald-800 border-emerald-500" },
+                        mid: { title: "GO sous conditions (15–24)", text: "On candidate seulement si on sécurise (trésorerie, cofinancement, preuves...).", color: "bg-amber-100 text-amber-800 border-amber-500" },
+                        low: { title: "NO-GO (0–14)", text: "On ne candidate pas : trop risqué ou pas rentable en temps/énergie.", color: "bg-red-100 text-red-800 border-red-500" }
+                    },
+                    reset: "Recommencer le test"
+                },
+                panorama: {
+                    title: "Où chercher des financements ?",
+                    subtitle: "Panorama par familles",
+                    categories: [
+                        { title: "A) Financements publics", content: "Collectivités, National, Agences, Europe (Erasmus+)...", details: ["Collectivités territoriales (locales/régionales)", "Niveau national (appels thématiques)", "Agences publiques (santé, éducation...)", "Programmes supranationaux (Erasmus+)"] },
+                        { title: "B) Fondations & Philanthropie", content: "Privées, Entreprises, Trusts...", details: ["Fondations privées (thématiques)", "Fondations d’entreprise (RSE)", "Trusts / philanthropes"] },
+                        { title: "C) Entreprises & Partenariats", content: "Mécénat, Sponsoring, RSE...", details: ["Mécénat (soutien sans contrepartie directe)", "Sponsoring (visibilité)", "Partenariats RSE (co-construction)", "Dons en nature"] },
+                        { title: "D) Ressources propres", content: "Adhésions, Ventes, Services...", details: ["Adhésions / cotisations", "Prestations de service", "Événements (billetterie)", "Vente de produits", "Locations"] },
+                        { title: "E) Participatif & Communauté", content: "Crowdfunding, Événements solidaires...", details: ["Crowdfunding (avec/sans contrepartie)", "Dons récurrents", "Collectes événementielles"] },
+                        { title: "F) Contrats & Conventions", content: "Prestations, Subventions conventionnées...", details: ["Contrats de prestation", "Conventions pluriannuelles", "Partenariats établissements"] },
+                        { title: "G) Prix & Bourses", content: "Innovation, Jeunesse...", details: ["Prix d’innovation sociale", "Bourses pour projets collectifs"] },
+                        { title: "H) Financements “à part”", content: "Prêts, Investissement, Pro bono...", details: ["Prêts / avances remboursables", "Investissement à impact", "Appui en compétences (pro bono)"] }
+                    ]
+                },
+                decoder: {
+                    title: "Le Décodeur d’appel à projets",
+                    subtitle: "Ne lisez pas tout linéairement ! Transformez le jargon administratif en plan d'action opérationnel.",
+                    methodology: "La méthodologie est simple : on ne lit pas un appel à projet comme un roman (page 1 à 50). On va chercher l'information de manière chirurgicale en 3 passages pour gagner du temps et sécuriser le projet.",
+                    steps: [
+                        { 
+                            name: "Étape 1: Scan Express (GO / NO-GO)", 
+                            goal: "L'objectif est d'éliminer le dossier immédiatement s'il contient un point bloquant, avant d'avoir perdu des heures à lire.",
+                            items: [
+                                { label: "Éligibilité", info: "Vérifiez : type de structure, zone géographique, public visé. Si un seul point ne colle pas, arrêtez tout.", ex: "L'appel exige d'être situé en zone QPV (Quartier Prioritaire). Votre asso est en centre-ville : c'est NO-GO." },
+                                { label: "Montant + Taux", info: "Quel est le montant max ? Le % financé ? Si vous n'avez pas les 20% restants, c'est un risque.", ex: "Subvention max 5000€ (80% du total). Si votre projet coûte 20 000€, le reste à charge est de 15 000€." },
+                                { label: "Mode de versement", info: "Est-ce une avance ou un remboursement sur facture ? (Vital pour votre trésorerie).", ex: "Remboursement sur factures acquittées. Avez-vous 10 000€ en banque pour payer les prestataires AVANT d'être remboursé ?" },
+                                { label: "Calendrier", info: "Date limite de dépôt et période de réalisation. Est-ce réaliste ?", ex: "Réponse du jury le 1er juin pour un festival le 15 juin. Impossible de s'engager sereinement." },
+                                { label: "RED FLAGS", info: "Repérez les mots éliminatoires : 'sauf...', 'uniquement pour...', 'excluant...'.", ex: "Mention 'Ne finance pas les frais de personnel'. Si votre projet est 80% du salaire de coordination, c'est mort." }
+                            ] 
+                        },
+                        { 
+                            name: "Étape 2: Fiche de lecture (La Stratégie)", 
+                            goal: "Maintenant que c'est un GO, on structure la réponse. On note uniquement ce qui servira à rédiger.",
+                            items: [
+                                { label: "Objectif financeur", info: "Que veulent-ils accomplir ? Votre projet doit servir LEUR objectif.", ex: "Leur but est la 'mixité sociale'. Ne vendez pas la performance sportive, mais la rencontre entre quartiers." },
+                                { label: "Actions attendues", info: "Quelles activités précises marquent des points ?", ex: "Le texte cite 10 fois 'ateliers participatifs'. Transformez votre conférence en atelier co-construit." },
+                                { label: "Critères de sélection", info: "Sur quoi serez-vous noté ? C'est votre grille de notation.", ex: "Critère 'Impact écologique' (20 pts). Même pour un projet culturel, ajoutez du covoiturage ou du zéro déchet." },
+                                { label: "Budget & Plafonds", info: "Y a-t-il des limites par ligne budgétaire ?", ex: "Frais de bouche limités à 500€. Inutile de demander 2000€ de traiteur, ce sera rejeté." },
+                                { label: "Livrables & Preuves", info: "Que devrez-vous rendre à la fin ? Soyez sûrs de pouvoir le faire.", ex: "Exigence de feuilles d'émargement signées par séance. Prévoyez un responsable administratif sur le terrain." },
+                                { label: "Points flous", info: "Notez les questions précises à poser au contact.", ex: "Le public 'jeune' s'arrête-t-il à 25 ou 30 ans ? À clarifier par mail avant d'écrire." }
+                            ] 
+                        },
+                        { 
+                            name: "Étape 3: Tableau de conformité (Le Pilotage)", 
+                            goal: "Ne laissez rien au hasard. Transformez les exigences en tâches concrètes pour l'équipe.",
+                            items: [
+                                { label: "Le Principe", info: "Créer un tableau simple avec 4 colonnes pour ne rien oublier.", ex: "Un GSheet partagé suffit." },
+                                { label: "Colonne 1 : Exigence", info: "Copiez-collez la contrainte du financeur.", ex: "Fournir l'attestation de vigilance URSSAF de moins de 6 mois." },
+                                { label: "Colonne 2 : Notre réponse", info: "Quel document/action chez nous correspond ?", ex: "Télécharger sur le compte URSSAF (l'ancienne est périmée)." },
+                                { label: "Colonne 3 : Qui ?", info: "Qui est responsable de produire cela ?", ex: "Responsable Admin / Trésorier." },
+                                { label: "Colonne 4 : Quand ?", info: "Date limite interne (toujours avant la date officielle).", ex: "À récupérer avant lundi prochain." }
+                            ] 
+                        }
+                    ]
+                },
+                matching: {
+                    title: "Exercice de Matching",
+                    instruction: "Pour chaque projet, choisissez le financeur principal le plus adapté (A, B ou C).",
+                    sidebarTitle: "Cliquez sur un financeur pour voir ses conditions détaillées",
+                    types: [
+                        { 
+                            id: "A", 
+                            name: "Financeur A (Mobilité/Europe)", 
+                            desc: "Priorités: Apprentissages, Interculturalité. Exige: Structure, Évaluation.",
+                            specs: {
+                                financing: "Remboursement de frais réels + forfaits unitaires (voyage, séjour).",
+                                cofunding: "Souvent 0% ou très faible (ex: Erasmus+ finance à 100% sur barème).",
+                                payment: "Préfinancement important (ex: 80% au démarrage).",
+                                eligibility: "Groupes informels ou assos. Âge strict (13-30 ans).",
+                                constraints: "Rapport narratif lourd. Preuves de voyage (boarding pass) obligatoires.",
+                                trap: "Perte des tickets de transport = pas de remboursement."
+                            }
+                        },
+                        { 
+                            id: "B", 
+                            name: "Financeur B (Collectivité Locale)", 
+                            desc: "Priorités: Impact local, Besoin territoire. Exige: Faisabilité, Budget réaliste.",
+                            specs: {
+                                financing: "Subvention forfaitaire (ex: 2000€) ou % du projet (max 50%).",
+                                cofunding: "Obligatoire (ne finance jamais 100%). Il faut trouver le reste ailleurs.",
+                                payment: "Souvent sur 'service fait' (sur facture acquittée) = Avance de trésorerie requise !",
+                                eligibility: "Siège social sur le territoire. Intérêt local prouvé.",
+                                constraints: "Logo obligatoire sur tous les flyers/affiches. Invitation des élus.",
+                                trap: "Dépôt de dossier trop tardif (délais de commission longs)."
+                            }
+                        },
+                        { 
+                            id: "C", 
+                            name: "Financeur C (Fondation Thématique)", 
+                            desc: "Priorités: Cohérence mission, Innovation, Ciblage. Exige: Récit, Impact.",
+                            specs: {
+                                financing: "Aide au démarrage ou projet spécifique (pas de fonctionnement global).",
+                                cofunding: "Apprécié mais pas toujours bloquant. Veut un effet levier.",
+                                payment: "Variable. Souvent 50% signature / 50% bilan.",
+                                eligibility: "Asso d'intérêt général (rescrit fiscal) souvent requis.",
+                                constraints: "Mesure d'impact social demandée. Photos/Témoignages.",
+                                trap: "Frais de structure (loyer, salaires direction) souvent non éligibles."
+                            }
+                        }
+                    ],
+                    projects: [
+                        { 
+                            title: "Projet 1: Partir à la rencontre de l'Europe", 
+                            desc: "Échange de jeunes de 10 jours réunissant 3 pays (France, Allemagne, Pologne). Groupe de 15 jeunes (16–20 ans) par pays. Au programme : ateliers interculturels, création multimédia commune et soirées thématiques. Hébergement en auberge de jeunesse.", 
+                            correct: ["A"], 
+                            explanation: "C'est un programme typique de mobilité (type Erasmus+). Les indices : plusieurs pays, hébergement, dimension interculturelle." 
+                        },
+                        { 
+                            title: "Projet 2: Jeunes et territoire", 
+                            desc: "Programme de 6 mois pour 20 jeunes en décrochage scolaire. Rencontres hebdomadaires : ateliers citoyenneté, découverte des institutions locales (mairie, département), visites d'entreprises du bassin d'emploi et montage d'un micro-projet collectif pour la ville.", 
+                            correct: ["B"], 
+                            explanation: "Action locale, longue durée, réponse à un besoin précis du territoire (décrochage) et lien avec les institutions locales." 
+                        },
+                        { 
+                            title: "Projet 3: Santé mentale & pair-aidance", 
+                            desc: "Dispositif expérimental sur 1 an. Création d'un groupe de parole pour 18-25 ans et formation de 10 'veilleurs' (jeunes formés aux premiers secours en santé mentale) pour intervenir dans les campus universitaires. Partenariat avec l'hôpital local.", 
+                            correct: ["C"], 
+                            explanation: "Thématique spécifique (Santé), besoin d'innovation (pair-aidance) et nécessité de mesurer l'impact social." 
+                        },
+                        { 
+                            title: "Projet 4: Refaire le lien (Villages isolés)", 
+                            desc: "Tournée d'été en camion aménagé dans 15 villages ruraux isolés (sans transports). Animations sportives et culturelles éphémères sur la place du village, cinéma en plein air et café-débat pour les habitants de tout âge.", 
+                            correct: ["B", "C"], 
+                            explanation: "B pour l'aspect animation territoriale/ruralité, ou C pour l'inclusion de publics isolés (fracture territoriale)." 
+                        },
+                        { 
+                            title: "Projet 5: Renforcer l'asso", 
+                            desc: "Plan de structuration interne sur 12 mois : formation des bénévoles à la gouvernance, mise en conformité RGPD de la base de données, achat de matériel informatique sécurisé et refonte des outils de suivi financier.", 
+                            correct: ["B", "C"], 
+                            explanation: "B si c'est vu comme une structuration de l'acteur local (DLA/FDVA), C si c'est pour renforcer l'impact de la mission." 
+                        }
+                    ],
+                    checkBtn: "Vérifier",
+                    nextBtn: "Suivant",
+                    closeBtn: "Fermer"
+                }
+            },
+            en: {
+                title: "Funding in Youth Work",
+                subtitle: "Identify relevant funding and decode call for proposals.",
+                nav: ["Introduction", "Test: Go/No-Go", "Panorama", "Decoder", "Matching"],
+                intro: {
+                    title: "Module Objective",
+                    text: "Instead of treating funding as a race, learn to quickly decide if applying is useful and sustainable, then transform grantor requirements into concrete actions."
+                },
+                quiz: {
+                    title: "Quiz: Is it worth it?",
+                    intro: "Before starting an application, take 5 minutes to do this test.",
+                    questions: [
+                        { q: "Real alignment with your mission", desc: "Does the funder ask for something that fits naturally with your project?", options: [
+                            { txt: "Yes, exactly our core mission.", pts: 3 },
+                            { txt: "Yes, but needs slight adjustment (≤ 10–15%).", pts: 2 },
+                            { txt: "Needs major modification (30–40%).", pts: 1 },
+                            { txt: "We'd mostly do it 'to get the funds'.", pts: 0 }
+                        ]},
+                        { q: "Capacity to draft (before submission)", desc: "How many hours can your team dedicate before submission?", options: [
+                            { txt: "We have time scheduled (and a lead person).", pts: 3 },
+                            { txt: "Tight but doable by prioritizing.", pts: 2 },
+                            { txt: "No time, we will 'improvise'.", pts: 1 },
+                            { txt: "No realistic slot → risk of failure/bad job.", pts: 0 }
+                        ]},
+                        { q: "Admin cost vs. Useful amount", desc: "Is the funding 'profitable' considering management time?", options: [
+                            { txt: "Yes, net gain is clear.", pts: 3 },
+                            { txt: "Yes, if we simplify organization.", pts: 2 },
+                            { txt: "Borderline: risk of losing energy.", pts: 1 },
+                            { txt: "No, doesn't cover the effort.", pts: 0 }
+                        ]},
+                        { q: "Cash flow / Advance payment", desc: "Is the funding paid in advance?", options: [
+                            { txt: "Yes (sufficient advance) or solid cash flow.", pts: 3 },
+                            { txt: "Partially, but we can advance without risk.", pts: 2 },
+                            { txt: "Late payment, advance uncertain.", pts: 1 },
+                            { txt: "Cannot advance → risk of blockage.", pts: 0 }
+                        ]},
+                        { q: "Co-financing / Remaining costs", desc: "Can you secure co-financing?", options: [
+                            { txt: "None needed or already acquired.", pts: 3 },
+                            { txt: "Required but very probable.", pts: 2 },
+                            { txt: "Vague, no solution yet.", pts: 1 },
+                            { txt: "Necessary and impossible at this stage.", pts: 0 }
+                        ]},
+                        { q: "Eligibility 'without interpretation'", desc: "Are you clearly eligible?", options: [
+                            { txt: "Yes, it's obvious.", pts: 3 },
+                            { txt: "Yes, but 1 point needs confirmation.", pts: 2 },
+                            { txt: "Several points are ambiguous.", pts: 1 },
+                            { txt: "Probably not eligible / looks like forcing.", pts: 0 }
+                        ]},
+                        { q: "Burden of proof", desc: "Can you produce requested proofs (invoices, lists) easily?", options: [
+                            { txt: "Yes, we have a simple system.", pts: 3 },
+                            { txt: "Yes, but need a light tool/sorting.", pts: 2 },
+                            { txt: "Complicated, don't know how.", pts: 1 },
+                            { txt: "Cannot provide what is asked.", pts: 0 }
+                        ]},
+                        { q: "Reporting / Indicators", desc: "Are expectations realistic?", options: [
+                            { txt: "Yes, coherent and easily measurable.", pts: 3 },
+                            { txt: "Yes, but need to adapt our tracking.", pts: 2 },
+                            { txt: "No, pushes for 'artificial' numbers.", pts: 1 },
+                            { txt: "Incompatible with our reality.", pts: 0 }
+                        ]},
+                        { q: "Timeline", desc: "Are the dates compatible?", options: [
+                            { txt: "Yes, everything fits.", pts: 3 },
+                            { txt: "Fits, but planning adjustment needed.", pts: 2 },
+                            { txt: "Very tight on deadlines.", pts: 1 },
+                            { txt: "Incompatible.", pts: 0 }
+                        ]},
+                        { q: "Partnership complexity", desc: "Does it impose partners?", options: [
+                            { txt: "Few/None or active partners.", pts: 3 },
+                            { txt: "Yes, but manageable.", pts: 2 },
+                            { txt: "Yes, complex coordination, high friction.", pts: 1 },
+                            { txt: "Too many external dependencies.", pts: 0 }
+                        ]},
+                        { q: "Invisible constraints", desc: "Logos, GDPR, purchasing rules: manageable?", options: [
+                            { txt: "Yes, we know how / standard.", pts: 3 },
+                            { txt: "Yes, but compliance checklist needed.", pts: 2 },
+                            { txt: "Risk of forgetting / new obligations.", pts: 1 },
+                            { txt: "Risk of non-compliance.", pts: 0 }
+                        ]},
+                        { q: "Global Risk vs. Benefit", desc: "If this funding fails, what happens?", options: [
+                            { txt: "Project happens anyway (Plan B).", pts: 3 },
+                            { txt: "Project reduced but viable.", pts: 2 },
+                            { txt: "Project depends heavily on this.", pts: 1 },
+                            { txt: "We are in trouble.", pts: 0 }
+                        ]}
+                    ],
+                    results: {
+                        high: { title: "GO (25–36)", text: "Apply: it's coherent and sustainable.", color: "bg-emerald-100 text-emerald-800 border-emerald-500" },
+                        mid: { title: "Conditional GO (15–24)", text: "Apply only if you secure: cash flow, co-financing, proofs...", color: "bg-amber-100 text-amber-800 border-amber-500" },
+                        low: { title: "NO-GO (0–14)", text: "Do not apply: too risky or not profitable in time/energy.", color: "bg-red-100 text-red-800 border-red-500" }
+                    },
+                    reset: "Restart Quiz"
+                },
+                panorama: {
+                    title: "Where to search for funding?",
+                    subtitle: "International Panorama",
+                    categories: [
+                        { title: "A) Public Funding", content: "Local, National, Agencies, Europe...", details: ["Local authorities", "National calls", "Public Agencies", "International Programs"] },
+                        { title: "B) Foundations & Philanthropy", content: "Private, Corporate, Trusts...", details: ["Private Foundations", "Corporate Foundations", "Trusts / Philanthropists"] },
+                        { title: "C) Corporate & Partnerships", content: "Sponsorship, CSR...", details: ["Patronage (support w/o direct return)", "Sponsorship (visibility)", "CSR Partnerships", "In-kind donations"] },
+                        { title: "D) Own Resources", content: "Memberships, Sales, Services...", details: ["Memberships", "Services", "Events (tickets)", "Product sales", "Rentals"] },
+                        { title: "E) Crowdfunding & Community", content: "Donations, Events...", details: ["Crowdfunding", "Recurring donations", "Event fundraising"] },
+                        { title: "F) Contracts & Grants", content: "Service contracts, Multi-year...", details: ["Service contracts", "Multi-year conventions", "Institutional partnerships"] },
+                        { title: "G) Prizes & Awards", content: "Innovation, Youth...", details: ["Social Innovation Awards", "Youth project grants"] },
+                        { title: "H) Special Financing", content: "Loans, Investment, Pro bono...", details: ["Loans / Refundable advances", "Impact investment", "Skill-based volunteering (pro bono)"] }
+                    ]
+                },
+                decoder: {
+                    title: "Call for Proposals Decoder",
+                    subtitle: "Don't read linearly! Transform admin jargon into an operational action plan.",
+                    methodology: "The methodology is simple: don't read a call for proposals like a novel (page 1 to 50). Search for information surgically in 3 passes to save time and secure the project.",
+                    steps: [
+                        { 
+                            name: "Step 1: Express Scan (GO / NO-GO)", 
+                            goal: "The goal is to eliminate the file immediately if it contains a blocking point, before wasting hours reading.",
+                            items: [
+                                { label: "Eligibility", info: "Check: structure type, geography, target audience. If one doesn't fit, stop.", ex: "Call requires location in Priority District. Your office is downtown: NO-GO." },
+                                { label: "Amount + Rate", info: "Max amount? % funded (e.g., 80%)? If you don't have the remaining 20%, it's a risk.", ex: "Max grant 5000€ (80%). If project costs 20,000€, the remaining cost is 15,000€." },
+                                { label: "Payment Mode", info: "Advance payment or reimbursement? Critical for cash flow.", ex: "Reimbursement on paid invoices. Do you have 10k in the bank to pay vendors BEFORE being reimbursed?" },
+                                { label: "Timeline", info: "Submission deadline and realization period. Is it realistic?", ex: "Jury answer June 1st for a festival on June 15th. Too risky to commit costs." },
+                                { label: "RED FLAGS", info: "Spot elimination words: 'except...', 'excluding...', 'only for...'.", ex: "Excludes 'personnel costs'. If your project is 80% staff time, it's a no-go." }
+                            ] 
+                        },
+                        { 
+                            name: "Step 2: Reading Sheet (Strategy)", 
+                            goal: "Now that it's a GO, structure the response. Note only what helps drafting.",
+                            items: [
+                                { label: "Funder Objective", info: "What do they want to achieve? Your project must serve THEIR goal.", ex: "Their goal is 'social mix'. Don't sell sports performance, sell 'meeting between neighborhoods'." },
+                                { label: "Expected Actions", info: "What activities score points? (e.g. 'workshops', 'field trips').", ex: "Text mentions 'participatory workshops' 10 times. Transform your lecture into a co-built workshop." },
+                                { label: "Selection Criteria", info: "Your grading grid.", ex: "'Ecological Impact' criteria (20 pts). Even for a cultural project, add carpooling or zero-waste." },
+                                { label: "Budget caps", info: "Limits per line (e.g. max 7% overheads).", ex: "Catering limited to 500€. Useless to ask for 2000€, it will be rejected." },
+                                { label: "Deliverables & Proofs", info: "What must be returned at the end? Be sure you can do it.", ex: "Requirement for signed attendance sheets per session. Plan for an admin person on site." },
+                                { label: "Unclear Points", info: "Questions to ask the contact person.", ex: "Does 'youth' stop at 25 or 30? Clarify by email before writing." }
+                            ] 
+                        },
+                        { 
+                            name: "Step 3: Compliance Table (Pilot)", 
+                            goal: "Leave nothing to chance. Transform requirements into concrete tasks.",
+                            items: [
+                                { label: "Principle", info: "Create a simple 4-column table.", ex: "A shared GSheet is enough." },
+                                { label: "Col 1: Requirement", info: "Copy-paste the constraint.", ex: "Provide URSSAF certificate < 6 months." },
+                                { label: "Col 2: Our Plan", info: "Which document/action matches?", ex: "Download from URSSAF account (old one is expired)." },
+                                { label: "Col 3: Who?", info: "Who is responsible?", ex: "Admin Manager." },
+                                { label: "Col 4: When?", info: "Internal deadline.", ex: "Before next Monday." }
+                            ] 
+                        }
+                    ]
+                },
+                matching: {
+                    title: "Matching Exercise",
+                    instruction: "For each project, select the best Funder (A, B, or C).",
+                    sidebarTitle: "Click on a funder to see detailed conditions",
+                    types: [
+                        { 
+                            id: "A", 
+                            name: "Funder A (Mobility/Intl)", 
+                            desc: "Priority: Learning, Intercultural. Needs: Structure, Eval.",
+                            specs: {
+                                financing: "Reimbursement of real costs + unit costs (travel).",
+                                cofunding: "Often 0% or low (e.g., Erasmus+ covers 100% based on rates).",
+                                payment: "High pre-financing (e.g., 80% at start).",
+                                eligibility: "Informal groups or NGOs. Strict age (13-30).",
+                                constraints: "Heavy narrative report. Boarding passes mandatory.",
+                                trap: "Lost travel tickets = no reimbursement."
+                            }
+                        },
+                        { 
+                            id: "B", 
+                            name: "Funder B (Local Authority)", 
+                            desc: "Priority: Local Impact. Needs: Feasibility, Realistic budget.",
+                            specs: {
+                                financing: "Flat grant or % of project (max 50%).",
+                                cofunding: "Mandatory. Need to find the rest elsewhere.",
+                                payment: "Often on 'service rendered' (paid invoice) = Cash advance required!",
+                                eligibility: "HQ in territory. Proven local interest.",
+                                constraints: "Logo mandatory on all materials. Invitation of elected officials.",
+                                trap: "Submission too late (long committee delays)."
+                            }
+                        },
+                        { 
+                            id: "C", 
+                            name: "Funder C (Foundation)", 
+                            desc: "Priority: Mission coherence, Innovation. Needs: Story, Impact.",
+                            specs: {
+                                financing: "Seed money or specific project (no global operating costs).",
+                                cofunding: "Appreciated but not always blocking. Wants leverage effect.",
+                                payment: "Variable. Often 50% signature / 50% report.",
+                                eligibility: "General interest NGO status often required.",
+                                constraints: "Social impact measurement. Photos/Testimonials.",
+                                trap: "Structural costs (rent, director salary) often ineligible."
+                            }
+                        }
+                    ],
+                    projects: [
+                        { 
+                            title: "Project 1: Meeting Europe", 
+                            desc: "10-day youth exchange gathering 3 countries (France, Germany, Poland). 15 youths (16–20 y.o.) per country. Program: intercultural workshops, joint multimedia creation, and thematic evenings. Accommodation in a youth hostel.", 
+                            correct: ["A"], 
+                            explanation: "Typical mobility program (Erasmus+ type). Clues: multiple countries, accommodation, intercultural dimension." 
+                        },
+                        { 
+                            title: "Project 2: Youth & Territory", 
+                            desc: "6-month program for 20 dropout youths. Weekly meetings: citizenship workshops, discovery of local institutions (city hall), visits to local companies, and setting up a collective micro-project for the city.", 
+                            correct: ["B"], 
+                            explanation: "Local action, long duration, response to a specific territory need (dropout) and link with local institutions." 
+                        },
+                        { 
+                            title: "Project 3: Mental Health & Peer Support", 
+                            desc: "1-year experimental device. Creation of a support group for 18-25s and training of 10 'watchers' (youth trained in mental health first aid) to intervene in universities. Partnership with the local hospital.", 
+                            correct: ["C"], 
+                            explanation: "Specific theme (Health), need for innovation (peer support) and social impact measurement." 
+                        },
+                        { 
+                            title: "Project 4: Reconnecting (Isolated Villages)", 
+                            desc: "Summer tour in a converted van across 15 isolated rural villages (no public transport). Pop-up sports and cultural activities on the village square, open-air cinema, and coffee-debate for inhabitants of all ages.", 
+                            correct: ["B", "C"], 
+                            explanation: "B for the territorial animation aspect, or C for the inclusion of isolated audiences (territorial fracture)." 
+                        },
+                        { 
+                            title: "Project 5: Strengthening the Org", 
+                            desc: "12-month internal structuring plan: training volunteers in governance, GDPR compliance of the database, purchase of secure IT equipment, and overhaul of financial tracking tools.", 
+                            correct: ["B", "C"], 
+                            explanation: "B if seen as structuring a local actor, C if strengthening the mission's impact." 
+                        }
+                    ],
+                    checkBtn: "Check",
+                    nextBtn: "Next",
+                    closeBtn: "Close"
+                }
+            }
+        };
+
+        // --- COMPONENTS ---
+
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return <i data-lucide={name} width={size} height={size} className={className}></i>;
+        };
+
+        const Quiz = ({ data }) => {
+            const [currentQ, setCurrentQ] = useState(0);
+            const [score, setScore] = useState(0);
+            const [finished, setFinished] = useState(false);
+
+            const handleAnswer = (pts) => {
+                const newScore = score + pts;
+                if (currentQ < data.questions.length - 1) {
+                    setScore(newScore);
+                    setCurrentQ(currentQ + 1);
+                } else {
+                    setScore(newScore);
+                    setFinished(true);
+                }
+            };
+
+            const reset = () => {
+                setScore(0);
+                setCurrentQ(0);
+                setFinished(false);
+            };
+
+            if (finished) {
+                let result = data.results.low;
+                if (score >= 25) result = data.results.high;
+                else if (score >= 15) result = data.results.mid;
+
+                return (
+                    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg text-center fade-in">
+                        <div className="mb-4">
+                            <span className="text-6xl">🏁</span>
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">Score: {score} / 36</h3>
+                        <div className={`p-6 rounded-lg border-2 mb-6 ${result.color}`}>
+                            <h4 className="text-xl font-bold mb-2">{result.title}</h4>
+                            <p>{result.text}</p>
+                        </div>
+                        <button onClick={reset} className="px-6 py-2 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition">
+                            {data.reset}
+                        </button>
+                    </div>
+                );
+            }
+
+            const q = data.questions[currentQ];
+            const progress = ((currentQ) / data.questions.length) * 100;
+
+            return (
+                <div className="max-w-3xl mx-auto fade-in">
+                    <div className="mb-6 bg-slate-200 rounded-full h-2.5">
+                        <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    
+                    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                        <span className="text-sm font-bold text-blue-600 mb-2 block">Question {currentQ + 1} / {data.questions.length}</span>
+                        <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">{q.q}</h3>
+                        <p className="text-slate-500 mb-6 italic">{q.desc}</p>
+                        
+                        <div className="space-y-3">
+                            {q.options.map((opt, idx) => (
+                                <button 
+                                    key={idx} 
+                                    onClick={() => handleAnswer(opt.pts)}
+                                    className="w-full text-left p-4 rounded-lg border border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition-all-300 flex justify-between items-center group"
+                                >
+                                    <span>{opt.txt}</span>
+                                    <span className="opacity-0 group-hover:opacity-100 text-blue-500 font-bold">Select</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Panorama = ({ data }) => {
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 fade-in">
+                    {data.categories.map((cat, idx) => (
+                        <div key={idx} className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 card-hover flex flex-col h-full">
+                            <div className="mb-3 text-blue-600">
+                                <Icon name="landmark" size={24} />
+                            </div>
+                            <h3 className="font-bold text-lg text-slate-800 mb-2">{cat.title}</h3>
+                            <p className="text-sm text-slate-500 mb-4">{cat.content}</p>
+                            <ul className="mt-auto space-y-1">
+                                {cat.details.map((d, i) => (
+                                    <li key={i} className="text-xs bg-slate-50 text-slate-600 p-1 rounded px-2">• {d}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        const Decoder = ({ data }) => {
+            const [activeStep, setActiveStep] = useState(0);
+
+            return (
+                <div className="max-w-5xl mx-auto fade-in">
+                    
+                    {/* Introduction Block */}
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-8 shadow-sm">
+                        <h3 className="text-lg font-bold text-blue-800 mb-2 flex items-center gap-2">
+                            <Icon name="info" size={20} />
+                            Pourquoi ce décodeur ?
+                        </h3>
+                        <p className="text-blue-900/80 mb-2 font-medium">{data.subtitle}</p>
+                        <p className="text-sm text-blue-800/70">{data.methodology}</p>
+                    </div>
+
+                    {/* Step Navigation */}
+                    <div className="flex flex-col md:flex-row justify-between mb-8 gap-4">
+                        {data.steps.map((step, idx) => (
+                            <button 
+                                key={idx}
+                                onClick={() => setActiveStep(idx)}
+                                className={`flex-1 p-4 rounded-xl border-2 transition-all-300 text-center relative overflow-hidden group ${activeStep === idx ? 'border-blue-600 bg-white shadow-lg ring-2 ring-blue-100' : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'}`}
+                            >
+                                <div className={`font-bold text-lg leading-tight ${activeStep === idx ? 'text-blue-900' : 'text-slate-600'}`}>
+                                    {step.name}
+                                </div>
+                                {activeStep === idx && (
+                                    <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-600"></div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-slate-100 min-h-[400px]">
+                        <div className="mb-6 pb-6 border-b border-slate-100">
+                             <div className="flex items-start gap-4">
+                                <div className="bg-blue-100 text-blue-600 p-3 rounded-lg hidden sm:block">
+                                    <Icon name={activeStep === 0 ? "siren" : activeStep === 1 ? "book-open" : "table"} size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold text-slate-800 mb-2">{data.steps[activeStep].name}</h3>
+                                    <p className="text-lg text-slate-600 font-medium">{data.steps[activeStep].goal}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {data.steps[activeStep].items.map((item, i) => (
+                                <div key={i} className="flex flex-col p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-blue-300 transition-colors">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                                            {i + 1}
+                                        </div>
+                                        <span className="text-slate-800 font-bold text-lg">{item.label}</span>
+                                    </div>
+                                    <p className="text-slate-600 text-sm pl-9 leading-relaxed mb-3">{item.info}</p>
+                                    
+                                    {/* EXEMPLE BLOCK */}
+                                    {item.ex && (
+                                        <div className="mt-auto pl-9 pt-2 border-t border-slate-100">
+                                            <div className="flex items-start gap-2">
+                                                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-1 rounded mt-1">Exemple</span>
+                                                <span className="text-xs text-slate-500 italic leading-snug">{item.ex}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Matching = ({ data }) => {
+            const [currentP, setCurrentP] = useState(0);
+            const [selected, setSelected] = useState(null);
+            const [feedback, setFeedback] = useState(null);
+            const [activeFunder, setActiveFunder] = useState(null); // For modal
+
+            const handleCheck = () => {
+                if (!selected) return;
+                const isCorrect = data.projects[currentP].correct.includes(selected);
+                setFeedback({
+                    correct: isCorrect,
+                    msg: data.projects[currentP].explanation
+                });
+            };
+
+            const next = () => {
+                setSelected(null);
+                setFeedback(null);
+                if (currentP < data.projects.length - 1) {
+                    setCurrentP(currentP + 1);
+                } else {
+                    setCurrentP(0);
+                }
+            };
+
+            return (
+                <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-6 fade-in relative">
+                    
+                    {/* Modal Overlay */}
+                    {activeFunder && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 animate-fade-in" onClick={() => setActiveFunder(null)}>
+                            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all scale-100" onClick={e => e.stopPropagation()}>
+                                <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
+                                    <h3 className="font-bold text-lg">{activeFunder.name}</h3>
+                                    <button onClick={() => setActiveFunder(null)} className="hover:bg-blue-700 p-1 rounded-full"><Icon name="x" size={24} /></button>
+                                </div>
+                                <div className="p-6 space-y-4">
+                                    <p className="text-sm text-slate-500 italic mb-4 border-b pb-2">{activeFunder.desc}</p>
+                                    
+                                    <div className="space-y-3">
+                                        <div className="flex gap-3">
+                                            <div className="text-blue-500 mt-1"><Icon name="banknote" size={18} /></div>
+                                            <div>
+                                                <span className="font-bold text-slate-800 text-sm block">Financement</span>
+                                                <span className="text-sm text-slate-600">{activeFunder.specs.financing}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="text-blue-500 mt-1"><Icon name="pie-chart" size={18} /></div>
+                                            <div>
+                                                <span className="font-bold text-slate-800 text-sm block">Cofinancement</span>
+                                                <span className="text-sm text-slate-600">{activeFunder.specs.cofunding}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="text-blue-500 mt-1"><Icon name="calendar-clock" size={18} /></div>
+                                            <div>
+                                                <span className="font-bold text-slate-800 text-sm block">Versement</span>
+                                                <span className="text-sm text-slate-600">{activeFunder.specs.payment}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="text-orange-500 mt-1"><Icon name="alert-triangle" size={18} /></div>
+                                            <div>
+                                                <span className="font-bold text-slate-800 text-sm block">Le Piège</span>
+                                                <span className="text-sm text-slate-600">{activeFunder.specs.trap}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6 pt-4 text-center">
+                                        <button onClick={() => setActiveFunder(null)} className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-full text-sm font-bold transition">
+                                            {data.closeBtn}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Funder Types Sidebar */}
+                    <div className="md:w-1/3 space-y-3">
+                        <div className="bg-blue-50 text-blue-800 text-xs p-2 rounded mb-2 font-bold text-center border border-blue-100 flex items-center justify-center gap-2">
+                             <Icon name="mouse-pointer-click" size={14} /> {data.sidebarTitle}
+                        </div>
+                        {data.types.map(t => (
+                            <div 
+                                key={t.id} 
+                                onClick={() => setActiveFunder(t)}
+                                className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition-all group"
+                            >
+                                <div className="flex justify-between items-center mb-1">
+                                    <div className="font-bold text-blue-900">{t.name}</div>
+                                    <Icon name="info" size={16} className="text-blue-300 group-hover:text-blue-500" />
+                                </div>
+                                <div className="text-slate-500 text-xs line-clamp-2">{t.desc}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Game Area */}
+                    <div className="md:w-2/3">
+                        <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-100 h-full flex flex-col justify-between">
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Projet {currentP + 1}/{data.projects.length}</span>
+                                </div>
+                                
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">{data.projects[currentP].title}</h3>
+                            <p className="text-slate-600 mb-6 text-base leading-relaxed bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                {data.projects[currentP].desc}
+                            </p>
+
+                            <div className="grid grid-cols-3 gap-3 mb-6">
+                                    {['A', 'B', 'C'].map(opt => (
+                                        <button
+                                            key={opt}
+                                            onClick={() => !feedback && setSelected(opt)}
+                                            className={`py-4 rounded-xl font-bold text-lg border-2 transition shadow-sm ${selected === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600'}`}
+                                            disabled={!!feedback}
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {!feedback ? (
+                                <button 
+                                    onClick={handleCheck}
+                                    disabled={!selected}
+                                    className={`w-full py-4 rounded-xl font-bold text-white transition shadow-lg ${selected ? 'bg-blue-600 hover:bg-blue-700 transform hover:-translate-y-1' : 'bg-slate-300 cursor-not-allowed'}`}
+                                >
+                                    {data.checkBtn}
+                                </button>
+                            ) : (
+                                <div className={`p-4 rounded-xl mb-4 border animate-fade-in ${feedback.correct ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                                    <div className="font-bold mb-2 flex items-center gap-2 text-lg">
+                                        {feedback.correct ? <Icon name="check-circle" size={24} /> : <Icon name="x-circle" size={24} />}
+                                        {feedback.correct ? "Excellent !" : "Pas tout à fait..."}
+                                    </div>
+                                    <p className="text-sm mb-4">{feedback.msg}</p>
+                                    <button onClick={next} className="w-full py-3 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-900 transition flex items-center justify-center gap-2">
+                                        {data.nextBtn} <Icon name="arrow-right" size={16} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState('fr');
+            const [view, setView] = useState('intro'); // intro, quiz, panorama, decoder, matching
+            const t = content[lang];
+
+            useEffect(() => {
+                if(window.lucide) window.lucide.createIcons();
+            }, [view, lang]);
+
+            const NavButton = ({ target, icon, label }) => (
+                <button 
+                    onClick={() => setView(target)} 
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${view === target ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}
+                >
+                    <Icon name={icon} size={18} />
+                    <span className="hidden md:inline font-medium">{label}</span>
+                </button>
+            );
+
+            return (
+                <div className="min-h-screen pb-12 flex flex-col">
+                    {/* Header */}
+                    <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+                        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-blue-700">
+                                <Icon name="briefcase" className="text-blue-600" />
+                                <span className="font-bold text-lg tracking-tight hidden sm:block">Financement Jeunesse</span>
+                            </div>
+                            
+                            <div className="flex bg-slate-100 p-1 rounded-lg">
+                                <button onClick={() => setLang('fr')} className={`px-3 py-1 rounded text-sm font-bold transition ${lang === 'fr' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}>FR</button>
+                                <button onClick={() => setLang('en')} className={`px-3 py-1 rounded text-sm font-bold transition ${lang === 'en' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}>EN</button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Navigation Bar */}
+                    <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200 mb-8 overflow-x-auto">
+                        <div className="max-w-6xl mx-auto px-4 py-2 flex space-x-2 min-w-max">
+                            <NavButton target="intro" icon="home" label={t.nav[0]} />
+                            <NavButton target="quiz" icon="clipboard-list" label={t.nav[1]} />
+                            <NavButton target="panorama" icon="map" label={t.nav[2]} />
+                            <NavButton target="decoder" icon="search" label={t.nav[3]} />
+                            <NavButton target="matching" icon="puzzle" label={t.nav[4]} />
+                        </div>
+                    </nav>
+
+                    {/* Main Content */}
+                    <main className="max-w-6xl mx-auto px-4 flex-grow">
+                        <div className="mb-8 text-center">
+                            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">{t.title}</h1>
+                            <p className="text-slate-500 max-w-2xl mx-auto">{t.subtitle}</p>
+                        </div>
+
+                        {view === 'intro' && (
+                            <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-slate-100 text-center fade-in">
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-6">
+                                    <Icon name="rocket" size={32} />
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-800 mb-4">{t.intro.title}</h2>
+                                <p className="text-lg text-slate-600 leading-relaxed mb-8">{t.intro.text}</p>
+                                <button onClick={() => setView('quiz')} className="px-8 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:bg-blue-700 transform hover:-translate-y-1 transition">
+                                    Start Learning
+                                </button>
+                            </div>
+                        )}
+
+                        {view === 'quiz' && <Quiz data={t.quiz} />}
+                        {view === 'panorama' && <Panorama data={t.panorama} />}
+                        {view === 'decoder' && <Decoder data={t.decoder} />}
+                        {view === 'matching' && <Matching data={t.matching} />}
+
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="mt-20 text-center text-slate-400 text-sm pb-8">
+                        <p>© Kévin Le Gal 2026</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
