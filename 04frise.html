@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frise Chronologique - Gestion de Projet Jeunes</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #db2777 100%);
+            min-height: 100vh;
+            color: #1f2937;
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5); 
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        /* Switcher Styles */
+        .toggle-container {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 999px;
+            padding: 4px;
+            display: inline-flex;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .toggle-btn {
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .toggle-btn.active {
+            background: white;
+            color: #4c1d95;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Timeline Connector Line Animation */
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+        
+        .timeline-progress {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 4px;
+            background: #f472b6; /* Pink-400 */
+            transform: translateY(-50%);
+            width: 0%;
+            transition: width 1s ease-out;
+            z-index: 0;
+        }
+
+        /* Node Animations */
+        .timeline-node {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .timeline-node:hover {
+            transform: scale(1.1) translateY(-10px);
+            box-shadow: 0 0 20px rgba(244, 114, 182, 0.6);
+        }
+
+        /* Modal Transitions */
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+        }
+
+        /* Accordion Transitions */
+        .task-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .task-detail.open {
+            max-height: 500px; /* Arbitrary large height */
+        }
+
+        /* Floating Animation for background elements */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .floating-orb {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center p-4 md:p-8">
+
+    <!-- Header & Controls -->
+    <header class="text-center mb-8 relative z-10 w-full max-w-4xl mx-auto">
+        <h1 id="mainTitle" class="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight drop-shadow-lg transition-all">
+            Gestion de Projets Jeunes
+        </h1>
+        <p id="subTitle" class="text-white/80 text-lg md:text-xl font-light mb-4 transition-all">
+            Le parcours de la réussite en 7 étapes clés
+        </p>
+        
+        <!-- Intro Text -->
+        <p id="introText" class="text-white/70 text-sm md:text-base max-w-3xl mx-auto mb-8 leading-relaxed font-light">
+            Pour piloter un projet jeunesse sans se laisser déborder, il est utile de visualiser le parcours “de bout en bout”. Voici les grandes étapes, et, pour chacune, les tâches clés à prévoir afin de sécuriser l’administratif, le budget et la logistique.
+        </p>
+
+        <!-- Control Bar -->
+        <div class="glass-panel rounded-full p-2 inline-flex flex-col md:flex-row items-center gap-4 mx-auto mb-4">
+            
+            <!-- Language Switcher -->
+            <div class="flex items-center gap-2 px-2">
+                <span class="text-white/60 text-xs font-bold uppercase tracking-wider"><i class="ph ph-translate text-lg"></i></span>
+                <div class="toggle-container">
+                    <button onclick="setLanguage('fr')" class="toggle-btn active" id="btn-fr">FR</button>
+                    <button onclick="setLanguage('en')" class="toggle-btn" id="btn-en">EN</button>
+                </div>
+            </div>
+
+            <div class="hidden md:block w-px h-8 bg-white/20"></div>
+
+            <!-- Context Switcher -->
+            <div class="flex items-center gap-2 px-2">
+                <span class="text-white/60 text-xs font-bold uppercase tracking-wider"><i class="ph ph-chalkboard-teacher text-lg"></i></span>
+                <div class="toggle-container">
+                    <button onclick="setContext('theory')" class="toggle-btn active" id="btn-theory">Théorie</button>
+                    <button onclick="setContext('example')" class="toggle-btn" id="btn-example">Exemple</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Context Indicator -->
+        <div id="contextIndicator" class="mt-4 text-emerald-300 text-sm font-medium opacity-0 transition-opacity">
+            <i class="ph ph-plant"></i> <span id="contextLabel">Exemple : Échange "Eco-Citizens"</span>
+        </div>
+    </header>
+
+    <!-- Background Orbs -->
+    <div class="fixed top-20 left-20 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 floating-orb"></div>
+    <div class="fixed bottom-20 right-20 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 floating-orb" style="animation-delay: 2s;"></div>
+    <div id="greenOrb" class="fixed top-1/2 left-1/2 w-80 h-80 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-0 transition-opacity duration-1000 -z-10 transform -translate-x-1/2 -translate-y-1/2"></div>
+
+    <!-- Timeline Container -->
+    <div class="w-full max-w-7xl relative z-10 glass-panel rounded-3xl p-8 md:p-12 overflow-hidden shadow-2xl transition-colors duration-500" id="mainPanel">
+        
+        <!-- Progress Bar Background (Desktop) -->
+        <div class="hidden md:block timeline-line mx-12 w-[calc(100%-6rem)]"></div>
+        <div class="hidden md:block timeline-progress mx-12 w-[calc(100%-6rem)]" id="progressBar"></div>
+
+        <!-- Steps Wrapper -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-8 md:gap-4 relative" id="timelineContainer">
+            <!-- Timeline Nodes will be injected here via JS -->
+        </div>
+    </div>
+    
+    <!-- Footer with Copyright -->
+    <footer class="mt-12 mb-4 relative z-10 text-white/40 text-xs font-light tracking-wide">
+        &copy; 2026 Kévin Le Gal
+    </footer>
+
+    <!-- Modal (Pop-up) -->
+    <div id="infoModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none modal-overlay">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <!-- Content Card -->
+        <div class="relative w-full max-w-2xl max-h-[90vh] glass-card rounded-2xl shadow-2xl overflow-hidden flex flex-col transform scale-90 opacity-0 modal-content m-4">
+            
+            <!-- Modal Header -->
+            <div id="modalHeader" class="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white flex justify-between items-start shrink-0 transition-colors duration-500">
+                <div>
+                    <span id="modalStepNum" class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-wider mb-2 border border-white/30">Étape 1</span>
+                    <h2 id="modalTitle" class="text-2xl md:text-3xl font-bold leading-tight">Titre de l'étape</h2>
+                </div>
+                <button onclick="closeModal()" class="text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-2">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar bg-white/50 grow">
+                
+                <!-- Description -->
+                <div class="mb-8">
+                    <h3 id="labelDesc" class="text-sm font-bold text-purple-600 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <i class="ph ph-info"></i> Description
+                    </h3>
+                    <p id="modalDesc" class="text-gray-700 leading-relaxed text-lg">
+                        Description here...
+                    </p>
+                </div>
+
+                <!-- Tasks List -->
+                <div>
+                    <h3 id="labelTasks" class="text-sm font-bold text-pink-600 uppercase tracking-wide mb-4 flex items-center gap-2">
+                        <i class="ph ph-check-square"></i> Tâches & Actions
+                    </h3>
+                    <div id="modalTasks" class="space-y-3">
+                        <!-- Tasks injected via JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div id="modalFooter" class="p-4 bg-gray-50 border-t border-gray-200 text-center text-xs text-gray-500 shrink-0">
+                Cliquez sur une tâche pour voir les détails
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Data & Logic -->
+    <script>
+        // State
+        let currentLang = 'fr';
+        let currentContext = 'theory'; // 'theory' or 'example'
+
+        // UI Dictionary
+        const uiDict = {
+            fr: {
+                mainTitle: "Gestion de Projets Jeunes",
+                subTitle: "Le parcours de la réussite en 7 étapes clés",
+                introText: "Pour piloter un projet jeunesse sans se laisser déborder, il est utile de visualiser le parcours “de bout en bout”. Voici les grandes étapes, et, pour chacune, les tâches clés à prévoir afin de sécuriser l’administratif, le budget et la logistique.",
+                btnTheory: "Théorie",
+                btnExample: "Exemple",
+                labelStep: "ÉTAPE",
+                labelDesc: "Description",
+                labelTasks: "Tâches & Actions",
+                labelTasksEx: "Actions Concrètes",
+                footerText: "Cliquez sur une tâche pour voir les détails",
+                contextLabel: "Exemple : Échange \"Eco-Citizens\"",
+                exampleTitlePrefix: "Ex : "
+            },
+            en: {
+                mainTitle: "Youth Project Management",
+                subTitle: "The path to success in 7 key steps",
+                introText: "To manage a youth project without getting overwhelmed, it is useful to visualize the path 'end-to-end'. Here are the main steps, and for each, the key tasks to anticipate in order to secure administration, budget, and logistics.",
+                btnTheory: "Theory",
+                btnExample: "Example",
+                labelStep: "STEP",
+                labelDesc: "Description",
+                labelTasks: "Tasks & Actions",
+                labelTasksEx: "Concrete Actions",
+                footerText: "Click on a task to see details",
+                contextLabel: "Example: \"Eco-Citizens\" Exchange",
+                exampleTitlePrefix: "Ex: "
+            }
+        };
+
+        // Content Data - Consolidated Structure
+        const contentData = {
+            fr: {
+                theory: [
+                    {
+                        id: 1, title: "Idée & objectifs", icon: "ph-lightbulb",
+                        description: "Cette étape pose le socle du projet : clarifier le besoin, le public, les objectifs et ce que l’action doit permettre d’obtenir concrètement. Elle donne une direction claire et facilite ensuite les choix pédagogiques, organisationnels et budgétaires.",
+                        tasks: [
+                            { title: "Analyse du besoin", detail: "Clarifier le problème, le contexte et la justification de l’action." },
+                            { title: "Définition du public cible", detail: "Préciser qui est concerné, avec quels profils et quels besoins." },
+                            { title: "Formulation des objectifs", detail: "Énoncer des objectifs opérationnels, compréhensibles et mesurables." },
+                            { title: "Résultats attendus", detail: "Décrire ce qui doit évoluer concrètement à l’issue du projet." },
+                            { title: "Indicateurs simples", detail: "Choisir quelques indicateurs de suivi (quantitatifs/qualitatifs) dès le départ." }
+                        ]
+                    },
+                    {
+                        id: 2, title: "Cadre & contraintes", icon: "ph-shield-check",
+                        description: "Cette étape sécurise le projet en identifiant les obligations, responsabilités, contraintes et risques. Elle permet d’anticiper les points sensibles et d’éviter les blocages au moment de la mise en œuvre.",
+                        tasks: [
+                            { title: "Cartographie des obligations", detail: "Identifier les exigences réglementaires, institutionnelles et internes." },
+                            { title: "Répartition des responsabilités", detail: "Définir clairement qui porte quoi (décision, validation, suivi)." },
+                            { title: "Repérage des contraintes", detail: "Anticiper les contraintes de lieu, calendrier, encadrement, accessibilité." },
+                            { title: "Analyse des risques", detail: "Recenser les risques principaux (sécurité, logistique, réputation, finance)." },
+                            { title: "Mesures de prévention", detail: "Prévoir des actions concrètes pour réduire les risques identifiés." }
+                        ]
+                    },
+                    {
+                        id: 3, title: "Financement & exigences", icon: "ph-currency-eur",
+                        description: "Aligner le projet avec les attentes des financeurs : critères, calendrier, règles financières et preuves attendues. Sécuriser la recevabilité du dossier.",
+                        tasks: [
+                            { title: "Identification des financeurs", detail: "Repérer les sources possibles et leur adéquation avec le projet." },
+                            { title: "Lecture des critères", detail: "Vérifier le public, le territoire, les actions et les dépenses acceptées." },
+                            { title: "Règles financières", detail: "Clarifier cofinancement, plafonds, modalités de versement, avances." },
+                            { title: "Exigences de preuve", detail: "Repérer ce qui devra être démontré (présences, factures, indicateurs)." },
+                            { title: "Calendrier et jalons", detail: "Fixer les dates clés (dépôt, réponse, convention, bilan)." }
+                        ]
+                    },
+                    {
+                        id: 4, title: "Budget & ressources", icon: "ph-calculator",
+                        description: "Traduire le projet en ressources mobilisables. Viser un budget réaliste, lisible et justifiable pour un pilotage serein.",
+                        tasks: [
+                            { title: "Budget prévisionnel", detail: "Estimer les dépenses et recettes de manière cohérente." },
+                            { title: "Ventilation par postes", detail: "Structurer le budget en catégories lisibles (transport, repas, prestataires)." },
+                            { title: "Éligibilité des dépenses", detail: "S’assurer que chaque poste respecte les règles du financeur." },
+                            { title: "Hypothèses et calculs", detail: "Documenter les bases de calcul (quantités, tarifs) pour justifier le budget." },
+                            { title: "Marge et imprévus", detail: "Prévoir une enveloppe de sécurité et identifier les postes à risque." },
+                            { title: "Plan de suivi", detail: "Définir un outil simple pour suivre réalisé vs prévisionnel." }
+                        ]
+                    },
+                    {
+                        id: 5, title: "Préparation & logistique", icon: "ph-clipboard-text",
+                        description: "Transformer le projet en plan opérationnel : organisation, rôles, planning, inscriptions, matériel. Réduire les imprévus.",
+                        tasks: [
+                            { title: "Rétroplanning", detail: "Organiser les étapes du projet dans le temps avec des échéances réalistes." },
+                            { title: "Organisation des rôles", detail: "Définir l’équipe, les responsabilités opérationnelles et les relais." },
+                            { title: "Réservations", detail: "Anticiper contrats, devis, commandes et conditions d’annulation." },
+                            { title: "Gestion des participants", detail: "Prévoir inscriptions, infos pratiques, autorisations, besoins spécifiques." },
+                            { title: "Matériel et ressources", detail: "Lister, acquérir/emprunter et vérifier le matériel nécessaire." },
+                            { title: "Communication", detail: "Définir messages, canaux, calendrier et règles de validation." }
+                        ]
+                    },
+                    {
+                        id: 6, title: "Mise en œuvre", icon: "ph-play-circle",
+                        description: "Garantir la qualité de l’action et la traçabilité. Piloter l’activité sur le terrain tout en collectant les éléments pour le bilan.",
+                        tasks: [
+                            { title: "Suivi des présences", detail: "Collecter les listes, feuilles d’émargement, attestations." },
+                            { title: "Dépenses en temps réel", detail: "Enregistrer les dépenses au fil de l’eau pour éviter les écarts." },
+                            { title: "Collecte des preuves", detail: "Conserver les factures, billets, photos autorisées, livrables." },
+                            { title: "Gestion des incidents", detail: "Documenter les aléas et décisions prises (traçabilité)." },
+                            { title: "Suivi des indicateurs", detail: "Renseigner régulièrement quelques données simples liées aux objectifs." }
+                        ]
+                    },
+                    {
+                        id: 7, title: "Bilan & suite", icon: "ph-flag-checkered",
+                        description: "Consolider le projet : conformité, bilan financier, analyse des résultats et valorisation. Préparer la continuité.",
+                        tasks: [
+                            { title: "Justificatifs", detail: "Vérifier que toutes les pièces demandées sont présentes et conformes." },
+                            { title: "Bilan financier", detail: "Comparer prévisionnel/réalisé, expliquer les écarts." },
+                            { title: "Analyse des résultats", detail: "Mettre en regard objectifs, indicateurs et effets observés." },
+                            { title: "Rédaction du rapport", detail: "Produire un bilan structuré, lisible, aligné avec les attentes." },
+                            { title: "Capitalisation & Suite", detail: "Formaliser les recommandations et identifier les suites possibles." }
+                        ]
+                    }
+                ],
+                example: [
+                    {
+                        id: 1, title: "Projet \"Eco-Citizens\"", icon: "ph-plant",
+                        description: "Contexte : Un échange de jeunes de 10 jours entre la France et l'Espagne sur l'écologie.\nObjectif : Faire rencontrer 20 jeunes pour nettoyer une plage et créer une campagne vidéo.",
+                        tasks: [
+                            { title: "Besoin identifié", detail: "Manque de sensibilisation écologique chez les ados du quartier." },
+                            { title: "Public cible", detail: "10 jeunes français (15-17 ans) + 10 jeunes espagnols." },
+                            { title: "Objectif concret", detail: "Récolter 50kg de déchets et produire 3 vidéos TikTok." },
+                            { title: "Résultat attendu", detail: "Les jeunes savent trier et parlent anglais/espagnol ensemble." },
+                            { title: "Indicateur", detail: "Nombre de sacs poubelles remplis + questionnaire de satisfaction." }
+                        ]
+                    },
+                    {
+                        id: 2, title: "Sécurité & Cadre", icon: "ph-life-buoy",
+                        description: "Contexte : Séjour à l'étranger avec des mineurs. Responsabilité forte de l'association.",
+                        tasks: [
+                            { title: "Taux d'encadrement", detail: "Légal : 1 anim pour 12. Choix projet : 3 animateurs (1 pour 7) pour sécurité." },
+                            { title: "Assurances", detail: "Vérifier l'assurance RC de l'asso et l'assistance rapatriement." },
+                            { title: "Contrainte Transport", detail: "Le bus ne peut pas rouler plus de 4h sans pause (réglementation)." },
+                            { title: "Risque identifié", detail: "Un jeune se blesse sur la plage -> Trousse secours + numéros urgence." },
+                            { title: "Prévention", detail: "Réunion parents obligatoire pour présenter les règles de vie." }
+                        ]
+                    },
+                    {
+                        id: 3, title: "Dossier Erasmus+", icon: "ph-file-text",
+                        description: "Contexte : Demande de subvention au programme Erasmus+ Jeunesse.",
+                        tasks: [
+                            { title: "Source financement", detail: "Agence Nationale Erasmus+ (Action KA1)." },
+                            { title: "Critère éligibilité", detail: "Le projet doit durer entre 5 et 21 jours. Ici : 10 jours = OK." },
+                            { title: "Règle forfaitaire", detail: "Erasmus donne X€ par km et Y€ par jour/jeune. Pas de factures réelles sauf transport." },
+                            { title: "Exigence preuve", detail: "Il faudra impérativement la liste d'émargement signée par tous." },
+                            { title: "Date limite", detail: "Dépôt du dossier le 4 octobre à 12h00 précise." }
+                        ]
+                    },
+                    {
+                        id: 4, title: "Budget Prévisionnel", icon: "ph-coins",
+                        description: "Contexte : 20 jeunes + 4 staff. Budget total estimé à 12 000€.",
+                        tasks: [
+                            { title: "Dépense Transport", detail: "Devis bus Barcelone A/R : 3500€." },
+                            { title: "Dépense Hébergement", detail: "Auberge de jeunesse (24 lits x 10 nuits x 25€) : 6000€." },
+                            { title: "Dépense Activités", detail: "Location matériel nettoyage + intervenant vidéo : 1500€." },
+                            { title: "Imprévus", detail: "500€ pour frais médicaux avance ou repas supplémentaire." },
+                            { title: "Outil suivi", detail: "Un fichier Excel partagé avec le trésorier." }
+                        ]
+                    },
+                    {
+                        id: 5, title: "Logistique Départ", icon: "ph-suitcase",
+                        description: "Contexte : J-30 avant le départ. Tout doit être verrouillé.",
+                        tasks: [
+                            { title: "Planning jour par jour", detail: "Lundi : Glace brise-glace. Mardi : Nettoyage plage..." },
+                            { title: "Dossiers Jeunes", detail: "Vérifier : Fiche sanitaire + Autorisation Sortie Territoire + Carte identité." },
+                            { title: "Réservation Repas", detail: "Confirmer les régimes alimentaires (2 allergies arachides) à l'auberge." },
+                            { title: "Matériel", detail: "Acheter : Gants, sacs poubelles, caméra, trousse pharmacie." },
+                            { title: "Groupe WhatsApp", detail: "Créer groupe 'Eco-Team 2024' avec parents pour infos départ." }
+                        ]
+                    },
+                    {
+                        id: 6, title: "Sur le terrain", icon: "ph-users-three",
+                        description: "Contexte : Le séjour est en cours. Gérer le groupe et l'admin.",
+                        tasks: [
+                            { title: "Rituel Matin", detail: "Faire signer la feuille de présence (indispensable pour subvention !)." },
+                            { title: "Gestion caisse", detail: "Garder tous les tickets de caisse des courses (goûters, pharmacie)." },
+                            { title: "Photos", detail: "Prendre photos des jeunes en action (avec t-shirts logos Erasmus)." },
+                            { title: "Incident", detail: "Un vol annulé ? Noter la référence dossier réclamation immédiatement." },
+                            { title: "Météo du groupe", detail: "Chaque soir, réunion animateurs : comment vont les jeunes ?" }
+                        ]
+                    },
+                    {
+                        id: 7, title: "Après le retour", icon: "ph-presentation-chart",
+                        description: "Contexte : Le projet est fini, il faut rendre des comptes et célébrer.",
+                        tasks: [
+                            { title: "Rapport Mobility Tool", detail: "Remplir le formulaire en ligne de l'UE avec les stats participantes." },
+                            { title: "Bilan Financier", detail: "Envoyer le tableau Excel finalisé au comptable." },
+                            { title: "Certificats", detail: "Imprimer et remettre les 'Youthpass' (certificat de compétences) aux jeunes." },
+                            { title: "Soirée Retour", detail: "Projection des vidéos TikTok devant les parents et élus locaux." },
+                            { title: "Suite", detail: "Les jeunes veulent refaire un échange l'an prochain en Italie !" }
+                        ]
+                    }
+                ]
+            },
+            en: {
+                theory: [
+                    {
+                        id: 1, title: "Idea & Objectives", icon: "ph-lightbulb",
+                        description: "This stage lays the foundation: clarifying needs, audience, objectives, and concrete outcomes. It provides clear direction for future pedagogical, organizational, and budgetary choices.",
+                        tasks: [
+                            { title: "Needs Analysis", detail: "Clarify the problem, context, and justification for the action." },
+                            { title: "Target Audience", detail: "Define who is involved, their profiles, and needs." },
+                            { title: "Objective Setting", detail: "State operational, understandable, and measurable goals." },
+                            { title: "Expected Results", detail: "Describe what should concretely change by the end." },
+                            { title: "Key Indicators", detail: "Choose simple tracking metrics (quantitative/qualitative) from the start." }
+                        ]
+                    },
+                    {
+                        id: 2, title: "Framework & Risks", icon: "ph-shield-check",
+                        description: "This stage secures the project by identifying obligations, responsibilities, constraints, and risks. It helps anticipate sensitive points and avoid blockages during implementation.",
+                        tasks: [
+                            { title: "Obligations Mapping", detail: "Identify regulatory, institutional, and internal requirements." },
+                            { title: "Responsibility Matrix", detail: "Define clearly who does what (decision, validation, monitoring)." },
+                            { title: "Constraints Check", detail: "Anticipate location, timing, staffing, and accessibility constraints." },
+                            { title: "Risk Analysis", detail: "List main risks (safety, logistics, reputation, finance)." },
+                            { title: "Prevention Measures", detail: "Plan concrete actions to mitigate identified risks." }
+                        ]
+                    },
+                    {
+                        id: 3, title: "Funding & Requirements", icon: "ph-currency-eur",
+                        description: "Align the project with funder/partner expectations: criteria, timeline, financial rules, and required evidence. Ensures application eligibility.",
+                        tasks: [
+                            { title: "Donor Identification", detail: "Spot possible sources and their fit with the project." },
+                            { title: "Eligibility Criteria", detail: "Check accepted audience, territory, actions, and expenses." },
+                            { title: "Financial Rules", detail: "Clarify co-funding, caps, payment methods, advances." },
+                            { title: "Proof Requirements", detail: "Identify what must be proven (attendance, invoices, indicators)." },
+                            { title: "Timeline & Milestones", detail: "Set key dates (submission, response, agreement, reporting)." }
+                        ]
+                    },
+                    {
+                        id: 4, title: "Budget & Resources", icon: "ph-calculator",
+                        description: "Translate the project into resources. Aim for a realistic, clear, and justifiable budget for smooth management.",
+                        tasks: [
+                            { title: "Forecast Budget", detail: "Estimate expenses and income coherently." },
+                            { title: "Cost Allocation", detail: "Structure budget into clear categories (transport, food, services)." },
+                            { title: "Expense Eligibility", detail: "Ensure every item respects the funder's rules." },
+                            { title: "Hypotheses", detail: "Document calculation bases (quantities, rates) to justify budget." },
+                            { title: "Contingency", detail: "Plan a safety margin and identify risky items." },
+                            { title: "Tracking Plan", detail: "Define a simple tool to track actual vs. forecast costs." }
+                        ]
+                    },
+                    {
+                        id: 5, title: "Logistics & Prep", icon: "ph-clipboard-text",
+                        description: "Turn the project into an operational plan: roles, schedule, bookings, registration, equipment. Reduces unforeseen issues.",
+                        tasks: [
+                            { title: "Back-planning", detail: "Organize project steps in time with realistic deadlines." },
+                            { title: "Role Organization", detail: "Define the team, operational responsibilities, and backups." },
+                            { title: "Bookings", detail: "Anticipate contracts, quotes, orders, and cancellation terms." },
+                            { title: "Participant Mgmt", detail: "Plan registration, practical info, consents, special needs." },
+                            { title: "Equipment", detail: "List, acquire/borrow, and check necessary gear." },
+                            { title: "Communication", detail: "Define messages, channels, calendar, and validation rules." }
+                        ]
+                    },
+                    {
+                        id: 6, title: "Implementation", icon: "ph-play-circle",
+                        description: "Guarantee action quality and traceability. Manage activity on the ground while collecting evidence for the final report.",
+                        tasks: [
+                            { title: "Attendance Tracking", detail: "Collect lists, sign-in sheets, necessary certificates." },
+                            { title: "Real-time Expenses", detail: "Record expenses as they happen to avoid late discrepancies." },
+                            { title: "Evidence Collection", detail: "Keep invoices, tickets, authorized photos, deliverables." },
+                            { title: "Incident Mgmt", detail: "Document unforeseen events and decisions taken (traceability)." },
+                            { title: "Indicator Tracking", detail: "Regularly update simple data related to objectives." }
+                        ]
+                    },
+                    {
+                        id: 7, title: "Evaluation & Follow-up", icon: "ph-flag-checkered",
+                        description: "Consolidate the project: administrative compliance, financial report, results analysis, and capitalization. Prepare for what's next.",
+                        tasks: [
+                            { title: "Supporting Docs", detail: "Verify all requested documents are present and compliant." },
+                            { title: "Financial Report", detail: "Compare forecast/realized, explain variances." },
+                            { title: "Results Analysis", detail: "Compare objectives, indicators, and observed effects." },
+                            { title: "Final Report Writing", detail: "Produce a structured, readable report aligned with expectations." },
+                            { title: "Capitalization", detail: "Formalize what worked, recommendations, and identify future steps." }
+                        ]
+                    }
+                ],
+                example: [
+                    {
+                        id: 1, title: "\"Eco-Citizens\" Project", icon: "ph-plant",
+                        description: "Context: A 10-day youth exchange between France and Spain focused on ecology.\nGoal: Bring 20 youths together to clean a beach and create a video campaign.",
+                        tasks: [
+                            { title: "Identified Need", detail: "Lack of ecological awareness among local teenagers." },
+                            { title: "Target Audience", detail: "10 French youths (15-17yo) + 10 Spanish youths." },
+                            { title: "Concrete Goal", detail: "Collect 50kg of waste and produce 3 TikTok videos." },
+                            { title: "Expected Result", detail: "Youths know how to recycle and speak English/Spanish together." },
+                            { title: "Indicator", detail: "Number of trash bags filled + satisfaction survey." }
+                        ]
+                    },
+                    {
+                        id: 2, title: "Safety & Framework", icon: "ph-life-buoy",
+                        description: "Context: Trip abroad with minors. High responsibility for the association.",
+                        tasks: [
+                            { title: "Staff Ratio", detail: "Legal: 1 leader per 12. Project choice: 3 leaders (1 per 7) for safety." },
+                            { title: "Insurance", detail: "Check Liability Insurance and Repatriation Assistance." },
+                            { title: "Transport Rules", detail: "Bus cannot drive more than 4h without a break (regulation)." },
+                            { title: "Identified Risk", detail: "A youth gets injured on the beach -> First aid kit + emergency numbers." },
+                            { title: "Prevention", detail: "Mandatory parent meeting to present code of conduct." }
+                        ]
+                    },
+                    {
+                        id: 3, title: "Erasmus+ Grant", icon: "ph-file-text",
+                        description: "Context: Grant application to Erasmus+ Youth program.",
+                        tasks: [
+                            { title: "Funding Source", detail: "National Agency Erasmus+ (KA1 Action)." },
+                            { title: "Eligibility", detail: "Project must last 5-21 days. Here: 10 days = OK." },
+                            { title: "Flat-rate Rule", detail: "Erasmus gives X€ per km and Y€ per day. No real invoices needed except travel." },
+                            { title: "Proof Requirement", detail: "Daily attendance sheet signed by everyone is mandatory." },
+                            { title: "Deadline", detail: "Submission on October 4th at 12:00 PM sharp." }
+                        ]
+                    },
+                    {
+                        id: 4, title: "Forecast Budget", icon: "ph-coins",
+                        description: "Context: 20 youths + 4 staff. Total estimated budget: €12,000.",
+                        tasks: [
+                            { title: "Transport Cost", detail: "Bus quote to Barcelona Return: €3,500." },
+                            { title: "Lodging Cost", detail: "Youth Hostel (24 beds x 10 nights x €25): €6,000." },
+                            { title: "Activity Cost", detail: "Cleaning gear rental + video expert: €1,500." },
+                            { title: "Contingency", detail: "€500 for medical advances or extra meals." },
+                            { title: "Tracking Tool", detail: "A shared Google Sheet with the treasurer." }
+                        ]
+                    },
+                    {
+                        id: 5, title: "Logistics & Dept", icon: "ph-suitcase",
+                        description: "Context: D-30 before departure. Everything must be locked in.",
+                        tasks: [
+                            { title: "Day-to-day Plan", detail: "Mon: Ice-breakers. Tue: Beach cleaning..." },
+                            { title: "Youth Files", detail: "Check: Health form + Travel Consent + ID Card." },
+                            { title: "Meal Booking", detail: "Confirm diets (2 peanut allergies) to the hostel kitchen." },
+                            { title: "Equipment", detail: "Buy: Gloves, trash bags, camera, first aid refill." },
+                            { title: "WhatsApp Group", detail: "Create 'Eco-Team 2024' with parents for departure info." }
+                        ]
+                    },
+                    {
+                        id: 6, title: "On The Ground", icon: "ph-users-three",
+                        description: "Context: The trip is ongoing. Managing the group and admin.",
+                        tasks: [
+                            { title: "Morning Ritual", detail: "Sign the attendance sheet (vital for the grant!)." },
+                            { title: "Cash Mgmt", detail: "Keep all receipts for groceries (snacks, pharmacy)." },
+                            { title: "Photos", detail: "Take photos of youths in action (wearing logo t-shirts)." },
+                            { title: "Incident", detail: "Cancelled flight? Note claim reference number immediately." },
+                            { title: "Mood Meter", detail: "Nightly staff meeting: how are the youths doing?" }
+                        ]
+                    },
+                    {
+                        id: 7, title: "After Return", icon: "ph-presentation-chart",
+                        description: "Context: Project is over, time to report and celebrate.",
+                        tasks: [
+                            { title: "Mobility Tool", detail: "Fill EU online form with participant stats." },
+                            { title: "Financial Balance", detail: "Send finalized Excel to the accountant." },
+                            { title: "Certificates", detail: "Print and give 'Youthpass' (competence cert) to youths." },
+                            { title: "Return Party", detail: "Screening TikTok videos for parents and local officials." },
+                            { title: "Follow-up", detail: "Youths want to do another exchange in Italy next year!" }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTimeline();
+            updateUIText();
+            // Trigger initial animation
+            setTimeout(() => {
+                const pb = document.getElementById('progressBar');
+                if(pb) pb.style.width = '100%';
+            }, 500);
+        });
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Update Toggle UI
+            const btnFr = document.getElementById('btn-fr');
+            const btnEn = document.getElementById('btn-en');
+            if(btnFr) btnFr.classList.toggle('active', lang === 'fr');
+            if(btnEn) btnEn.classList.toggle('active', lang === 'en');
+            
+            updateUIText();
+            renderTimeline();
+        }
+
+        function setContext(context) {
+            currentContext = context;
+
+            // Update Toggle UI
+            const btnTheory = document.getElementById('btn-theory');
+            const btnExample = document.getElementById('btn-example');
+            if(btnTheory) btnTheory.classList.toggle('active', context === 'theory');
+            if(btnExample) btnExample.classList.toggle('active', context === 'example');
+
+            // Visual feedback for context switch
+            const indicator = document.getElementById('contextIndicator');
+            const greenOrb = document.getElementById('greenOrb');
+            const mainPanel = document.getElementById('mainPanel');
+            
+            if (context === 'example') {
+                if(indicator) indicator.style.opacity = '1';
+                if(greenOrb) greenOrb.style.opacity = '0.4';
+                
+                // Color theme shift
+                document.querySelectorAll('.timeline-progress').forEach(el => el.style.backgroundColor = '#34d399'); // Emerald
+                
+            } else {
+                if(indicator) indicator.style.opacity = '0';
+                if(greenOrb) greenOrb.style.opacity = '0';
+                
+                // Reset Color theme
+                document.querySelectorAll('.timeline-progress').forEach(el => el.style.backgroundColor = '#f472b6'); // Pink
+            }
+
+            renderTimeline();
+        }
+
+        function updateUIText() {
+            if (!uiDict[currentLang]) return;
+            const dict = uiDict[currentLang];
+            
+            const mainTitle = document.getElementById('mainTitle');
+            if(mainTitle) mainTitle.textContent = dict.mainTitle;
+            
+            const subTitle = document.getElementById('subTitle');
+            if(subTitle) subTitle.textContent = dict.subTitle;
+
+            const introText = document.getElementById('introText');
+            if(introText) introText.textContent = dict.introText;
+            
+            const btnTheory = document.getElementById('btn-theory');
+            if(btnTheory) btnTheory.textContent = dict.btnTheory;
+            
+            const btnExample = document.getElementById('btn-example');
+            if(btnExample) btnExample.textContent = dict.btnExample;
+            
+            const contextLabel = document.getElementById('contextLabel');
+            if(contextLabel) contextLabel.textContent = dict.contextLabel;
+            
+            // If modal is open, update labels
+            const labelDesc = document.getElementById('labelDesc');
+            if(labelDesc) labelDesc.innerHTML = `<i class="ph ph-info"></i> ${dict.labelDesc}`;
+            
+            const currentTasksLabel = currentContext === 'example' ? dict.labelTasksEx : dict.labelTasks;
+            const labelTasks = document.getElementById('labelTasks');
+            if(labelTasks) labelTasks.innerHTML = `<i class="ph ph-check-square"></i> ${currentTasksLabel}`;
+            
+            const modalFooter = document.getElementById('modalFooter');
+            if(modalFooter) modalFooter.textContent = dict.footerText;
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timelineContainer');
+            if (!container) return;
+
+            // Safety Check for Data
+            if (!contentData[currentLang] || !contentData[currentLang][currentContext]) {
+                console.warn('Data not ready or invalid context:', currentLang, currentContext);
+                return;
+            }
+
+            // Fade out
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+                const data = contentData[currentLang][currentContext];
+                const isExample = currentContext === 'example';
+                const colorClass = isExample ? 'text-emerald-600 group-hover:text-emerald-500' : 'text-purple-600 group-hover:text-pink-500';
+                const borderClass = isExample ? 'group-hover:border-emerald-400' : 'group-hover:border-pink-400';
+                const badgeClass = isExample ? 'bg-emerald-500' : 'bg-pink-500';
+                const titleHoverClass = isExample ? 'group-hover:text-emerald-700' : 'group-hover:text-purple-700';
+
+                data.forEach((step, index) => {
+                    const node = document.createElement('div');
+                    const offsetClass = (index % 2 === 0) ? 'md:mb-12' : 'md:mt-12';
+                    
+                    node.className = `group relative z-10 flex flex-col items-center cursor-pointer timeline-node w-full md:w-32 ${offsetClass}`;
+                    node.onclick = () => openModal(index);
+
+                    node.innerHTML = `
+                        <div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shadow-lg border-4 border-transparent ${borderClass} transition-colors duration-300 relative">
+                            <span class="absolute -top-2 -right-2 ${badgeClass} text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white">${step.id}</span>
+                            <i class="ph ${step.icon} text-3xl md:text-4xl ${colorClass} transition-colors"></i>
+                        </div>
+                        <div class="mt-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md text-center min-w-[140px] border border-white/50 group-hover:bg-white transition-colors">
+                            <h3 class="font-bold text-gray-800 text-sm md:text-base leading-tight ${titleHoverClass}">${step.title}</h3>
+                        </div>
+                    `;
+                    container.appendChild(node);
+                });
+                
+                // Fade in
+                container.style.opacity = '1';
+            }, 200);
+        }
+
+        function openModal(index) {
+            // Safety Check
+            if (!contentData[currentLang] || !contentData[currentLang][currentContext] || !contentData[currentLang][currentContext][index]) {
+                console.error('Modal data missing');
+                return;
+            }
+
+            const data = contentData[currentLang][currentContext][index];
+            const dict = uiDict[currentLang];
+            const modal = document.getElementById('infoModal');
+            const modalContent = modal.querySelector('.modal-content');
+            const isExample = currentContext === 'example';
+
+            // Style Updates based on context
+            const header = document.getElementById('modalHeader');
+            if(isExample) {
+                header.className = "bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white flex justify-between items-start shrink-0 transition-colors duration-500";
+            } else {
+                header.className = "bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white flex justify-between items-start shrink-0 transition-colors duration-500";
+            }
+
+            // Populate Content
+            const modalStepNum = document.getElementById('modalStepNum');
+            if(modalStepNum) modalStepNum.textContent = `${dict.labelStep} ${data.id}`;
+            
+            const modalTitle = document.getElementById('modalTitle');
+            if(modalTitle) modalTitle.textContent = data.title;
+            
+            const modalDesc = document.getElementById('modalDesc');
+            if(modalDesc) modalDesc.innerText = data.description;
+
+            // Labels
+            const labelDesc = document.getElementById('labelDesc');
+            if(labelDesc) labelDesc.innerHTML = `<i class="ph ph-info"></i> ${dict.labelDesc}`;
+            
+            const currentTasksLabel = isExample ? dict.labelTasksEx : dict.labelTasks;
+            const labelTasks = document.getElementById('labelTasks');
+            if(labelTasks) labelTasks.innerHTML = `<i class="ph ph-check-square"></i> ${currentTasksLabel}`;
+            
+            const modalFooter = document.getElementById('modalFooter');
+            if(modalFooter) modalFooter.textContent = dict.footerText;
+
+            // Render Tasks
+            const tasksContainer = document.getElementById('modalTasks');
+            if(tasksContainer) {
+                tasksContainer.innerHTML = '';
+                
+                const hoverClass = isExample ? 'hover:bg-emerald-50 hover:border-emerald-300' : 'hover:bg-purple-50 hover:border-purple-300';
+                const btnHoverClass = isExample ? 'hover:bg-emerald-50' : 'hover:bg-purple-50';
+                const activeTextClass = isExample ? 'text-emerald-700' : 'text-purple-700';
+                const activeBgClass = isExample ? 'bg-emerald-50' : 'bg-purple-50';
+
+                data.tasks.forEach((task, i) => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = `border border-gray-200 rounded-lg overflow-hidden bg-white ${hoverClass} transition-colors task-item`;
+                    
+                    // Store style classes for toggle function
+                    taskEl.dataset.activeText = activeTextClass;
+                    taskEl.dataset.activeBg = activeBgClass;
+
+                    taskEl.innerHTML = `
+                        <button onclick="toggleTask(this)" class="w-full text-left px-4 py-3 bg-gray-50 ${btnHoverClass} flex justify-between items-center transition-colors">
+                            <span class="font-semibold text-gray-700 text-sm md:text-base pr-4">${task.title}</span>
+                            <i class="ph ph-caret-down text-gray-400 transform transition-transform duration-300"></i>
+                        </button>
+                        <div class="task-detail bg-white">
+                            <div class="px-4 py-3 text-sm text-gray-600 border-t border-gray-100 italic">
+                                ${task.detail}
+                            </div>
+                        </div>
+                    `;
+                    tasksContainer.appendChild(taskEl);
+                });
+            }
+
+            // Show Modal
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modalContent.classList.remove('scale-90', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('infoModal');
+            if(!modal) return;
+            const modalContent = modal.querySelector('.modal-content');
+
+            if(modalContent) {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-90', 'opacity-0');
+            }
+            
+            setTimeout(() => {
+                modal.classList.add('pointer-events-none', 'opacity-0');
+            }, 200);
+        }
+
+        function toggleTask(button) {
+            const detail = button.nextElementSibling;
+            const icon = button.querySelector('i');
+            const parent = button.parentElement;
+            
+            const activeText = parent.dataset.activeText;
+            const activeBg = parent.dataset.activeBg;
+
+            detail.classList.toggle('open');
+            icon.classList.toggle('rotate-180');
+            
+            // Color active state
+            if(detail.classList.contains('open')) {
+                button.classList.add(activeText, activeBg);
+            } else {
+                button.classList.remove(activeText, activeBg);
+            }
+        }
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>
