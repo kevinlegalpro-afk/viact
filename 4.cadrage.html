@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadrer le projet et ses contraintes - Premium Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- CHANGEMENT DE STRATÉGIE : Utilisation de pdfMake pour une génération 100% fiable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Outfit"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0) 0, transparent 50%);
+        }
+        
+        /* Glassmorphism utils */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .card-pro {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .card-pro:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #38bdf8;
+        }
+
+        .card-completed {
+            background: linear-gradient(to bottom right, #ffffff, #f0f9ff);
+            border-left: 4px solid #10b981;
+        }
+
+        .card-empty {
+            border-left: 4px solid #cbd5e1;
+        }
+
+        /* Progress Circle */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        
+        /* Animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden selection:bg-sky-100 selection:text-sky-900">
+
+    <!-- Top Navigation Bar -->
+    <nav class="glass sticky top-0 z-30 border-b border-slate-200/60 no-print">
+        <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Brand -->
+                <div class="flex items-center gap-4">
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-sky-400 to-indigo-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+                        <div class="relative w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-cubes text-2xl text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="font-display font-bold text-xl text-slate-900 tracking-tight" id="nav-title">Project Design Canvas</h1>
+                        <div class="flex items-center gap-2 text-xs font-medium text-slate-500">
+                            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full" id="save-status">Auto-saved</span>
+                            <span class="text-slate-300">|</span>
+                            <span id="nav-subtitle">Ingénierie Pédagogique</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center: Progress -->
+                <div class="hidden md:flex items-center gap-4 bg-white/50 px-4 py-2 rounded-2xl border border-white/50 shadow-sm">
+                    <div class="relative w-12 h-12">
+                        <svg class="w-12 h-12" viewBox="0 0 100 100">
+                            <circle class="text-slate-200 stroke-current" stroke-width="8" cx="50" cy="50" r="40" fill="transparent"></circle>
+                            <circle id="progress-ring" class="text-sky-500 progress-ring__circle stroke-current" stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                        </svg>
+                        <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                            <span id="progress-text" class="text-xs font-bold text-slate-700">0%</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider" data-i18n="progression">Progression</span>
+                        <span id="progress-label" class="text-sm font-bold text-slate-700">0/7 Cartes</span>
+                    </div>
+                </div>
+
+                <!-- Right Actions -->
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleLanguage()" class="group relative px-3 py-2 rounded-xl bg-slate-100 hover:bg-white border border-transparent hover:border-slate-200 transition-all duration-200">
+                        <span class="flex items-center gap-2 text-sm font-semibold text-slate-600 group-hover:text-slate-900">
+                            <i class="fas fa-globe text-slate-400 group-hover:text-sky-500 transition-colors"></i>
+                            <span id="lang-btn-text">EN</span>
+                        </span>
+                    </button>
+                    
+                    <div class="h-8 w-px bg-slate-200 mx-1"></div>
+
+                    <button onclick="generateSummary()" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-50 text-sky-700 font-semibold hover:bg-sky-100 transition-all border border-sky-100 shadow-sm hover:shadow active:scale-95">
+                        <i class="fas fa-bolt"></i>
+                        <span data-i18n="btn_summary" class="hidden lg:inline">Synthèse</span>
+                    </button>
+
+                    <button onclick="downloadPDF()" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95">
+                        <i class="fas fa-file-download"></i>
+                        <span class="hidden lg:inline">PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main id="app-container" class="flex-1 overflow-y-auto custom-scroll relative p-6 pb-24">
+        <div class="max-w-8xl mx-auto">
+            
+            <!-- Welcome Header -->
+            <div class="text-center mb-10 mt-4 no-print animate-float">
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-800 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600" data-i18n="heroTitle">Design Project Canvas</h2>
+                <div class="bg-white/60 backdrop-blur-sm p-6 rounded-2xl border border-slate-200 shadow-sm max-w-4xl mx-auto">
+                    <p class="text-lg font-semibold text-slate-800 mb-2" data-i18n="heroTagline">Structurez votre projet pédagogique en 7 étapes clés. C'est simple, visuel et efficace.</p>
+                    <p class="text-slate-600 text-base leading-relaxed" data-i18n="heroDesc">Structurez votre projet pédagogique en 7 étapes clés. C'est simple, visuel et efficace.</p>
+                </div>
+            </div>
+
+            <!-- The Grid -->
+            <div id="canvas-grid" class="canvas-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Cards injected by JS -->
+            </div>
+            
+            <!-- Footer with Copyright -->
+            <div class="mt-12 text-center text-xs text-slate-400 font-medium no-print">
+                <p>&copy; Copyright Kévin Le Gal 2026</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Interactive Modal (New Layout) -->
+    <div id="card-modal" class="fixed inset-0 z-50 hidden no-print">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0" id="modal-backdrop" onclick="closeModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div id="modal-panel" class="bg-white w-full max-w-5xl h-[85vh] rounded-3xl shadow-2xl flex flex-col pointer-events-auto transform scale-95 opacity-0 transition-all duration-300 overflow-hidden border border-white/50 relative">
+                
+                <!-- Header -->
+                <div class="relative bg-white px-8 py-6 border-b border-slate-100 flex-shrink-0 flex justify-between items-center z-20">
+                    <div class="flex items-center gap-5">
+                        <div id="modal-icon-container" class="w-14 h-14 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-2xl shadow-inner">
+                            <!-- Icon -->
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-3 mb-1">
+                                <span id="modal-step" class="text-xs font-bold tracking-wider text-sky-600 bg-sky-50 px-2 py-1 rounded uppercase">Étape 1</span>
+                            </div>
+                            <h3 id="modal-title" class="font-display text-2xl font-bold text-slate-900">Titre de la carte</h3>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <!-- Toggle Help Button -->
+                        <button onclick="toggleHelpPanel()" class="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition border border-indigo-100 font-semibold shadow-sm animate-pulse-slow">
+                            <i class="fas fa-lightbulb text-amber-500"></i>
+                            <span data-i18n="btn_help">Guide & Exemples</span>
+                        </button>
+                        
+                        <div class="w-px h-8 bg-slate-200 mx-2"></div>
+                        
+                        <button onclick="closeModal()" class="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body container -->
+                <div class="flex-1 overflow-hidden relative bg-slate-50">
+                    
+                    <!-- Editor Area (Full Width) -->
+                    <div class="w-full h-full flex flex-col p-6 lg:p-10">
+                         <div class="mb-4 flex justify-between items-center">
+                            <label class="text-sm font-bold uppercase text-slate-500 tracking-wider" data-i18n="editor_label">Votre Cadrage</label>
+                            <span class="text-xs text-slate-400 italic">Prenez le temps de détailler</span>
+                         </div>
+                         <textarea id="modal-input" class="flex-1 w-full p-6 resize-none focus:outline-none text-slate-700 text-lg leading-relaxed placeholder:text-slate-300 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-sky-300 focus:border-sky-500 transition-all" placeholder="Commencez à écrire ici..."></textarea>
+                    </div>
+
+                    <!-- Slide-over Help Panel (Pop-up) -->
+                    <div id="help-panel" class="absolute top-0 right-0 h-full w-full md:w-[450px] bg-white shadow-2xl border-l border-slate-200 transform translate-x-full transition-transform duration-300 z-30 flex flex-col">
+                        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50/50">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fas fa-compass text-indigo-500"></i> <span data-i18n="panel_title">Guide de réflexion</span>
+                            </h4>
+                            <button onclick="toggleHelpPanel()" class="text-slate-400 hover:text-slate-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="p-6 overflow-y-auto custom-scroll flex-1 space-y-8 bg-slate-50/50">
+                            <!-- Questions -->
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                                <h4 class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <i class="fas fa-question-circle"></i> <span data-i18n="guide_questions">Questions Clés</span>
+                                </h4>
+                                <ul id="modal-questions" class="space-y-3 text-sm text-slate-700"></ul>
+                            </div>
+
+                            <!-- Checklist -->
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                                <h4 class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <i class="fas fa-check-circle"></i> <span data-i18n="guide_checklist">Checklist (OK si...)</span>
+                                </h4>
+                                <ul id="modal-checklist" class="space-y-2 text-sm text-slate-600"></ul>
+                            </div>
+
+                            <!-- Example -->
+                            <div class="bg-indigo-600 p-5 rounded-xl border border-indigo-700 shadow-md text-white">
+                                <h4 class="text-xs font-bold text-indigo-200 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                    <i class="fas fa-star"></i> <span data-i18n="guide_example">Exemple "Fil Rouge"</span>
+                                </h4>
+                                <p id="modal-example" class="text-sm italic leading-relaxed text-indigo-50"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Actions Footer -->
+                <div class="p-6 border-t border-slate-100 bg-white flex justify-between items-center z-20">
+                    <button onclick="clearCurrentInput()" class="text-slate-400 hover:text-red-500 text-sm font-medium transition-colors px-3">
+                        <i class="fas fa-trash-alt mr-1"></i> <span data-i18n="btn_clear">Effacer</span>
+                    </button>
+                    <button onclick="saveAndClose()" class="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-slate-200 hover:shadow-xl transition-all active:scale-95 flex items-center gap-2">
+                        <i class="fas fa-check"></i> <span data-i18n="btn_validate">Valider</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Overlay -->
+    <div id="summary-modal" class="fixed inset-0 z-50 hidden no-print flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                <h3 class="font-display text-xl font-bold text-slate-900" data-i18n="summary_title">Synthèse Exécutive</h3>
+                <button onclick="document.getElementById('summary-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-0 overflow-y-auto bg-slate-50 flex-1">
+                <div id="summary-content" class="p-8 font-mono text-sm text-slate-700 bg-white shadow-sm mx-auto my-6 max-w-2xl border border-slate-200">
+                    <!-- Content -->
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-100 flex justify-end gap-3 bg-white rounded-b-2xl">
+                <button onclick="copySummary()" class="px-5 py-2.5 bg-sky-50 text-sky-700 font-semibold rounded-xl hover:bg-sky-100 transition flex items-center gap-2">
+                    <i class="fas fa-copy"></i> <span data-i18n="btn_copy">Copier</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & Data ---
+        const APP_KEY = 'project_canvas_v2_data';
+        
+        const contentData = {
+            fr: {
+                navTitle: "Canevas de Cadrage",
+                navSubtitle: "Ingénierie de Projet",
+                heroTitle: "Cadrer le projet et ses contraintes",
+                heroTagline: "Structurez votre projet pédagogique en 7 étapes clés. C'est simple, visuel et efficace.",
+                heroDesc: "Cette étape permet de poser une base solide : objectif, public, format, ressources, partenaires, contraintes et points de vigilance. Un cadrage clair évite de nombreuses complications plus tard, facilite la prise de décision, et rend le reste du travail (administratif, financier et organisationnel) plus simple, plus cohérent et plus sécurisant.",
+                progression: "Progression",
+                btnSummary: "Synthèse",
+                
+                // Modal Labels
+                guideQuestions: "Questions Guides",
+                guideChecklist: "Checklist de validation",
+                guideExample: "Exemple Fil Rouge (Projet Jeunesse)",
+                editorLabel: "Votre Cadrage",
+                btnValidate: "Valider",
+                btnClear: "Effacer",
+                summaryTitle: "Synthèse du projet",
+                btnCopy: "Copier le texte",
+                btnHelp: "Guide & Exemples",
+                panelTitle: "Guide de réflexion",
+
+                cards: [
+                    { id: "c1", icon: "fa-bullseye", color: "text-rose-500", bg: "bg-rose-50", step: "01", title: "Objectif & Résultat", subtitle: "La transformation attendue", 
+                      questions: ["Quel est le problème initial à résoudre ?", "Que veut-on changer concrètement ?", "Quel sera le livrable final ?"],
+                      checklist: ["L'objectif est clair et mesurable", "Le livrable final est identifié", "On sait dire quand c'est 'fini'"],
+                      example: "Contexte : Création d'un 'Espace Jeunes' itinérant. Objectif : Rompre l'isolement des 16-25 ans en zone rurale. Livrable : Un bus aménagé opérationnel + un planning d'activités sur 6 mois." },
+                    
+                    { id: "c2", icon: "fa-users", color: "text-sky-500", bg: "bg-sky-50", step: "02", title: "Public & Besoins", subtitle: "Pour qui fait-on ça ?", 
+                      questions: ["Qui sont les bénéficiaires principaux ?", "Combien sont-ils ?", "Quels sont leurs freins ou besoins spécifiques ?"],
+                      checklist: ["Cœur de cible bien défini", "Estimation du nombre de bénéficiaires", "Besoins d'accessibilité pris en compte"],
+                      example: "Public : 200 jeunes identifiés dans la Com-Com, souvent sans permis. Besoins : Accès internet, écoute sans jugement, aide administrative. Contrainte : Ils ne peuvent pas se déplacer au chef-lieu." },
+                    
+                    { id: "c3", icon: "fa-shapes", color: "text-violet-500", bg: "bg-violet-50", step: "03", title: "Format & Activités", subtitle: "Qu'est-ce qu'on fait concrètement ?", 
+                      questions: ["Où et quand cela se passe-t-il ?", "Quelle est la durée ?", "Quel type d'activité propose-t-on ?"],
+                      checklist: ["Lieu et horaires définis", "Type d'intervention choisi", "Durée réaliste"],
+                      example: "Format : 'Aller-vers' (Hors les murs). Permanences hebdomadaires de 3h dans 5 villages différents. Activités : Café-accueil, aide CV, jeux de société, ateliers numériques." },
+                    
+                    { id: "c4", icon: "fa-briefcase", color: "text-amber-500", bg: "bg-amber-50", step: "04", title: "Ressources & Rôles", subtitle: "Avec quels moyens ?", 
+                      questions: ["Qui compose l'équipe terrain ?", "Quel matériel est indispensable ?", "Quel est le budget fonctionnement ?"],
+                      checklist: ["Équipe identifiée (compétences)", "Matériel clé listé", "Budget estimé"],
+                      example: "RH : 2 Animateurs Jeunesse (1.5 ETP au total). Matériel : 1 Bus municipal (rénové), 4 PC portables, Kit 4G. Budget : 15 000€/an (hors salaires)." },
+                    
+                    { id: "c5", icon: "fa-network-wired", color: "text-emerald-500", bg: "bg-emerald-50", step: "05", title: "Partenaires & Décideurs", subtitle: "Qui est impliqué ?", 
+                      questions: ["Qui finance ou valide ?", "Qui fournit la logistique ?", "Qui oriente le public vers nous ?"],
+                      checklist: ["Financeurs informés", "Partenaires logistiques d'accord", "Réseau de prescripteurs activé"],
+                      example: "Validation : Élus locaux (Comité Pilotage trimestriel). Financeur : CAF (Prestation de service). Logistique : Mairies (Bornes élec, stationnement). Prescripteur : Mission Locale." },
+                    
+                    { id: "c6", icon: "fa-lock", color: "text-slate-500", bg: "bg-slate-100", step: "06", title: "Contraintes & Obligations", subtitle: "Le cadre non-négociable", 
+                      questions: ["Quelles règles de sécurité ?", "Quelles assurances obligatoires ?", "Quid des données personnelles (RGPD) ?"],
+                      checklist: ["Assurances vérifiées", "Autorisations obtenues", "Sécurité des personnes garantie"],
+                      example: "Sécurité : Homologation du véhicule, Trousse secours. Admin : Autorisations de stationnement sur domaine public. RGPD : Registre des jeunes suivis sécurisé." },
+                    
+                    { id: "c7", icon: "fa-fire-extinguisher", color: "text-orange-500", bg: "bg-orange-50", step: "07", title: "Risques & Plan B", subtitle: "Et si ça coince ?", 
+                      questions: ["Quel est le pire scénario ?", "Quel impact sur le projet ?", "Quelle solution de secours ?"],
+                      checklist: ["Risque principal identifié", "Solution de repli prévue", "Procédure d'urgence claire"],
+                      example: "Risque majeur : Panne mécanique du bus. Impact : Annulation des tournées. Plan B : Conventionner avec les Salles des Fêtes communales pour maintenir les permanences en fixe si besoin." }
+                ]
+            },
+            en: {
+                navTitle: "Framing Canvas",
+                navSubtitle: "Instructional Design",
+                heroTitle: "Frame Your Project",
+                heroTagline: "Structure your instructional project in 7 key steps. Simple, visual, and effective.",
+                heroDesc: "This step lays a solid foundation: objective, audience, format, resources, partners, constraints, and watchpoints. Clear framing avoids complications later, facilitates decision-making, and makes the rest of the work (administrative, financial, organizational) simpler and safer.",
+                progression: "Progress",
+                btnSummary: "Summary",
+
+                guideQuestions: "Guiding Questions",
+                guideChecklist: "Success Checklist",
+                guideExample: "Real Example (Youth Project)",
+                editorLabel: "Your Input",
+                btnValidate: "Validate Card",
+                btnClear: "Clear",
+                summaryTitle: "Project Executive Summary",
+                btnCopy: "Copy Text",
+                btnHelp: "Guide & Examples",
+                panelTitle: "Thinking Guide",
+
+                cards: [
+                    { id: "c1", icon: "fa-bullseye", color: "text-rose-500", bg: "bg-rose-50", step: "01", title: "Goal & Outcome", subtitle: "The expected transformation", 
+                      questions: ["What problem are we solving?", "What is the final deliverable?", "How will we measure success?"],
+                      checklist: ["Clear Goal", "Deliverable identified", "Success metric defined"],
+                      example: "Context: Creating a mobile 'Youth Space'. Goal: Break isolation of 16-25y olds in rural areas. Deliverable: An operational retrofitted bus + 6-month activity schedule." },
+                    
+                    { id: "c2", icon: "fa-users", color: "text-sky-500", bg: "bg-sky-50", step: "02", title: "Target Audience", subtitle: "Who is it for?", 
+                      questions: ["Who are the main beneficiaries?", "How many are they?", "What are their specific constraints?"],
+                      checklist: ["Persona defined", "Volume estimated", "Needs identified"],
+                      example: "Audience: 200 identified youths, low mobility. Needs: Internet access, non-judgmental listening, admin help. Constraint: Cannot travel to the main city." },
+                    
+                    { id: "c3", icon: "fa-shapes", color: "text-violet-500", bg: "bg-violet-50", step: "03", title: "Format & Activities", subtitle: "What do we do concretely?", 
+                      questions: ["Where and when?", "How long?", "What type of activity?"],
+                      checklist: ["Location/Time set", "Activity type chosen", "Realistic duration"],
+                      example: "Format: Outreach (Mobile). Weekly 3h sessions in 5 different villages. Activities: Coffee chat, Resume help, Board games, Digital workshops." },
+                    
+                    { id: "c4", icon: "fa-briefcase", color: "text-amber-500", bg: "bg-amber-50", step: "04", title: "Resources & Team", subtitle: "With what means?", 
+                      questions: ["Who is on the team?", "What equipment is needed?", "What is the budget?"],
+                      checklist: ["Team identified", "Equipment listed", "Budget estimated"],
+                      example: "Team: 2 Youth Workers (1.5 FTE). Equipment: 1 Municipal Bus, 4 Laptops, 4G Kit. Budget: €15k/year (excl. salaries)." },
+                    
+                    { id: "c5", icon: "fa-network-wired", color: "text-emerald-500", bg: "bg-emerald-50", step: "05", title: "Stakeholders", subtitle: "Who is involved?", 
+                      questions: ["Who funds/validates?", "Who provides logistics?", "Who refers the audience?"],
+                      checklist: ["Funders informed", "Logistics secured", "Referral network active"],
+                      example: "Validation: Local Council. Funder: Family Allowance Fund. Logistics: Town Halls (Parking/Power). Referrer: Local Mission." },
+                    
+                    { id: "c6", icon: "fa-lock", color: "text-slate-500", bg: "bg-slate-100", step: "06", title: "Constraints", subtitle: "Non-negotiables", 
+                      questions: ["Legal obligations?", "Tech constraints?", "Branding?"],
+                      checklist: ["GDPR compliant", "Branding received", "Browsers tested"],
+                      example: "Safety: Vehicle homologation, First aid kit. Admin: Public parking permits. GDPR: Secured data registry." },
+                    
+                    { id: "c7", icon: "fa-fire-extinguisher", color: "text-orange-500", bg: "bg-orange-50", step: "07", title: "Risques & Plan B", subtitle: "What if it fails?", 
+                      questions: ["Worst case scenario?", "Impact?", "Backup plan?"],
+                      checklist: ["Major risk identified", "Backup plan ready", "Emergency procedure"],
+                      example: "Risk: Bus mechanical breakdown. Impact: Session cancellation. Plan B: Agreement with village halls to hold sessions indoors if bus fails." }
+                ]
+            }
+        };
+
+        // --- State ---
+        let currentLang = 'fr';
+        let userInputs = {};
+        let activeCardId = null;
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            renderApp();
+            // Not used for pdfmake, but keep for DOM
+        });
+
+        // --- Persistence ---
+        function loadState() {
+            const saved = localStorage.getItem(APP_KEY);
+            if (saved) {
+                userInputs = JSON.parse(saved);
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem(APP_KEY, JSON.stringify(userInputs));
+            const indicator = document.getElementById('save-status');
+            indicator.classList.remove('opacity-0');
+            setTimeout(() => indicator.classList.add('opacity-0'), 2000);
+            updateProgress();
+        }
+
+        // --- Core Logic ---
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            document.getElementById('lang-btn-text').innerText = currentLang === 'fr' ? 'EN' : 'FR';
+            renderApp();
+        }
+
+        function updateProgress() {
+            const total = 7;
+            const filled = Object.values(userInputs).filter(v => v && v.trim().length > 0).length;
+            const percent = Math.round((filled / total) * 100);
+            
+            // Update Circle
+            const circle = document.getElementById('progress-ring');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            
+            document.getElementById('progress-text').innerText = `${percent}%`;
+            document.getElementById('progress-label').innerText = `${filled}/${total} Cartes`;
+
+            if (percent === 100 && filled === total && !window.hasConfettiRun) {
+                runConfetti();
+                window.hasConfettiRun = true;
+            }
+        }
+
+        function runConfetti() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function renderApp() {
+            const data = contentData[currentLang];
+            
+            // I18n UI
+            document.getElementById('nav-title').innerText = data.navTitle;
+            document.getElementById('nav-subtitle').innerText = data.navSubtitle;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const k = el.getAttribute('data-i18n');
+                if (data[k]) el.innerText = data[k];
+            });
+
+            // Grid
+            const grid = document.getElementById('canvas-grid');
+            grid.innerHTML = '';
+
+            data.cards.forEach(card => {
+                const val = userInputs[card.id] || "";
+                const isFilled = val.trim().length > 0;
+                
+                const statusClass = isFilled ? 'card-completed' : 'card-empty';
+                const iconColor = isFilled ? 'text-emerald-600' : card.color;
+                const iconBg = isFilled ? 'bg-emerald-100' : card.bg;
+                const checkMark = isFilled ? `<div class="absolute top-4 right-4 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs shadow-md"><i class="fas fa-check"></i></div>` : '';
+
+                const cardHTML = `
+                    <div onclick="openModal('${card.id}')" class="card-pro relative p-6 rounded-2xl cursor-pointer group flex flex-col h-full ${statusClass}">
+                        ${checkMark}
+                        
+                        <!-- Header -->
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 rounded-2xl ${iconBg} ${iconColor} flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas ${card.icon}"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-300 font-mono group-hover:text-slate-400 transition-colors">${card.step}</span>
+                        </div>
+
+                        <!-- Content -->
+                        <h3 class="font-display font-bold text-xl text-slate-800 mb-1 group-hover:text-sky-600 transition-colors">${card.title}</h3>
+                        <p class="text-sm text-slate-500 font-medium mb-4">${card.subtitle}</p>
+
+                        <!-- Preview or Placeholder -->
+                        <div class="mt-auto">
+                            ${isFilled 
+                                ? `<div class="p-3 bg-white/60 rounded-xl border border-slate-200/60 text-sm text-slate-700 font-medium line-clamp-3 leading-relaxed shadow-sm">${val}</div>`
+                                : `<div class="h-20 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center text-slate-400 text-sm group-hover:border-sky-300 group-hover:text-sky-500 transition-all">
+                                     <span class="flex items-center gap-2"><i class="fas fa-plus"></i> ${currentLang === 'fr' ? 'Remplir' : 'Fill out'}</span>
+                                   </div>`
+                            }
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += cardHTML;
+            });
+
+            updateProgress();
+        }
+
+        // --- Modal Logic ---
+        function openModal(id) {
+            activeCardId = id;
+            const data = contentData[currentLang];
+            const card = data.cards.find(c => c.id === id);
+            
+            // Populate
+            document.getElementById('modal-step').innerText = `${currentLang === 'fr' ? 'Étape' : 'Step'} ${card.step}`;
+            document.getElementById('modal-title').innerText = card.title;
+            document.getElementById('modal-example').innerText = card.example;
+            
+            // Icon styling
+            const iconContainer = document.getElementById('modal-icon-container');
+            iconContainer.className = `w-14 h-14 rounded-xl flex items-center justify-center text-2xl shadow-inner ${card.bg} ${card.color}`;
+            iconContainer.innerHTML = `<i class="fas ${card.icon}"></i>`;
+
+            // Lists
+            document.getElementById('modal-questions').innerHTML = card.questions.map(q => `<li class="flex items-start gap-3 text-slate-700 text-sm"><i class="fas fa-caret-right mt-1 text-slate-400"></i> ${q}</li>`).join('');
+            document.getElementById('modal-checklist').innerHTML = card.checklist.map(c => `<li class="flex items-center gap-2"><i class="far fa-circle text-slate-300"></i> ${c}</li>`).join('');
+
+            // Input
+            document.getElementById('modal-input').value = userInputs[id] || "";
+            document.getElementById('modal-input').focus();
+
+            // Ensure Help Panel is closed by default
+            document.getElementById('help-panel').classList.add('translate-x-full');
+
+            // Anim
+            const modal = document.getElementById('card-modal');
+            const backdrop = document.getElementById('modal-backdrop');
+            const panel = document.getElementById('modal-panel');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                backdrop.classList.remove('opacity-0');
+                panel.classList.remove('opacity-0', 'scale-95');
+                panel.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('card-modal');
+            const backdrop = document.getElementById('modal-backdrop');
+            const panel = document.getElementById('modal-panel');
+            
+            backdrop.classList.add('opacity-0');
+            panel.classList.remove('scale-100');
+            panel.classList.add('opacity-0', 'scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function toggleHelpPanel() {
+            const panel = document.getElementById('help-panel');
+            if (panel.classList.contains('translate-x-full')) {
+                panel.classList.remove('translate-x-full');
+            } else {
+                panel.classList.add('translate-x-full');
+            }
+        }
+
+        function saveAndClose() {
+            if (activeCardId) {
+                userInputs[activeCardId] = document.getElementById('modal-input').value;
+                saveState();
+                renderApp();
+                closeModal();
+            }
+        }
+
+        function clearCurrentInput() {
+            document.getElementById('modal-input').value = "";
+            document.getElementById('modal-input').focus();
+        }
+
+        // --- Summary & Export ---
+        function generateSummary() {
+            const data = contentData[currentLang];
+            let html = "";
+            let count = 0;
+
+            data.cards.forEach(card => {
+                const val = userInputs[card.id];
+                if (val && val.trim().length > 0) {
+                    count++;
+                    html += `
+                        <div class="mb-6 pb-6 border-b border-slate-100 last:border-0">
+                            <h4 class="text-xs font-bold uppercase text-slate-400 mb-2 tracking-wider flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-sky-500"></span> ${card.title}
+                            </h4>
+                            <p class="text-slate-800 text-base leading-relaxed whitespace-pre-line">${val}</p>
+                        </div>
+                    `;
+                }
+            });
+
+            if (count === 0) {
+                html = `<div class="text-center py-10 text-slate-400">
+                    <i class="fas fa-wind text-4xl mb-4 text-slate-200"></i>
+                    <p>${currentLang === 'fr' ? 'Le canevas est vide.' : 'Canvas is empty.'}</p>
+                </div>`;
+            }
+
+            document.getElementById('summary-content').innerHTML = html;
+            document.getElementById('summary-modal').classList.remove('hidden');
+        }
+
+        function copySummary() {
+            const text = document.getElementById('summary-content').innerText;
+            navigator.clipboard.writeText(text);
+            const btn = document.querySelector('[data-i18n="btn_copy"]').parentNode;
+            const original = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-check"></i> Copied!`;
+            setTimeout(() => btn.innerHTML = original, 2000);
+        }
+
+        // --- PDF GENERATION WITH PDFMAKE (No Screenshots, Pure Data) ---
+        function downloadPDF() {
+            const data = contentData[currentLang];
+            const date = new Date().toLocaleDateString();
+
+            // Prepare Content for PDFMake
+            let content = [];
+
+            // Header
+            content.push({ text: data.navTitle, style: 'header' });
+            content.push({ text: data.navSubtitle, style: 'subheader' });
+            content.push({ text: `Généré le ${date}`, style: 'small', alignment: 'right', margin: [0, -20, 0, 20] });
+            content.push({ canvas: [{ type: 'line', x1: 0, y1: 5, x2: 760, y2: 5, lineWidth: 2, lineColor: '#0ea5e9' }], margin: [0, 0, 0, 20] });
+
+            // Grid Layout (Tables)
+            let tableBody = [];
+            
+            // Build the grid: 2 columns logic
+            for(let i = 0; i < data.cards.length; i+=2) {
+                let row = [];
+                row.push(createCardCell(data.cards[i]));
+                
+                if (i+1 < data.cards.length) {
+                    row.push(createCardCell(data.cards[i+1]));
+                } else {
+                    row.push({ text: '', border: [false, false, false, false] }); 
+                }
+                tableBody.push(row);
+            }
+
+            content.push({
+                table: {
+                    widths: ['*', '*'],
+                    body: tableBody,
+                    dontBreakRows: true
+                },
+                layout: {
+                    hLineWidth: function (i, node) { return 0; },
+                    vLineWidth: function (i, node) { return 0; },
+                    paddingTop: function(i) { return 10; },
+                    paddingBottom: function(i) { return 10; },
+                    paddingLeft: function(i) { return 10; },
+                    paddingRight: function(i) { return 10; }
+                }
+            });
+
+            // Footer
+            content.push({ text: '© Copyright Kévin Le Gal 2026', style: 'footer', margin: [0, 30, 0, 0], alignment: 'center' });
+
+            // Doc Definition
+            var docDefinition = {
+                content: content,
+                pageOrientation: 'landscape',
+                pageSize: 'A4',
+                styles: {
+                    header: { fontSize: 24, bold: true, color: '#0f172a' },
+                    subheader: { fontSize: 14, color: '#64748b', margin: [0, 5, 0, 0] },
+                    small: { fontSize: 10, color: '#94a3b8' },
+                    cardTitle: { fontSize: 13, bold: true, color: '#0f172a', margin: [0, 0, 0, 4] },
+                    cardSubtitle: { fontSize: 9, italics: true, color: '#64748b', margin: [0, 0, 0, 10] },
+                    cardBody: { fontSize: 11, color: '#334155', lineHeight: 1.3 },
+                    footer: { fontSize: 10, color: '#94a3b8' }
+                },
+                defaultStyle: {
+                    font: 'Roboto'
+                }
+            };
+
+            // Generate
+            pdfMake.createPdf(docDefinition).download('Cadrage_Projet.pdf');
+        }
+
+        // Helper to create card visual in PDF
+        function createCardCell(card) {
+            const val = userInputs[card.id] || "";
+            const isEmpty = !val.trim();
+            const txt = isEmpty ? (currentLang === 'fr' ? "(Non renseigné)" : "(Empty)") : val;
+            const borderColor = isEmpty ? '#e2e8f0' : '#bae6fd';
+            const bgColor = isEmpty ? '#f8fafc' : '#ffffff';
+
+            return {
+                stack: [
+                    { 
+                        text: `${card.step}  ${card.title.toUpperCase()}`, 
+                        style: 'cardTitle',
+                        color: isEmpty ? '#94a3b8' : '#0284c7' 
+                    },
+                    { text: card.subtitle, style: 'cardSubtitle' },
+                    { text: txt, style: 'cardBody' }
+                ],
+                fillColor: bgColor,
+                margin: [5, 5, 5, 5],
+                // We can't easily do rounded borders in table cells in pdfmake, so we use a clean block style
+            };
+        }
+    </script>
+</body>
+</html>
