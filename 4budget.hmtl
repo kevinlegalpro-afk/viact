@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouthWork Budget Master Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(99, 102, 241, 0.15);
+        }
+        
+        /* Flip Card Logic */
+        .flip-card { perspective: 1000px; cursor: pointer; }
+        .flip-card-inner {
+            position: relative; width: 100%; height: 100%; text-align: center;
+            transition: transform 0.6s; transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            position: absolute; width: 100%; height: 100%;
+            -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            border-radius: 1rem; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 1.5rem;
+        }
+        .flip-card-back { transform: rotateY(180deg); }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Invoice Paper Style */
+        .invoice-paper {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+
+        /* Budget Table Style */
+        .budget-table th { @apply bg-slate-100 text-slate-500 font-bold uppercase text-xs p-3 text-left border-b border-slate-200; }
+        .budget-table td { @apply p-3 border-b border-slate-100 text-sm; }
+        .budget-table tr:last-child td { @apply border-b-0; }
+        .budget-row:hover { @apply bg-indigo-50/50; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen overflow-hidden flex flex-col selection:bg-indigo-100 selection:text-indigo-700">
+
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 z-20 flex-none sticky top-0">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="app.goHome()">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform shadow-lg shadow-indigo-200">
+                    <i class="ph-bold ph-calculator text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg leading-none tracking-tight text-slate-900">Budget<span class="text-indigo-600">Master</span> <span class="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded ml-1">PRO</span></h1>
+                    <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-1">Youth Work Finance</p>
+                </div>
+            </div>
+            
+            <button onclick="app.toggleLang()" class="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-white hover:border-indigo-300 px-4 py-2 rounded-full transition-all font-bold text-xs tracking-wide text-slate-600">
+                <i class="ph-bold ph-translate text-lg"></i>
+                <span id="lang-display">EN</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="app-container" class="flex-1 overflow-y-auto p-4 md:p-8 relative bg-[#f8fafc]">
+        <!-- Content injected via JS -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 flex-none">
+        <span id="footer-text">© Kévin Le Gal 2026</span>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const data = {
+            fr: {
+                title: "Conseils budgétaires",
+                subtitle: "Devenez incollable sur la gestion financière de vos projets jeunesse.",
+                btn_start: "Lancer",
+                btn_back: "Menu Principal",
+                footer: "© Kévin Le Gal 2026",
+                intro_text: "Un budget n'est pas qu'un tableau. C'est un outil stratégique. Ce module avancé couvre les zones d'ombre habituelles : amortissements réels, audit des preuves et gestion de trésorerie.",
+                modules: [
+                    {
+                        id: "balance",
+                        title: "1. L'Équilibre",
+                        icon: "ph-scales",
+                        color: "bg-blue-500",
+                        description: "Dépenses = Recettes. Mais que faire en cas de surplus ?",
+                        content: {
+                            heading: "La Règle du Zéro Profit",
+                            text: "Dans les projets subventionnés, le profit est interdit. Si vous dépensez moins que prévu, la subvention sera réduite d'autant.",
+                            concept_left: "DÉPENSES RÉELLES",
+                            concept_right: "RECETTES TOTALES",
+                            alert: "💡 Astuce Pro : Si vous avez un excédent, vous pouvez parfois le 'valoriser' en créant une réserve associative ou en justifiant des coûts indirects supplémentaires, selon le bailleur.",
+                            interactive_label: "Simulez la fin du projet :"
+                        }
+                    },
+                    {
+                        id: "filters",
+                        title: "2. Éligibilité",
+                        icon: "ph-check-square-offset",
+                        color: "bg-emerald-500",
+                        description: "Testez vos réflexes avec des cas concrets.",
+                        content: {
+                            heading: "Le Crash Test des Dépenses",
+                            text: "Une dépense n'est éligible que si elle est : Liée, Nécessaire, Réelle et Raisonnable. Testons cela.",
+                            quiz_title: "Jeu : Éligible ou Pas ?",
+                            questions: [
+                                { q: "J'achète une Playstation pour la salle de pause du staff.", a: false, reason: "Non éligible. Ce n'est pas lié directement aux activités des jeunes." },
+                                { q: "Ticket de bus pour aller acheter le matériel de l'atelier.", a: true, reason: "Éligible. C'est lié à la réalisation de l'activité." },
+                                { q: "Facture datée de 2 jours après la fin officielle du projet.", a: false, reason: "Non éligible. Hors période (sauf frais d'audit/rapport parfois)." },
+                                { q: "Taxi à 80€ car je me suis levé en retard pour le train.", a: false, reason: "Non éligible. Ce n'est pas une dépense 'raisonnable' ou nécessaire." }
+                            ]
+                        }
+                    },
+                    {
+                        id: "categories",
+                        title: "3. Postes & Codes",
+                        icon: "ph-folders",
+                        color: "bg-purple-500",
+                        description: "Ventilation et codes nationaux.",
+                        content: {
+                            heading: "Ventilation & Codification",
+                            text: "Savoir classer ses dépenses permet de piloter son projet, mais aussi de parler le même langage que l'État et les auditeurs.",
+                            tabs: [
+                                { name: "Ressources Humaines", icon: "ph-users", text: "Salaires bruts chargés. Attention : Ne jamais budgétiser les bénévoles en 'cash', mais en 'valorisation'." },
+                                { name: "Voyages & Subsistance", icon: "ph-airplane", text: "Le poste le plus surveillé. Gardez TOUTES les cartes d'embarquement." },
+                                { name: "Matériel & Services", icon: "ph-shopping-cart", text: "Achat ou location. Si > 750€ (environ), attention aux règles d'amortissement." },
+                                { name: "Frais Exceptionnels", icon: "ph-lightning", text: "Visas, assurances spécifiques, caution solidaire. Doit être prévu à l'avance." }
+                            ],
+                            allocation: {
+                                title: "Le concept de Ventilation (Split)",
+                                text: "Une dépense peut concerner plusieurs projets à la fois (ex: Salaire du Directeur). On utilise une **clé de répartition**.",
+                                example_label: "Ex: Salaire Coordinateur (2500€)",
+                                slider_label: "Temps consacré à CE projet :",
+                                result_project: "Imputable au Budget (Ligne RH)",
+                                result_structure: "Reste à charge Structure (Hors budget)",
+                                proof_hint: "⚠️ Preuve obligatoire : Feuilles de temps (Timesheets) signées mensuellement."
+                            },
+                            codification: {
+                                title: "Les Codes Comptables Nationaux (Plan Comptable Associatif)",
+                                text: "En France, chaque type de dépense correspond à un code précis (ex: '623' pour Publicité). <br><strong>Pourquoi respecter cela ?</strong>",
+                                reasons: ["Pour uniformiser les bilans financiers au niveau national.", "Pour faciliter le travail de votre Expert-Comptable.", "Parce que certaines subventions d'État l'exigent obligatoirement."],
+                                example: "Exemple: Un billet de train ira en '6251' (Voyages et déplacements)."
+                            }
+                        }
+                    },
+                    {
+                        id: "amortization",
+                        title: "4. Amortissement",
+                        icon: "ph-calculator",
+                        color: "bg-orange-500",
+                        description: "Calculateur interactif pour votre matériel.",
+                        content: {
+                            heading: "Simulateur d'Usure",
+                            text: "Vous ne pouvez facturer que l'usure liée au projet. <br><br><strong>⚠️ Attention :</strong> La durée de vie n'est pas un choix personnel ! Elle est imposée par les réglementations nationales ou les règles du programme (ex: 3 ans pour l'informatique).",
+                            label_price: "Prix d'achat (€)",
+                            label_lifespan: "Durée de vie officielle (années)",
+                            lifespan_hint: "⚠️ Fixé par la loi (ex: 3 ans IT, 5 ans mobilier)",
+                            label_duration: "Durée d'utilisation projet (mois)",
+                            btn_calc: "Calculer le coût éligible",
+                            result_text: "Montant imputable au budget :"
+                        }
+                    },
+                    {
+                        id: "proof",
+                        title: "5. Preuves",
+                        icon: "ph-file-search",
+                        color: "bg-rose-500",
+                        description: "L'anatomie d'une facture parfaite.",
+                        content: {
+                            heading: "Pas de Preuve = Pas de Sous",
+                            text: "Un ticket de caisse ne suffit pas. Une dépense valide suit la règle de la 'Piste d'Audit'.",
+                            invoice_parts: [
+                                { id: 1, label: "Date & Numéro", desc: "La facture doit être unique et datée pendant le projet." },
+                                { id: 2, label: "Identité", desc: "Nom complet du fournisseur ET de votre association (pas votre nom perso !)." },
+                                { id: 3, label: "Détail TVA", desc: "Montant HT, taux de TVA et montant TTC bien distincts." },
+                                { id: 4, label: "Preuve de Paiement", desc: "La facture doit être accompagnée du relevé bancaire montrant le débit." }
+                            ]
+                        }
+                    },
+                    {
+                        id: "cashflow",
+                        title: "6. Trésorerie",
+                        icon: "ph-coins",
+                        color: "bg-teal-500",
+                        description: "Survivre au délai de paiement du solde.",
+                        content: {
+                            heading: "Le Piège des 20%",
+                            text: "La plupart des subventions (Erasmus+, État) versent 70% ou 80% au début. Le solde arrive APRES le rapport final (3-6 mois plus tard).",
+                            steps: [
+                                { title: "J-30", desc: "Signature convention. Toujours 0€ en caisse." },
+                                { title: "Jour J", desc: "Versement de l'avance (80%). On respire." },
+                                { title: "Mois M+12", desc: "Fin du projet. Vous avez dépensé 100% du budget. Il manque 20% de cash dans la caisse." },
+                                { title: "Mois M+15", desc: "Validation du rapport et versement du solde." }
+                            ],
+                            advice: "Conseil : Ayez toujours un 'Fonds de Roulement' associatif équivalent à 3 mois d'activité pour avancer ces frais."
+                        }
+                    },
+                    {
+                        id: "strategy",
+                        title: "7. Stratégie & Jeu",
+                        icon: "ph-strategy",
+                        color: "bg-indigo-600",
+                        description: "Jeu : Affecter 20 dépenses au bon financeur.",
+                        content: {
+                            heading: "L'Art d'Affecter les Dépenses",
+                            text: "Toutes les dépenses ne sont pas éligibles partout ! Le jeu du Dispatcher contient maintenant 20 cas pour vous entraîner.",
+                            game_title: "Jeu : Le Dispatcher (20 cartes)",
+                            game_desc: "Glissez la dépense vers le bon financeur pour optimiser votre budget.",
+                            funders: {
+                                eu: "UE / Erasmus+ (Projet)",
+                                public: "Mairie / État (Fonctionnement)",
+                                private: "Sponsoring / Fonds Propres (Libre)"
+                            },
+                            items: [
+                                { name: "Billets d'Avion (Échange)", correct: "eu", hint: "L'UE finance prioritairement la mobilité internationale." },
+                                { name: "Bière & Alcool (Soirée)", correct: "private", hint: "L'argent public finance rarement l'alcool." },
+                                { name: "Loyer du Bureau (Annuel)", correct: "public", hint: "Coût de fonctionnement structurel (hors projet)." },
+                                { name: "Achat Ordinateur (Secrétariat)", correct: "public", hint: "Équipement général de l'asso." },
+                                { name: "Intervenant Expert (Atelier)", correct: "eu", hint: "Coût direct d'activité pédagogique." },
+                                { name: "Location Bus (Sortie)", correct: "eu", hint: "Transport direct lié à l'activité." },
+                                { name: "Pizza Staff (Détente)", correct: "private", hint: "Dépense de confort interne non éligible." },
+                                { name: "Électricité (Annuelle)", correct: "public", hint: "Frais de structure (Fonctionnement)." },
+                                { name: "Hébergement Jeunes (Auberge)", correct: "eu", hint: "Cœur de l'activité résidentielle." },
+                                { name: "Impression Flyers Projet", correct: "eu", hint: "Communication spécifique au projet." },
+                                { name: "Honoraires Comptable", correct: "public", hint: "Frais généraux de l'association." },
+                                { name: "Amende Stationnement", correct: "private", hint: "Les amendes ne sont JAMAIS éligibles." },
+                                { name: "Frais de Visa", correct: "eu", hint: "Coût exceptionnel éligible (Erasmus+)." },
+                                { name: "Assurance Locaux", correct: "public", hint: "Charge fixe de la structure." },
+                                { name: "Nourriture Bénévoles", correct: "eu", hint: "Subsistance pendant l'activité." },
+                                { name: "Salaire Directeur (Admin)", correct: "public", hint: "Poste structurel (hors activité directe)." },
+                                { name: "Salaire Animateur", correct: "eu", hint: "Personnel d'encadrement du projet." },
+                                { name: "Paquet de Cigarettes", correct: "private", hint: "Dépense personnelle ou de santé publique !" },
+                                { name: "Achat Caméra Pro (>1000€)", correct: "public", hint: "Investissement (ou amortissement complexe)." },
+                                { name: "Frais Bancaires", correct: "public", hint: "Souvent couvert par le forfait frais indirects." }
+                            ]
+                        }
+                    }
+                ],
+                budget_example: {
+                    title: "Masterclass : Le Budget Modèle",
+                    desc: "Voici un exemple simplifié d'un budget pour un Échange de Jeunes (7 jours, 20 jeunes). Observez comment les concepts (Amortissement, Ventilation) s'appliquent concrètement.",
+                    headers: ["Poste / Ligne", "Détail du calcul", "Montant", "Type / Financement"],
+                    rows_exp: [
+                        { cat: "A. Frais Directs de Voyage", detail: "Train + Bus local (20 pers x 150€)", amount: "3 000 €", type: "UE / Erasmus+" },
+                        { cat: "B. Séjour (Hébergement/Repas)", detail: "Auberge (20 pers x 7 nuits x 40€)", amount: "5 600 €", type: "UE / Erasmus+" },
+                        { cat: "C. Frais d'Activités", detail: "Intervenant (Ventilation 100%) + Matériel Pédago", amount: "1 200 €", type: "UE / Erasmus+" },
+                        { cat: "D. Ressources Humaines", detail: "Coordination (Ventilation 20% du salaire mensuel)", amount: "500 €", type: "Mairie (Co-fi)" },
+                        { cat: "E. Communication", detail: "Flyers + Pub Facebook", amount: "300 €", type: "Fonds Propres" },
+                        { cat: "F. Frais Indirects (Forfait)", detail: "7% du total des coûts directs (A+B+C)", amount: "686 €", type: "UE (Forfait)" },
+                        { cat: "G. Amortissement", detail: "Utilisation PC Asso (1200€ / 36 mois * 1 mois)", amount: "33 €", type: "Mairie" }
+                    ],
+                    rows_inc: [
+                        { cat: "A. Subvention UE", detail: "Forfaits Erasmus+ (Voyage + Séjour + Orga)", amount: "9 000 €", type: "Public (UE)" },
+                        { cat: "B. Subvention Locale", detail: "Mairie (Aide au fonctionnement projet)", amount: "1 500 €", type: "Public (Local)" },
+                        { cat: "C. Autofinancement", detail: "Vente de gâteaux + Fonds asso", amount: "819 €", type: "Privé" }
+                    ],
+                    total_exp: "11 319 €",
+                    total_inc: "11 319 €"
+                }
+            },
+            en: {
+                title: "Budget Tips",
+                subtitle: "Become an expert in financial management for youth projects.",
+                btn_start: "Launch",
+                btn_back: "Main Menu",
+                footer: "© Kévin Le Gal 2026",
+                intro_text: "A budget is more than a spreadsheet. It's a strategic tool. This advanced module covers the usual blind spots: real depreciation, audit trails, and cash flow management.",
+                modules: [
+                    {
+                        id: "balance",
+                        title: "1. Balance",
+                        icon: "ph-scales",
+                        color: "bg-blue-500",
+                        description: "Expenses = Income. But what about surplus?",
+                        content: {
+                            heading: "The Zero Profit Rule",
+                            text: "In grant-funded projects, profit is forbidden. If you spend less than planned, the grant will be reduced accordingly.",
+                            concept_left: "ACTUAL EXPENSES",
+                            concept_right: "TOTAL INCOME",
+                            alert: "💡 Pro Tip: If you have a surplus, you can sometimes 'valorize' it by creating an association reserve or justifying extra overheads, depending on the donor.",
+                            interactive_label: "Simulate project end:"
+                        }
+                    },
+                    {
+                        id: "filters",
+                        title: "2. Eligibility",
+                        icon: "ph-check-square-offset",
+                        color: "bg-emerald-500",
+                        description: "Test your reflexes with real-world cases.",
+                        content: {
+                            heading: "The Expense Crash Test",
+                            text: "An expense is eligible only if it is: Linked, Necessary, Real, and Reasonable. Let's test this.",
+                            quiz_title: "Game: Eligible or Not?",
+                            questions: [
+                                { q: "I buy a Playstation for the staff break room.", a: false, reason: "Not eligible. Not directly linked to youth activities." },
+                                { q: "Bus ticket to go buy workshop materials.", a: true, reason: "Eligible. Linked to activity implementation." },
+                                { q: "Invoice dated 2 days after official project end.", a: false, reason: "Not eligible. Out of period (except audit fees sometimes)." },
+                                { q: "€80 Taxi ride because I woke up late for the train.", a: false, reason: "Not eligible. Not 'reasonable' or necessary." }
+                            ]
+                        }
+                    },
+                    {
+                        id: "categories",
+                        title: "3. Lines & Codes",
+                        icon: "ph-folders",
+                        color: "bg-purple-500",
+                        description: "Allocation & National Codes.",
+                        content: {
+                            heading: "Allocation & Codification",
+                            text: "Classifying expenses is one thing, knowing how to **allocate** (split) them is another. Plus, you need to speak the 'Tax Language'.",
+                            tabs: [
+                                { name: "Human Resources", icon: "ph-users", text: "Gross salaries + taxes. Warning: Never budget volunteers as 'cash', only as 'in-kind'." },
+                                { name: "Travel & Subsistence", icon: "ph-airplane", text: "The most scrutinized line. Keep ALL boarding passes." },
+                                { name: "Equipment & Services", icon: "ph-shopping-cart", text: "Purchase or rental. If > €750 (approx), watch out for depreciation rules." },
+                                { name: "Exceptional Costs", icon: "ph-lightning", text: "Visas, specific insurance, guarantees. Must be approved beforehand." }
+                            ],
+                            allocation: {
+                                title: "The Concept of Allocation (Split)",
+                                text: "An expense may concern several projects at once (e.g., Director's salary, Rent, Electricity). You cannot charge everything to one project! You must use an **allocation key**.",
+                                example_label: "Ex: Coordinator Salary (2500€)",
+                                slider_label: "Time dedicated to THIS project:",
+                                result_project: "Eligible for Budget (HR Line)",
+                                result_structure: "Structure's Cost (Non-eligible)",
+                                proof_hint: "⚠️ Mandatory Proof: Timesheets signed monthly."
+                            },
+                            codification: {
+                                title: "National Accounting Codes (Standard Chart of Accounts)",
+                                text: "In most countries, each expense type has a specific code (e.g., '623' for Ads). <br><strong>Why respect this?</strong>",
+                                reasons: ["To standardize financial reports nationally.", "To help your Accountant.", "Because some public grants legally require it."],
+                                example: "Example: A train ticket goes to code '6251' (Travel)."
+                            }
+                        }
+                    },
+                    {
+                        id: "amortization",
+                        title: "4. Depreciation",
+                        icon: "ph-calculator",
+                        color: "bg-orange-500",
+                        description: "Interactive calculator for your equipment.",
+                        content: {
+                            heading: "Wear & Tear Simulator",
+                            text: "You can only charge the portion used during the project. <br><br><strong>⚠️ Warning:</strong> The lifespan is NOT a personal choice! It is set by national regulations or program rules (e.g., 3 years for IT).",
+                            label_price: "Purchase Price (€)",
+                            label_lifespan: "Official Lifespan (years)",
+                            lifespan_hint: "⚠️ Fixed by law (e.g., 3 years for IT)",
+                            label_duration: "Project Use (months)",
+                            btn_calc: "Calculate Eligible Cost",
+                            result_text: "Amount chargeable to budget:"
+                        }
+                    },
+                    {
+                        id: "proof",
+                        title: "5. Proofs",
+                        icon: "ph-file-search",
+                        color: "bg-rose-500",
+                        description: "The anatomy of a perfect invoice.",
+                        content: {
+                            heading: "No Proof = No Money",
+                            text: "A simple receipt is not enough. A valid expense follows the 'Audit Trail' rule.",
+                            invoice_parts: [
+                                { id: 1, label: "Date & Number", desc: "Invoice must be unique and dated within the project period." },
+                                { id: 2, label: "Identity", desc: "Full name of supplier AND your organization (not your personal name!)." },
+                                { id: 3, label: "VAT Details", desc: "Net amount, VAT rate, and Gross amount must be distinct." },
+                                { id: 4, label: "Proof of Payment", desc: "Invoice must be accompanied by the bank statement showing the debit." }
+                            ]
+                        }
+                    },
+                    {
+                        id: "cashflow",
+                        title: "6. Cashflow",
+                        icon: "ph-coins",
+                        color: "bg-teal-500",
+                        description: "Surviving the final payment delay.",
+                        content: {
+                            heading: "The 20% Trap",
+                            text: "Most grants (Erasmus+, State) pay 70% or 80% upfront. The balance arrives AFTER the final report (3-6 months later).",
+                            steps: [
+                                { title: "D-30", desc: "Grant Agreement signed. Still €0 in the bank." },
+                                { title: "Day 1", desc: "Pre-financing payment (80%). We can breathe." },
+                                { title: "Month 12", desc: "Project end. You spent 100% of budget. You are missing 20% cash." },
+                                { title: "Month 15", desc: "Report validation and balance payment." }
+                            ],
+                            advice: "Tip: Always have an organizational 'Working Capital' equal to 3 months of activity to advance these costs."
+                        }
+                    },
+                    {
+                        id: "strategy",
+                        title: "7. Strategy Game",
+                        icon: "ph-strategy",
+                        color: "bg-indigo-600",
+                        description: "Game: Assign 20 expenses to the right funder.",
+                        content: {
+                            heading: "The Art of Assigning Expenses",
+                            text: "Not all expenses are eligible everywhere! The Dispatcher game now features 20 cases to train you.",
+                            game_title: "Game: The Dispatcher (20 cards)",
+                            game_desc: "Drag (click) the expense to the correct funder to optimize your budget.",
+                            funders: {
+                                eu: "EU / Erasmus+ (Project)",
+                                public: "City / State (Operating)",
+                                private: "Sponsorship / Own Funds (Free)"
+                            },
+                            items: [
+                                { name: "Plane Tickets (Exchange)", correct: "eu", hint: "The EU prioritizes international mobility." },
+                                { name: "Beer & Alcohol (Party)", correct: "private", hint: "Public money rarely funds alcohol." },
+                                { name: "Office Rent (Annual)", correct: "public", hint: "Structural operating cost (not project)." },
+                                { name: "Computer Purchase (Admin)", correct: "public", hint: "General equipment = Operating." },
+                                { name: "Expert Speaker (Workshop)", correct: "eu", hint: "Direct pedagogical activity cost." },
+                                { name: "Bus Rental (Field Trip)", correct: "eu", hint: "Direct transport for project activity." },
+                                { name: "Staff Pizza (Fun)", correct: "private", hint: "Internal comfort expense, ineligible." },
+                                { name: "Electricity (Annual)", correct: "public", hint: "Structure cost (Operating)." },
+                                { name: "Youth Hostel", correct: "eu", hint: "Core residential activity." },
+                                { name: "Project Flyers", correct: "eu", hint: "Communication specific to project." },
+                                { name: "Accountant Fees", correct: "public", hint: "General association overheads." },
+                                { name: "Parking Fine", correct: "private", hint: "Fines are NEVER eligible." },
+                                { name: "Visa Costs", correct: "eu", hint: "Exceptional cost eligible (Erasmus+)." },
+                                { name: "Office Insurance", correct: "public", hint: "Fixed structure cost." },
+                                { name: "Volunteer Food", correct: "eu", hint: "Subsistence during activity." },
+                                { name: "Director Salary (Admin)", correct: "public", hint: "Structural staff (not direct activity)." },
+                                { name: "Animator Salary", correct: "eu", hint: "Staff supervising the project." },
+                                { name: "Pack of Cigarettes", correct: "private", hint: "Personal or public health issue!" },
+                                { name: "Pro Camera (>1000€)", correct: "public", hint: "Investment (or complex depreciation)." },
+                                { name: "Bank Fees", correct: "public", hint: "Often covered by indirect flat rate." }
+                            ]
+                        }
+                    }
+                ],
+                budget_example: {
+                    title: "Masterclass: The Model Budget",
+                    desc: "Here is a simplified example of a budget for a Youth Exchange (7 days, 20 youth). Observe how concepts (Depreciation, Allocation) apply concretely.",
+                    headers: ["Item / Line", "Calculation Detail", "Amount", "Type / Funding"],
+                    rows_exp: [
+                        { cat: "A. Travel Costs", detail: "Train + Local Bus (20 pax x 150€)", amount: "3 000 €", type: "EU / Erasmus+" },
+                        { cat: "B. Stay (Accom/Food)", detail: "Hostel (20 pax x 7 nights x 40€)", amount: "5 600 €", type: "EU / Erasmus+" },
+                        { cat: "C. Activity Costs", detail: "Speaker (100% allocation) + Materials", amount: "1 200 €", type: "EU / Erasmus+" },
+                        { cat: "D. Human Resources", detail: "Coordination (20% monthly salary allocation)", amount: "500 €", type: "City (Co-funding)" },
+                        { cat: "E. Communication", detail: "Flyers + FB Ads", amount: "300 €", type: "Own Funds" },
+                        { cat: "F. Indirect Costs (Flat)", detail: "7% of total direct costs (A+B+C)", amount: "686 €", type: "EU (Flat rate)" },
+                        { cat: "G. Depreciation", detail: "PC usage (1200€ / 36 months * 1 month)", amount: "33 €", type: "City" }
+                    ],
+                    rows_inc: [
+                        { cat: "A. EU Grant", detail: "Erasmus+ Lump sums (Travel + Stay + Org)", amount: "9 000 €", type: "Public (EU)" },
+                        { cat: "B. Local Grant", detail: "City Hall (Project operating aid)", amount: "1 500 €", type: "Public (Local)" },
+                        { cat: "C. Self-financing", detail: "Bake sales + Assoc funds", amount: "819 €", type: "Private" }
+                    ],
+                    total_exp: "11 319 €",
+                    total_inc: "11 319 €"
+                }
+            }
+        };
+
+        const app = {
+            lang: 'fr',
+            currentModule: null,
+            currentGameItem: 0,
+
+            init: function() {
+                this.renderHome();
+                this.updateLangButton();
+            },
+
+            toggleLang: function() {
+                this.lang = this.lang === 'fr' ? 'en' : 'fr';
+                this.updateLangButton();
+                if (this.currentModule === null) {
+                    this.renderHome();
+                } else {
+                    this.renderModule(this.currentModule);
+                }
+            },
+
+            updateLangButton: function() {
+                const display = document.getElementById('lang-display');
+                display.innerText = this.lang === 'fr' ? 'FR' : 'EN';
+                document.getElementById('footer-text').innerText = data[this.lang].footer;
+            },
+
+            goHome: function() {
+                this.currentModule = null;
+                this.renderHome();
+            },
+
+            renderHome: function() {
+                const content = data[this.lang];
+                const container = document.getElementById('app-container');
+                
+                let modulesHtml = content.modules.map((mod, index) => `
+                    <div onclick="app.renderModule(${index})" class="card-hover cursor-pointer bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col items-start gap-4 transition-all duration-300 group fade-in relative overflow-hidden" style="animation-delay: ${index * 0.05}s">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-slate-50 to-slate-100 rounded-bl-full -z-0 opacity-50 transition-transform group-hover:scale-110"></div>
+                        <div class="${mod.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-slate-200 group-hover:scale-110 transition-transform z-10">
+                            <i class="ph-bold ${mod.icon} text-3xl"></i>
+                        </div>
+                        <div class="z-10">
+                            <h3 class="font-bold text-xl text-slate-800 mb-2">${mod.title}</h3>
+                            <p class="text-sm text-slate-500 leading-relaxed font-medium">${mod.description}</p>
+                        </div>
+                        <div class="mt-auto pt-6 w-full flex justify-between items-center z-10">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Module 0${index + 1}</span>
+                            <div class="bg-indigo-50 text-indigo-600 w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <i class="ph-bold ph-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // NEW: Budget Example Section HTML
+                const bg = content.budget_example;
+                const rowsExpHtml = bg.rows_exp.map(r => `
+                    <tr class="budget-row transition-colors">
+                        <td class="font-bold text-slate-700">${r.cat}</td>
+                        <td class="text-slate-500 italic">${r.detail}</td>
+                        <td class="text-right font-mono font-bold text-rose-600">${r.amount}</td>
+                        <td class="text-xs font-bold text-indigo-500 text-right"><span class="bg-indigo-50 px-2 py-1 rounded">${r.type}</span></td>
+                    </tr>
+                `).join('');
+                const rowsIncHtml = bg.rows_inc.map(r => `
+                    <tr class="budget-row transition-colors">
+                        <td class="font-bold text-slate-700">${r.cat}</td>
+                        <td class="text-slate-500 italic">${r.detail}</td>
+                        <td class="text-right font-mono font-bold text-emerald-600">${r.amount}</td>
+                        <td class="text-xs font-bold text-teal-500 text-right"><span class="bg-teal-50 px-2 py-1 rounded">${r.type}</span></td>
+                    </tr>
+                `).join('');
+
+                const budgetExampleHtml = `
+                    <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mt-12 fade-in">
+                        <div class="bg-slate-900 p-8 text-white relative overflow-hidden">
+                             <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500 rounded-full blur-3xl opacity-50"></div>
+                             <div class="relative z-10">
+                                <h2 class="text-2xl font-bold flex items-center gap-3"><i class="ph-fill ph-crown text-yellow-400"></i> ${bg.title}</h2>
+                                <p class="text-slate-300 mt-2 max-w-2xl">${bg.desc}</p>
+                             </div>
+                        </div>
+                        <div class="p-6 md:p-8 grid lg:grid-cols-2 gap-12">
+                            <!-- Expenses -->
+                            <div>
+                                <h3 class="text-rose-600 font-bold uppercase tracking-widest text-sm mb-4 border-b-2 border-rose-100 pb-2 flex justify-between">
+                                    <span>Dépenses (Expenses)</span>
+                                    <i class="ph-bold ph-arrow-down-right"></i>
+                                </h3>
+                                <table class="w-full budget-table">
+                                    <thead><tr><th>${bg.headers[0]}</th><th>${bg.headers[2]}</th></tr></thead>
+                                    <tbody>${rowsExpHtml}</tbody>
+                                    <tfoot>
+                                        <tr class="bg-rose-50 border-t-2 border-rose-100">
+                                            <td class="font-black text-rose-900 text-right" colspan="2">TOTAL: ${bg.total_exp}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <!-- Income -->
+                            <div>
+                                <h3 class="text-emerald-600 font-bold uppercase tracking-widest text-sm mb-4 border-b-2 border-emerald-100 pb-2 flex justify-between">
+                                    <span>Recettes (Income)</span>
+                                    <i class="ph-bold ph-arrow-up-right"></i>
+                                </h3>
+                                <table class="w-full budget-table">
+                                    <thead><tr><th>${bg.headers[0]}</th><th>${bg.headers[2]}</th></tr></thead>
+                                    <tbody>${rowsIncHtml}</tbody>
+                                    <tfoot>
+                                        <tr class="bg-emerald-50 border-t-2 border-emerald-100">
+                                            <td class="font-black text-emerald-900 text-right" colspan="2">TOTAL: ${bg.total_inc}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="bg-indigo-50 p-4 text-center text-indigo-900 font-bold text-sm border-t border-indigo-100 flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-check-circle text-xl"></i> Résultat = 0 € (Équilibre Parfait)
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML = `
+                    <div class="max-w-6xl mx-auto space-y-8 fade-in pb-12">
+                        <div class="text-center py-10">
+                            <h2 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">${content.title}</h2>
+                            <p class="text-xl text-slate-600 max-w-3xl mx-auto font-light leading-relaxed">${content.subtitle}</p>
+                            
+                            <div class="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-white border border-indigo-100 rounded-full shadow-sm text-indigo-800 text-sm font-medium">
+                                <i class="ph-fill ph-info text-indigo-500"></i> ${content.intro_text}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+                            ${modulesHtml}
+                        </div>
+
+                        <!-- Injected Budget Example -->
+                        <div class="px-4">
+                            ${budgetExampleHtml}
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderModule: function(index) {
+                this.currentModule = index;
+                const mod = data[this.lang].modules[index];
+                const container = document.getElementById('app-container');
+                const commonBtn = `<button onclick="app.goHome()" class="mb-8 flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-200 transition-all font-bold text-sm shadow-sm"><i class="ph-bold ph-arrow-left"></i> ${data[this.lang].btn_back}</button>`;
+                
+                let specificContent = '';
+
+                // --- MODULE 1: BALANCE ---
+                if (mod.id === 'balance') {
+                    specificContent = `
+                        <div class="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-100 text-center max-w-3xl mx-auto">
+                            <div class="flex justify-center items-end h-48 gap-8 mb-10 relative" id="scale-visual">
+                                <!-- Pivot -->
+                                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 text-slate-300 z-0">
+                                    <i class="ph-fill ph-triangle text-4xl"></i>
+                                </div>
+                                <!-- Bar -->
+                                <div class="absolute bottom-4 left-10 right-10 h-2 bg-slate-300 rounded-full transition-transform duration-500 origin-center" id="balance-beam"></div>
+                                
+                                <div class="w-1/3 z-10 flex flex-col items-center gap-2 transition-all duration-500" id="pan-left">
+                                    <div class="bg-rose-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg w-full">${mod.content.concept_left}</div>
+                                    <div class="h-20 w-1 bg-slate-200"></div>
+                                </div>
+                                
+                                <div class="w-1/3 z-10 flex flex-col items-center gap-2 transition-all duration-500" id="pan-right">
+                                    <div class="bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg w-full">${mod.content.concept_right}</div>
+                                    <div class="h-20 w-1 bg-slate-200"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-slate-50 rounded-2xl p-6 mb-8">
+                                <label class="block text-sm font-bold text-slate-500 mb-4 uppercase tracking-wide">${mod.content.interactive_label}</label>
+                                <input type="range" min="0" max="100" value="50" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="app.updateBalance(this.value)">
+                                <div class="flex justify-between text-xs font-bold text-slate-400 mt-2">
+                                    <span>Profit (Interdit)</span>
+                                    <span>Équilibre (Parfait)</span>
+                                    <span>Déficit (Danger)</span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-amber-50 text-amber-900 text-sm rounded-xl border border-amber-100 flex items-start text-left">
+                                <i class="ph-bold ph-lightbulb text-xl mr-3 text-amber-500 flex-none"></i> 
+                                ${mod.content.alert}
+                            </div>
+                        </div>
+                    `;
+                } 
+                
+                // --- MODULE 2: FILTERS & QUIZ ---
+                else if (mod.id === 'filters') {
+                    const questionsHtml = mod.content.questions.map((q, i) => `
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 mb-4 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex items-start gap-4">
+                                <div class="bg-slate-100 text-slate-500 font-mono w-8 h-8 rounded flex items-center justify-center text-sm font-bold flex-none">${i+1}</div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-800 mb-3 text-lg">"${q.q}"</p>
+                                    <div class="flex gap-3" id="q-actions-${i}">
+                                        <button onclick="app.checkQuiz(${i}, true, ${q.a})" class="flex-1 bg-emerald-50 text-emerald-700 py-2 rounded-lg font-bold hover:bg-emerald-100 transition-colors border border-emerald-100">Éligible</button>
+                                        <button onclick="app.checkQuiz(${i}, false, ${q.a})" class="flex-1 bg-rose-50 text-rose-700 py-2 rounded-lg font-bold hover:bg-rose-100 transition-colors border border-rose-100">Non Éligible</button>
+                                    </div>
+                                    <div id="q-result-${i}" class="hidden mt-3 p-3 rounded-lg text-sm font-medium"></div>
+                                    <p class="hidden text-xs text-slate-500 mt-1 italic" id="q-reason-${i}">${q.reason}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    specificContent = `
+                        <div class="max-w-3xl mx-auto">
+                            <div class="bg-indigo-900 text-white rounded-2xl p-6 mb-8 shadow-lg">
+                                <h3 class="font-bold text-xl mb-2 flex items-center gap-2"><i class="ph-bold ph-game-controller"></i> ${mod.content.quiz_title}</h3>
+                                <p class="text-indigo-200 text-sm">Testez votre instinct de comptable.</p>
+                            </div>
+                            ${questionsHtml}
+                        </div>
+                    `;
+                } 
+                
+                // --- MODULE 3: CATEGORIES & ALLOCATION & CODIFICATION ---
+                else if (mod.id === 'categories') {
+                    const tabsHtml = mod.content.tabs.map((tab, i) => `
+                        <div class="group bg-white p-6 rounded-2xl border border-slate-100 hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all shadow-sm flex items-start gap-5">
+                            <div class="bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white transition-colors w-14 h-14 rounded-2xl flex-none flex items-center justify-center text-indigo-600 text-2xl">
+                                <i class="ph-bold ${tab.icon}"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-slate-800 mb-2">${tab.name}</h4>
+                                <p class="text-sm text-slate-500 leading-relaxed">${tab.text}</p>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Allocation Section HTML
+                    const allocHtml = `
+                        <div class="mt-12 bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-inner">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="bg-white p-2 rounded-lg shadow-sm text-indigo-600"><i class="ph-bold ph-scissors text-2xl"></i></div>
+                                <h3 class="font-bold text-xl text-slate-800">${mod.content.allocation.title}</h3>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-8 leading-relaxed max-w-2xl">${mod.content.allocation.text}</p>
+                            
+                            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-lg mx-auto">
+                                <div class="flex justify-between items-center mb-6 font-bold text-slate-800 bg-slate-50 p-3 rounded-lg">
+                                    <span>${mod.content.allocation.example_label}</span>
+                                    <span class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm">2500 €</span>
+                                </div>
+                                
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">${mod.content.allocation.slider_label}</label>
+                                <div class="flex items-center gap-6 mb-8">
+                                    <span class="text-xl font-black text-indigo-600 w-16 text-right" id="alloc-pct">50%</span>
+                                    <input type="range" min="0" max="100" value="50" class="flex-1 accent-indigo-600 h-3 bg-slate-200 rounded-full appearance-none cursor-pointer hover:bg-slate-300 transition-colors" oninput="app.updateAllocation(this.value)">
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 text-center shadow-sm">
+                                        <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2"><i class="ph-bold ph-check"></i></div>
+                                        <p class="text-[10px] text-emerald-800 font-bold uppercase mb-1 tracking-wide">${mod.content.allocation.result_project}</p>
+                                        <p class="text-2xl font-black text-emerald-600 tracking-tight" id="alloc-res-project">1250 €</p>
+                                    </div>
+                                    <div class="bg-slate-100 p-4 rounded-xl border border-slate-200 text-center opacity-70">
+                                        <div class="w-8 h-8 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center mx-auto mb-2"><i class="ph-bold ph-x"></i></div>
+                                        <p class="text-[10px] text-slate-600 font-bold uppercase mb-1 tracking-wide">${mod.content.allocation.result_structure}</p>
+                                        <p class="text-2xl font-black text-slate-500 tracking-tight" id="alloc-res-structure">1250 €</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-center text-slate-500 font-medium">
+                                    <i class="ph-fill ph-warning-circle text-orange-400 mr-1"></i> ${mod.content.allocation.proof_hint}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Codification Section HTML (NEW)
+                    const codifHtml = `
+                        <div class="mt-8 bg-indigo-900 text-white rounded-3xl p-8 shadow-lg">
+                             <div class="flex items-center gap-3 mb-4">
+                                <i class="ph-bold ph-books text-2xl text-indigo-300"></i>
+                                <h3 class="font-bold text-xl">${mod.content.codification.title}</h3>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-8 items-center">
+                                <div>
+                                    <p class="text-indigo-100 mb-4 leading-relaxed">${mod.content.codification.text}</p>
+                                    <ul class="space-y-2 mb-4">
+                                        ${mod.content.codification.reasons.map(r => `<li class="flex items-start gap-2 text-sm text-indigo-200"><i class="ph-bold ph-check text-indigo-400 mt-1"></i> ${r}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div class="bg-indigo-800 p-4 rounded-xl border border-indigo-700/50">
+                                    <div class="font-mono text-xs text-indigo-400 uppercase tracking-widest mb-2">Comptabilité Générale</div>
+                                    <div class="bg-white text-slate-900 p-3 rounded font-mono text-sm shadow-sm mb-2">
+                                        <span class="font-bold text-indigo-600">6251</span> : Voyages Déplacements
+                                    </div>
+                                    <div class="bg-white text-slate-900 p-3 rounded font-mono text-sm shadow-sm">
+                                        <span class="font-bold text-indigo-600">6063</span> : Fournitures Entretien
+                                    </div>
+                                    <div class="mt-3 text-xs text-indigo-300 italic text-center">
+                                        ${mod.content.codification.example}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    specificContent = `<div class="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto mb-8">${tabsHtml}</div>${allocHtml}${codifHtml}`;
+                } 
+                
+                // --- MODULE 4: AMORTIZATION CALC ---
+                else if (mod.id === 'amortization') {
+                    specificContent = `
+                        <div class="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 max-w-2xl mx-auto">
+                            <div class="grid grid-cols-2 gap-6 mb-8">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">${mod.content.label_price}</label>
+                                    <input type="number" id="amo-price" value="1200" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">${mod.content.label_lifespan}</label>
+                                    <input type="number" id="amo-life" value="3" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow mb-1">
+                                    <p class="text-[10px] text-orange-600 font-semibold">${mod.content.lifespan_hint}</p>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">${mod.content.label_duration}</label>
+                                    <input type="range" id="amo-duration" min="1" max="36" value="12" class="w-full accent-orange-500 mb-2" oninput="document.getElementById('dur-val').innerText = this.value + ' mois'">
+                                    <div class="text-right font-bold text-orange-600" id="dur-val">12 mois</div>
+                                </div>
+                            </div>
+
+                            <button onclick="app.calcAmortization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200 flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-calculator"></i> ${mod.content.btn_calc}
+                            </button>
+
+                            <div id="amo-result" class="mt-8 bg-orange-50 border border-orange-100 p-6 rounded-2xl text-center hidden fade-in">
+                                <p class="text-sm text-orange-800 font-medium mb-1">${mod.content.result_text}</p>
+                                <p class="text-4xl font-black text-orange-600 font-mono tracking-tight" id="amo-total">0.00 €</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // --- MODULE 5: PROOF (NEW) ---
+                else if (mod.id === 'proof') {
+                    const partsHtml = mod.content.invoice_parts.map((part) => `
+                        <div class="flex gap-4 items-start p-3 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer group" onmouseenter="document.getElementById('inv-zone-${part.id}').classList.add('ring-4', 'ring-rose-400', 'bg-rose-100/20')" onmouseleave="document.getElementById('inv-zone-${part.id}').classList.remove('ring-4', 'ring-rose-400', 'bg-rose-100/20')">
+                            <div class="bg-rose-100 text-rose-600 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-none shadow-sm">${part.id}</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm group-hover:text-rose-600 transition-colors">${part.label}</h4>
+                                <p class="text-xs text-slate-500 leading-relaxed">${part.desc}</p>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    specificContent = `
+                        <div class="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                            <!-- Visual Invoice -->
+                            <div class="bg-white p-6 rounded shadow-sm border border-slate-200 invoice-paper relative text-[10px] md:text-xs font-mono text-slate-600 select-none transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                                <div class="absolute top-0 left-0 right-0 h-2 bg-rose-500/10"></div>
+                                
+                                <div class="flex justify-between mb-8 transition-all rounded p-2" id="inv-zone-1">
+                                    <div><span class="font-bold">INVOICE #2024-001</span><br>Date: 12/05/2024</div>
+                                    <div class="text-right uppercase font-bold text-slate-400">Original</div>
+                                </div>
+                                
+                                <div class="mb-8 p-2 rounded transition-all" id="inv-zone-2">
+                                    <div class="flex justify-between">
+                                        <div class="w-1/2">
+                                            <strong class="text-slate-900">SUPPLIER LTD</strong><br>
+                                            12 Business Road<br>
+                                            Paris, France
+                                        </div>
+                                        <div class="w-1/2 text-right">
+                                            To:<br>
+                                            <strong class="text-indigo-600 bg-indigo-50 px-1">YOUR YOUTH ASSOC</strong><br>
+                                            (Valid Legal Name)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <table class="w-full mb-8 text-left">
+                                    <thead class="border-b border-slate-300">
+                                        <tr><th class="py-1">Description</th><th class="text-right">Total</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="py-2">Workshop Materials</td><td class="text-right">100.00 €</td></tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="flex justify-end mb-4">
+                                    <div class="w-1/2 text-right space-y-1 p-2 rounded transition-all" id="inv-zone-3">
+                                        <div class="flex justify-between"><span>Subtotal</span><span>100.00 €</span></div>
+                                        <div class="flex justify-between text-slate-400"><span>VAT (20%)</span><span>20.00 €</span></div>
+                                        <div class="flex justify-between font-bold text-slate-900 text-base pt-2 border-t border-slate-300"><span>TOTAL</span><span>120.00 €</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="border-2 border-dashed border-slate-300 p-2 text-center rounded text-slate-400 mt-4 transition-all" id="inv-zone-4">
+                                    <i class="ph-bold ph-paperclip"></i> STAPLE BANK PROOF HERE
+                                </div>
+                            </div>
+
+                            <!-- Explanations -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
+                                <h3 class="font-bold text-xl text-slate-800 mb-6">L'Anatomie d'une Preuve</h3>
+                                <div class="space-y-2">
+                                    ${partsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // --- MODULE 6: CASHFLOW (NEW) ---
+                else if (mod.id === 'cashflow') {
+                     const stepsHtml = mod.content.steps.map((step, i) => `
+                        <div class="relative pl-8 pb-8 border-l-2 border-teal-100 last:border-0 last:pb-0">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-teal-500 ring-4 ring-white"></div>
+                            <h4 class="font-bold text-teal-800 text-lg -mt-1 mb-1">${step.title}</h4>
+                            <p class="text-sm text-slate-600 bg-white p-3 rounded-lg border border-slate-100 shadow-sm">${step.desc}</p>
+                        </div>
+                    `).join('');
+
+                    specificContent = `
+                        <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-start">
+                            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                                ${stepsHtml}
+                            </div>
+                            <div class="bg-teal-900 text-teal-50 p-8 rounded-3xl shadow-xl flex flex-col justify-center min-h-[300px]">
+                                <i class="ph-duotone ph-piggy-bank text-6xl mb-6 text-teal-300"></i>
+                                <h3 class="font-bold text-2xl mb-4">Trésorerie</h3>
+                                <p class="leading-relaxed opacity-90">${mod.content.advice}</p>
+                                <div class="mt-6 pt-6 border-t border-teal-800">
+                                    <div class="flex justify-between items-center text-sm font-mono">
+                                        <span>Grant Total:</span>
+                                        <span>10.000 €</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm font-mono text-teal-300 mt-2">
+                                        <span>Pre-financing:</span>
+                                        <span>+ 8.000 €</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm font-mono text-rose-300 mt-2">
+                                        <span>Expenses:</span>
+                                        <span>- 10.000 €</span>
+                                    </div>
+                                    <div class="mt-3 bg-teal-950 p-3 rounded-lg text-center font-bold text-rose-400 border border-teal-800">
+                                        GAP: - 2.000 € (3-6 months)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // --- MODULE 7: STRATEGY / DISPATCHER (NEW) ---
+                else if (mod.id === 'strategy') {
+                    // Reset Game State on load
+                    app.currentGameItem = 0;
+
+                    specificContent = `
+                        <div class="max-w-4xl mx-auto">
+                            <div class="text-center mb-8 bg-indigo-50 border border-indigo-100 p-6 rounded-2xl">
+                                <h3 class="text-xl font-bold text-indigo-900 mb-2">${mod.content.game_title}</h3>
+                                <p class="text-indigo-700/80">${mod.content.game_desc}</p>
+                            </div>
+
+                            <div id="game-container" class="relative min-h-[400px]">
+                                
+                                <!-- Card Pile -->
+                                <div class="flex justify-center mb-12" id="card-pile">
+                                    <div class="bg-white w-64 h-40 rounded-2xl shadow-xl border-2 border-slate-100 flex flex-col items-center justify-center p-4 transform transition-all duration-300 relative z-10" id="active-card">
+                                        <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-2xl">🧾</div>
+                                        <h4 class="font-bold text-lg text-slate-800 text-center leading-tight" id="card-text">${mod.content.items[0].name}</h4>
+                                        <div class="absolute top-2 right-2 text-xs font-mono text-slate-300">1/${mod.content.items.length}</div>
+                                    </div>
+                                    <!-- Fake cards behind -->
+                                    <div class="absolute bg-white w-64 h-40 rounded-2xl shadow border border-slate-100 transform rotate-3 z-0"></div>
+                                    <div class="absolute bg-white w-64 h-40 rounded-2xl shadow border border-slate-100 transform -rotate-3 z-0"></div>
+                                </div>
+
+                                <!-- Result Message Area -->
+                                <div id="game-feedback" class="text-center mb-6 h-8 font-bold text-lg transition-all opacity-0"></div>
+
+                                <!-- Bins -->
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <button onclick="app.checkStrategy('eu')" class="bg-blue-600 hover:bg-blue-700 text-white p-6 rounded-2xl shadow-lg shadow-blue-200 transition-transform hover:scale-105 active:scale-95 flex flex-col items-center gap-2 group">
+                                        <i class="ph-bold ph-globe-hemisphere-east text-3xl mb-1 group-hover:animate-bounce"></i>
+                                        <span class="font-bold">${mod.content.funders.eu}</span>
+                                        <span class="text-xs opacity-70">Strict rules</span>
+                                    </button>
+
+                                    <button onclick="app.checkStrategy('public')" class="bg-slate-700 hover:bg-slate-800 text-white p-6 rounded-2xl shadow-lg shadow-slate-300 transition-transform hover:scale-105 active:scale-95 flex flex-col items-center gap-2 group">
+                                        <i class="ph-bold ph-buildings text-3xl mb-1 group-hover:animate-pulse"></i>
+                                        <span class="font-bold">${mod.content.funders.public}</span>
+                                        <span class="text-xs opacity-70">Structural</span>
+                                    </button>
+
+                                    <button onclick="app.checkStrategy('private')" class="bg-emerald-500 hover:bg-emerald-600 text-white p-6 rounded-2xl shadow-lg shadow-emerald-200 transition-transform hover:scale-105 active:scale-95 flex flex-col items-center gap-2 group">
+                                        <i class="ph-bold ph-hand-coins text-3xl mb-1 group-hover:rotate-12 transition-transform"></i>
+                                        <span class="font-bold">${mod.content.funders.private}</span>
+                                        <span class="text-xs opacity-70">Flexible</span>
+                                    </button>
+                                </div>
+
+                                <!-- End Screen (Hidden by default) -->
+                                <div id="game-end" class="hidden absolute inset-0 bg-white/95 backdrop-blur rounded-3xl flex-col items-center justify-center text-center z-20">
+                                    <i class="ph-duotone ph-trophy text-6xl text-yellow-500 mb-4"></i>
+                                    <h3 class="text-2xl font-bold text-slate-800 mb-2">Budget Optimisé !</h3>
+                                    <p class="text-slate-500 mb-6">Vous avez trouvé le bon financement pour chaque dépense.</p>
+                                    <button onclick="app.renderModule(6)" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-indigo-700 transition-colors">Rejouer</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+
+                // --- FINAL RENDER ---
+                container.innerHTML = `
+                    <div class="max-w-6xl mx-auto fade-in pb-20">
+                        <div class="flex justify-between items-center mb-8 px-4">
+                            ${commonBtn}
+                            <div class="flex flex-col items-end">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Module</span>
+                                <span class="text-4xl font-black text-slate-200 leading-none">0${index + 1}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mb-12 px-4">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl ${mod.color} text-white text-3xl shadow-lg mb-6 transform hover:scale-110 transition-transform duration-300">
+                                <i class="ph-bold ${mod.icon}"></i>
+                            </div>
+                            <h2 class="text-3xl md:text-5xl font-black text-slate-800 mb-4 tracking-tight">${mod.content.heading}</h2>
+                            <p class="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-light">${mod.content.text}</p>
+                        </div>
+
+                        <div class="px-4">
+                            ${specificContent}
+                        </div>
+                    </div>
+                `;
+            },
+
+            // --- LOGIC FUNCTIONS ---
+
+            updateBalance: function(val) {
+                // Visual Logic for the "Scale"
+                const beam = document.getElementById('balance-beam');
+                const panLeft = document.getElementById('pan-left');
+                const panRight = document.getElementById('pan-right');
+                
+                // Rotation angle (max 15deg)
+                const angle = (val - 50) * 0.5; 
+                
+                beam.style.transform = `rotate(${angle}deg)`;
+                
+                // Counter-rotate pans to keep them straight
+                panLeft.style.transform = `translateY(${angle * -2}px)`; 
+                panRight.style.transform = `translateY(${angle * 2}px)`;
+
+                // Color Feedback
+                const expense = document.querySelector('#pan-left div:first-child');
+                const income = document.querySelector('#pan-right div:first-child');
+
+                if (Math.abs(val - 50) < 5) {
+                    // Balanced
+                    expense.classList.replace('bg-rose-500', 'bg-indigo-600');
+                    income.classList.replace('bg-emerald-500', 'bg-indigo-600');
+                    expense.innerHTML = "<i class='ph-bold ph-check'></i>";
+                    income.innerHTML = "<i class='ph-bold ph-check'></i>";
+                } else {
+                    expense.classList.remove('bg-indigo-600'); expense.classList.add('bg-rose-500');
+                    income.classList.remove('bg-indigo-600'); income.classList.add('bg-emerald-500');
+                    expense.innerText = data[this.lang].modules[0].content.concept_left;
+                    income.innerText = data[this.lang].modules[0].content.concept_right;
+                }
+            },
+
+            updateAllocation: function(pct) {
+                const total = 2500;
+                const projectAmount = Math.round(total * (pct / 100));
+                const structureAmount = total - projectAmount;
+
+                document.getElementById('alloc-pct').innerText = pct + '%';
+                document.getElementById('alloc-res-project').innerText = projectAmount + ' €';
+                document.getElementById('alloc-res-structure').innerText = structureAmount + ' €';
+            },
+
+            checkQuiz: function(index, userChoice, correctChoice) {
+                const resultDiv = document.getElementById(`q-result-${index}`);
+                const reasonP = document.getElementById(`q-reason-${index}`);
+                const actionsDiv = document.getElementById(`q-actions-${index}`);
+                
+                resultDiv.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+                reasonP.classList.remove('hidden');
+                
+                if (userChoice === correctChoice) {
+                    resultDiv.innerHTML = `<i class="ph-bold ph-check-circle"></i> Correct !`;
+                    resultDiv.classList.add('bg-emerald-100', 'text-emerald-800');
+                } else {
+                    resultDiv.innerHTML = `<i class="ph-bold ph-x-circle"></i> Oups, erreur.`;
+                    resultDiv.classList.add('bg-rose-100', 'text-rose-800');
+                }
+                
+                // Disable buttons
+                actionsDiv.style.opacity = '0.5';
+                actionsDiv.style.pointerEvents = 'none';
+            },
+
+            checkStrategy: function(selectedType) {
+                const mod = data[this.lang].modules[6];
+                const currentItem = mod.content.items[this.currentGameItem];
+                const feedback = document.getElementById('game-feedback');
+                const card = document.getElementById('active-card');
+
+                if (selectedType === currentItem.correct) {
+                    // Success
+                    feedback.innerText = "Bien joué ! " + currentItem.hint;
+                    feedback.className = "text-center mb-6 h-8 font-bold text-lg text-emerald-600 fade-in";
+                    
+                    // Animation Card Out
+                    card.style.transform = "translateX(500px) rotate(45deg)";
+                    card.style.opacity = "0";
+
+                    setTimeout(() => {
+                        this.currentGameItem++;
+                        if (this.currentGameItem < mod.content.items.length) {
+                            // Next Card
+                            document.getElementById('card-text').innerText = mod.content.items[this.currentGameItem].name;
+                            document.querySelector('#active-card .absolute').innerText = `${this.currentGameItem + 1}/${mod.content.items.length}`;
+                            // Reset Card Position
+                            card.style.transition = 'none';
+                            card.style.transform = "translateX(-500px) rotate(-45deg)";
+                            
+                            setTimeout(() => {
+                                card.style.transition = 'all 0.3s';
+                                card.style.transform = "translateX(0) rotate(0)";
+                                card.style.opacity = "1";
+                                feedback.style.opacity = "0"; // Hide feedback for next turn
+                            }, 50);
+                        } else {
+                            document.getElementById('game-end').classList.remove('hidden');
+                            document.getElementById('game-end').classList.add('flex');
+                        }
+                    }, 800);
+
+                } else {
+                    // Fail
+                    feedback.innerText = "Aïe... Mauvaise pioche. Réessayez !";
+                    feedback.className = "text-center mb-6 h-8 font-bold text-lg text-rose-600 fade-in";
+                    card.classList.add('animate-bounce');
+                    setTimeout(() => card.classList.remove('animate-bounce'), 500);
+                }
+            },
+
+            calcAmortization: function() {
+                const price = parseFloat(document.getElementById('amo-price').value);
+                const lifeYears = parseFloat(document.getElementById('amo-life').value);
+                const durationMonths = parseFloat(document.getElementById('amo-duration').value);
+
+                if (price && lifeYears && durationMonths) {
+                    const monthlyCost = price / (lifeYears * 12);
+                    const eligibleCost = monthlyCost * durationMonths;
+
+                    const resultEl = document.getElementById('amo-total');
+                    const resultBox = document.getElementById('amo-result');
+                    
+                    // Simple counter animation
+                    let current = 0;
+                    const interval = setInterval(() => {
+                        current += eligibleCost / 20;
+                        if(current >= eligibleCost) {
+                            current = eligibleCost;
+                            clearInterval(interval);
+                        }
+                        resultEl.innerText = current.toFixed(2) + ' €';
+                    }, 20);
+
+                    resultBox.classList.remove('hidden');
+                }
+            }
+        };
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+</body>
+</html>
