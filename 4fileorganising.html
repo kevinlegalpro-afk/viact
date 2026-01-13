@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structure de Projet Standardisée</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar for the tree view */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .animate-bounce-short {
+            animation: bounce 0.5s ease-in-out 1;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-gray-800 selection:bg-blue-200 min-h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg shadow-blue-200 shadow-lg">
+                    <i data-lucide="folder" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 id="app-title" class="font-bold text-lg md:text-xl leading-tight text-gray-900">Structure de Projet Standardisée</h1>
+                    <p id="app-subtitle" class="text-xs text-gray-500 hidden md:block">Guide d'organisation et de nommage</p>
+                </div>
+            </div>
+            
+            <button onclick="toggleLanguage()" class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-sm font-medium border border-gray-200">
+                <i data-lucide="globe" class="w-4 h-4 text-gray-500"></i>
+                <span id="lang-btn-text">English</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+        
+        <!-- TABS NAV -->
+        <div class="flex flex-wrap gap-2 mb-6 bg-gray-200/50 p-1 rounded-lg w-full md:w-fit mx-auto md:mx-0">
+            <button onclick="setTab('structure')" id="tab-structure" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all bg-white text-blue-600 shadow-sm">
+                <i data-lucide="layout" class="w-4 h-4"></i> <span class="tab-label">Arborescence</span>
+            </button>
+            <button onclick="setTab('readme')" id="tab-readme" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-gray-600 hover:text-gray-900">
+                <i data-lucide="book-open" class="w-4 h-4"></i> <span class="tab-label">Guide & Règles</span>
+            </button>
+            <button onclick="setTab('tips')" id="tab-tips" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-gray-600 hover:text-gray-900">
+                <i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="tab-label">Astuces</span>
+            </button>
+            <button onclick="setTab('practice')" id="tab-practice" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-gray-600 hover:text-gray-900 text-indigo-600">
+                <i data-lucide="gamepad-2" class="w-4 h-4"></i> <span class="tab-label">Entraînement</span>
+            </button>
+        </div>
+
+        <!-- CONTENT AREA -->
+        <div id="content-area" class="min-h-[500px]">
+            <!-- Content injected via JS -->
+        </div>
+
+    </main>
+    
+    <!-- FOOTER -->
+    <footer class="max-w-6xl mx-auto px-4 py-8 text-center text-gray-400 text-sm">
+        copyright @ <span id="year"></span> Kévin Le Gal
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA ---
+        const translations = {
+            fr: {
+                title: "Structure de Projet Standardisée",
+                subtitle: "Guide d'organisation et de nommage",
+                tabs: {
+                    structure: "Arborescence (Mindmap)",
+                    readme: "Guide & Règles (README)",
+                    tips: "Astuces & Bonnes Pratiques",
+                    practice: "Entraînement"
+                },
+                readme: {
+                    welcome: "Bienvenue dans le dossier du projet.",
+                    intro: "Ce dossier est notre référence unique : tout document utile au projet et au bilan doit être rangé ici, au bon endroit, au fil de l'eau.",
+                    rulesTitle: "Règles simples",
+                    rules: [
+                        "Un seul endroit officiel : pas de doublons (WhatsApp, mails, bureaux perso).",
+                        "On se met d'accord sur la méthode : même arborescence + mêmes règles de nommage.",
+                        "On nomme les fichiers de façon claire (voir modèle).",
+                        "On charge et on range régulièrement : petit à petit, pas la veille du bilan.",
+                        "Une personne vérifie que le dossier est à jour et complet."
+                    ],
+                    namingTitle: "Modèle de Nommage",
+                    namingFormat: "AAAA-MM-JJ_Type_Sujet_Version_Initiales.ext",
+                    namingExamples: [
+                        "2026-02-03_Devis_TransportBus_V1_KL.pdf",
+                        "2026-02-10_Convention_PartenaireX_Signee.pdf",
+                        "2026-03-01_Photos_Atelier1_Sel_1_KL.zip"
+                    ],
+                    routineTitle: "Routine Recommandée",
+                    routine: "10 minutes / jour (ou 30 minutes / semaine) : charger, ranger, renommer. Utiliser '90_A_RANGER' comme zone tampon.",
+                    paperTitle: "Documents Papier",
+                    paper: "Même logique : une chemise physique par grande catégorie (Budget, Admin, etc.)."
+                },
+                tips: [
+                    { title: "Nommer pour retrouver", content: "Nommer bien = retrouver vite : date + type + sujet + version." },
+                    { title: "Source unique", content: "Un seul fichier 'source' : on évite final_v3_def_ok_bis.docx." },
+                    { title: "Collaboration", content: "Travailler sur les mêmes fichiers : un dossier partagé, pas des pièces jointes éparpillées." },
+                    { title: "Accord d'équipe", content: "5 minutes au début du projet pour valider règles + arborescence." },
+                    { title: "Régularité", content: "Bloquer un créneau régulier pour charger/ranger (petit à petit)." },
+                    { title: "Documents manquants", content: "Lister ce qui manque : une mini liste 'à récupérer' dans 00_README." },
+                    { title: "Responsable", content: "Une personne vérifie complétion + cohérence (et relance si besoin)." }
+                ],
+                practice: {
+                    menuTitle: "Zone d'Entraînement",
+                    menuSubtitle: "Mettez vos connaissances à l'épreuve !",
+                    game1Title: "Jeu 1 : Le Trieur",
+                    game1Desc: "Où rangeriez-vous ce document ? Cliquez sur le bon dossier.",
+                    game2Title: "Jeu 2 : L'Expert du Nommage",
+                    game2Desc: "Identifiez le nom de fichier qui respecte parfaitement la convention.",
+                    start: "JOUER",
+                    score: "Score",
+                    question: "Question",
+                    correct: "Correct !",
+                    incorrect: "Aïe, ce n'est pas le bon dossier.",
+                    incorrectNaming: "Incorrect. Vérifiez la date ou le format.",
+                    next: "Suivant",
+                    finish: "Voir le résultat",
+                    back: "Retour au menu",
+                    finalScore: "Score Final",
+                    replay: "Rejouer",
+                    questionLabel: "Fichier à ranger :",
+                    contextLabel: "Situation :"
+                },
+                searchPlaceholder: "Filtrer les dossiers/fichiers...",
+                expandAll: "Tout déplier",
+                collapseAll: "Tout replier",
+                noteTitle: "Note",
+                noteText: "Cliquez sur les flèches pour explorer l'arborescence. Les fichiers affichés sont des exemples respectant la convention de nommage.",
+                endResults: "Fin des résultats"
+            },
+            en: {
+                title: "Standardized Project Structure",
+                subtitle: "Organization and naming guide",
+                tabs: {
+                    structure: "Folder Structure (Mindmap)",
+                    readme: "Guide & Rules (README)",
+                    tips: "Tips & Best Practices",
+                    practice: "Practice"
+                },
+                readme: {
+                    welcome: "Welcome to the project folder.",
+                    intro: "This folder is our single source of truth: every document useful for the project and reporting must be stored here, in the right place, as we go.",
+                    rulesTitle: "Simple Rules",
+                    rules: [
+                        "One official place: no duplicates (WhatsApp, emails, personal desktops).",
+                        "Agree on the method: same structure + same naming rules.",
+                        "Name files clearly (see template below).",
+                        "Upload and sort regularly: bit by bit, not the night before the deadline.",
+                        "One person verifies that the folder is up to date and complete."
+                    ],
+                    namingTitle: "Naming Convention",
+                    namingFormat: "YYYY-MM-DD_Type_Subject_Version_Initials.ext",
+                    namingExamples: [
+                        "2026-02-03_Quote_BusTransport_V1_KL.pdf",
+                        "2026-02-10_Agreement_PartnerX_Signed.pdf",
+                        "2026-03-01_Photos_Workshop1_Sel_1_KL.zip"
+                    ],
+                    routineTitle: "Recommended Routine",
+                    routine: "10 minutes / day (or 30 mins / week): upload, sort, rename. Use '90_TO_SORT' as a buffer zone.",
+                    paperTitle: "Physical Documents",
+                    paper: "Same logic: one physical folder per major category (Budget, Admin, etc.)."
+                },
+                tips: [
+                    { title: "Name to Find", content: "Good naming = quick finding: date + type + subject + version." },
+                    { title: "Single Source", content: "One 'source' file: avoid final_v3_def_ok_bis.docx." },
+                    { title: "Collaboration", content: "Work on the same files: shared drive, not scattered attachments." },
+                    { title: "Team Agreement", content: "5 minutes at project start to validate rules + structure." },
+                    { title: "Consistency", content: "Block a regular slot to upload/sort (bit by bit)." },
+                    { title: "Missing Docs", content: "List what's missing: a mini 'to retrieve' list in 00_README." },
+                    { title: "Owner", content: "One person checks completion + coherence (and follows up if needed)." }
+                ],
+                practice: {
+                    menuTitle: "Training Zone",
+                    menuSubtitle: "Put your knowledge to the test!",
+                    game1Title: "Game 1: The Sorter",
+                    game1Desc: "Where would you file this document? Click the correct folder.",
+                    game2Title: "Game 2: Naming Expert",
+                    game2Desc: "Identify the filename that perfectly follows the convention.",
+                    start: "PLAY",
+                    score: "Score",
+                    question: "Question",
+                    correct: "Correct!",
+                    incorrect: "Ouch, that's not the right folder.",
+                    incorrectNaming: "Incorrect. Check the date format or order.",
+                    next: "Next",
+                    finish: "See Result",
+                    back: "Back to Menu",
+                    finalScore: "Final Score",
+                    replay: "Play Again",
+                    questionLabel: "File to sort:",
+                    contextLabel: "Scenario:"
+                },
+                searchPlaceholder: "Filter folders/files...",
+                expandAll: "Expand All",
+                collapseAll: "Collapse All",
+                noteTitle: "Note",
+                noteText: "Click arrows to explore the tree. Displayed files are examples following the naming convention.",
+                endResults: "End of results"
+            }
+        };
+
+        const treeData = [
+          {
+            id: "root",
+            nameFr: "Dossier PROJET",
+            nameEn: "PROJECT Folder",
+            type: "root",
+            children: [
+              {
+                id: "00",
+                nameFr: "00_README",
+                nameEn: "00_README",
+                children: [
+                  { nameFr: "README_CommentOnClasseIci.txt", nameEn: "README_HowToClassify.txt", type: "file" },
+                  { nameFr: "Regles_NommageFichiers.txt", nameEn: "NamingRules_Files.txt", type: "file" },
+                  { nameFr: "Contacts_Equipe_Partenaires.txt", nameEn: "Contacts_Team_Partners.txt", type: "file" }
+                ]
+              },
+              {
+                id: "01",
+                nameFr: "01_CADRAGE",
+                nameEn: "01_SCOPING",
+                children: [
+                  { 
+                    nameFr: "FicheProjet_Objectifs_Public_Cadre", 
+                    nameEn: "ProjectSheet_Objectives_Audience", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-10_Note_Cadrage_V1_JD.pdf", nameEn: "2026-01-10_Scoping_Note_V1_JD.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Calendrier_VersionOfficielle", 
+                    nameEn: "Calendar_OfficialVersion", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-12_Planning_Global_V2_JD.xlsx", nameEn: "2026-01-12_Global_Schedule_V2_JD.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Partenaires_Roles_Attentes", 
+                    nameEn: "Partners_Roles_Expectations", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-15_Matrice_Partenaires_V1.xlsx", nameEn: "2026-01-15_Partners_Matrix_V1.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Reunions_ComptesRendus", 
+                    nameEn: "Meetings_Minutes", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-01_CR_Reunion_Lancement_V1.pdf", nameEn: "2026-02-01_Kickoff_Meeting_Minutes_V1.pdf", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "02",
+                nameFr: "02_FINANCEMENT & SUBVENTIONS",
+                nameEn: "02_FUNDING & GRANTS",
+                children: [
+                  { 
+                    nameFr: "AppelsAProjets (PDF / liens)", 
+                    nameEn: "CallForProjects (PDF / links)", 
+                    type: "folder",
+                    children: [{ nameFr: "2025-12-01_AAP_Region_CahierDesCharges.pdf", nameEn: "2025-12-01_Region_Call_Specs.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Dossiers_Deposes", 
+                    nameEn: "Submitted_Applications", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-15_Dossier_FondationX_Depot_V1_JD.zip", nameEn: "2026-02-15_FoundationX_App_V1_JD.zip", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Pieces_Exigees", 
+                    nameEn: "Required_Documents", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-20_Kbis_Association_2026.pdf", nameEn: "2026-01-20_Org_Registration_2026.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Echanges_Financeurs", 
+                    nameEn: "Funder_Exchanges", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-03-10_Mail_Region_Accord_Principe.pdf", nameEn: "2026-03-10_Email_Region_Agreement.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Conventions_Financement", 
+                    nameEn: "Funding_Agreements", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-04-01_Convention_FondationX_Signee.pdf", nameEn: "2026-04-01_Agreement_FoundationX_Signed.pdf", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "03",
+                nameFr: "03_BUDGET",
+                nameEn: "03_BUDGET",
+                children: [
+                  { 
+                    nameFr: "Budget_Previsionnel", 
+                    nameEn: "Budget_Forecast", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-10_Budget_Prev_Global_V3_AF.xlsx", nameEn: "2026-01-10_Budget_Forecast_V3_AF.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Budget_Suivi (table unique)", 
+                    nameEn: "Budget_Tracking (single sheet)", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-03-01_Suivi_Depenses_Mars_V1_AF.xlsx", nameEn: "2026-03-01_Expense_Tracking_March_V1_AF.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Devis", 
+                    nameEn: "Quotes", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-05_Devis_Traiteur_RepasMidi_V1.pdf", nameEn: "2026-02-05_Quote_Caterer_Lunch_V1.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Factures", 
+                    nameEn: "Invoices", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-20_Facture_Traiteur_12345_Acquittee.pdf", nameEn: "2026-02-20_Invoice_Caterer_12345_Paid.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Paiements_Releves", 
+                    nameEn: "Payments_Statements", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-28_Releve_Bancaire_Fevrier.pdf", nameEn: "2026-02-28_Bank_Statement_Feb.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "NotesDeFrais", 
+                    nameEn: "ExpenseReports", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-03-05_NDF_Deplacement_Paris_JSmith.pdf", nameEn: "2026-03-05_ExpRep_Travel_Paris_JSmith.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Justificatifs_Eligibilite", 
+                    nameEn: "Eligibility_Proofs", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-15_Attestation_TVA.pdf", nameEn: "2026-01-15_VAT_Certificate.pdf", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "04",
+                nameFr: "04_ADMINISTRATIF & CONFORMITE",
+                nameEn: "04_ADMIN & COMPLIANCE",
+                children: [
+                  { 
+                    nameFr: "Autorisations_Declaratifs", 
+                    nameEn: "Authorizations_Declarations", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-01_Declaration_Prefecture_Event.pdf", nameEn: "2026-02-01_Event_Declaration.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Assurances", 
+                    nameEn: "Insurance", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-01_Attestation_RCP_2026.pdf", nameEn: "2026-01-01_Liability_Insurance_2026.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Conventions_Partenariats", 
+                    nameEn: "Partnership_Agreements", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-03-15_Convention_PartenaireY_Signee.pdf", nameEn: "2026-03-15_PartnerY_Agreement_Signed.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "DroitsImage_Consentements", 
+                    nameEn: "ImageRights_Consents", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-04-10_DroitImage_Intervenant_Dupont.pdf", nameEn: "2026-04-10_ImageRights_Speaker_Doe.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "RGPD (infos / registre)", 
+                    nameEn: "GDPR (info / register)", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-10_Registre_Traitements_Projet.xlsx", nameEn: "2026-01-10_Data_Processing_Register.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Modeles_Documents (vierges)", 
+                    nameEn: "Document_Templates (blank)", 
+                    type: "folder",
+                    children: [{ nameFr: "Modele_Feuille_Emargement_Vierge.docx", nameEn: "Template_Attendance_Sheet_Blank.docx", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "05",
+                nameFr: "05_LOGISTIQUE",
+                nameEn: "05_LOGISTICS",
+                children: [
+                  { 
+                    nameFr: "Transport", 
+                    nameEn: "Transport", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-10_Billet_Train_Paris_Lyon_JSmith.pdf", nameEn: "2026-05-10_Train_Ticket_Paris_Lyon_JSmith.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Hebergement", 
+                    nameEn: "Accommodation", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-10_Reservation_Hotel_Lyon_3nuits.pdf", nameEn: "2026-05-10_Hotel_Res_Lyon_3nights.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Restauration", 
+                    nameEn: "Catering", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-04-20_Menu_Vegetarien_Validation.pdf", nameEn: "2026-04-20_Veggie_Menu_Validation.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Materiel", 
+                    nameEn: "Equipment", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-01_Liste_Materiel_Sonorisation.xlsx", nameEn: "2026-05-01_Sound_Equipment_List.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Planning_Detaille", 
+                    nameEn: "Detailed_Schedule", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-15_Deroule_JourJ_MinuteParMinute_V2.xlsx", nameEn: "2026-05-15_DDay_RunOfShow_V2.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Prestataires_Contacts", 
+                    nameEn: "Providers_Contacts", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-01_Annuaire_Prestataires_Logistique.xlsx", nameEn: "2026-02-01_Logistics_Providers_Directory.xlsx", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "06",
+                nameFr: "06_PARTICIPANTS",
+                nameEn: "06_PARTICIPANTS",
+                children: [
+                  { 
+                    nameFr: "Inscriptions", 
+                    nameEn: "Registrations", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-04-01_Export_Inscrits_Eventbrite_V1.csv", nameEn: "2026-04-01_Registrations_Export_V1.csv", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Listes_Presence", 
+                    nameEn: "Attendance_Lists", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-20_Emargement_Matin_J1_Scan.pdf", nameEn: "2026-05-20_Attendance_Morning_D1_Scan.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Infos_Sante", 
+                    nameEn: "Health_Info", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-04-15_Fiche_Sanitaire_Participant_X.pdf", nameEn: "2026-04-15_Health_Form_Participant_X.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "AutorisationsParentales", 
+                    nameEn: "Parental_Authorizations", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-04-15_Autorisation_Mineur_Y_Signee.pdf", nameEn: "2026-04-15_Auth_Minor_Y_Signed.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "BesoinSpecifiques_Accessibilite", 
+                    nameEn: "SpecialNeeds_Accessibility", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-04-10_Demande_Acces_PMR_Synthese.pdf", nameEn: "2026-04-10_Accessibility_Request_Summary.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "CommunicationParticipants", 
+                    nameEn: "Participant_Comms", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-01_Mailing_Infos_Pratiques_J-7.pdf", nameEn: "2026-05-01_Email_Practical_Info_D-7.pdf", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "07",
+                nameFr: "07_SECURITE & RISQUES",
+                nameEn: "07_SECURITY & RISKS",
+                children: [
+                  { 
+                    nameFr: "AnalyseDesRisques", 
+                    nameEn: "RiskAssessment", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-20_Document_Unique_Risques_Event_V1.pdf", nameEn: "2026-01-20_Risk_Assessment_Event_V1.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Procedure_Incident", 
+                    nameEn: "Incident_Procedure", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-20_Protocole_Evacuation_Salle.pdf", nameEn: "2026-01-20_Evacuation_Protocol.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Roles_Responsabilites", 
+                    nameEn: "Roles_Responsibilities", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-25_Organigramme_Securite_Crise.pdf", nameEn: "2026-01-25_Crisis_Safety_Chart.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Contacts_Urgence", 
+                    nameEn: "Emergency_Contacts", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-18_Liste_Contacts_Urgence_Imprimee.pdf", nameEn: "2026-05-18_Emergency_Contacts_Printed.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Traces_Incidents", 
+                    nameEn: "Incident_Logs", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-20_Rapport_Incident_CoupureElec.pdf", nameEn: "2026-05-20_Incident_Report_PowerCut.pdf", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "08",
+                nameFr: "08_PEDAGOGIE & CONTENU",
+                nameEn: "08_PEDAGOGY & CONTENT",
+                children: [
+                  { 
+                    nameFr: "Programme", 
+                    nameEn: "Program", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-03-01_Programme_Pedagogique_Detaille_V3.pdf", nameEn: "2026-03-01_Detailed_Program_V3.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Supports", 
+                    nameEn: "Materials", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-10_Diaporama_Atelier_Climat_VFinal.pptx", nameEn: "2026-05-10_Climate_Workshop_Slides_VFinal.pptx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Outils_Activites", 
+                    nameEn: "Tools_Activities", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-04-01_Cartes_Jeu_Roles_AImprimer.pdf", nameEn: "2026-04-01_RolePlay_Cards_ToPrint.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Evaluation", 
+                    nameEn: "Evaluation", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-25_Synthese_Questionnaires_Satisfaction.xlsx", nameEn: "2026-05-25_Feedback_Survey_Summary.xlsx", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "09",
+                nameFr: "09_COMMUNICATION",
+                nameEn: "09_COMMUNICATION",
+                children: [
+                  { 
+                    nameFr: "Visuels", 
+                    nameEn: "Visuals", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-01_Affiche_Officielle_A3_Print.pdf", nameEn: "2026-02-01_Official_Poster_A3_Print.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Textes", 
+                    nameEn: "Texts", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-02-10_Communique_Presse_Lancement_V1.docx", nameEn: "2026-02-10_Press_Release_Launch_V1.docx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Presse_ReseauxSociaux", 
+                    nameEn: "Press_SocialMedia", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-22_Revue_Presse_PostEvent.pdf", nameEn: "2026-05-22_Press_Review_PostEvent.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Emails_Templates", 
+                    nameEn: "Email_Templates", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-15_Modele_Invitation_Officielle.oft", nameEn: "2026-01-15_Template_Official_Invite.oft", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "10",
+                nameFr: "10_PREUVES & RAPPORT",
+                nameEn: "10_EVIDENCE & REPORTING",
+                children: [
+                  { 
+                    nameFr: "Photos_Videos (triées)", 
+                    nameEn: "Photos_Videos (sorted)", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-20_Selection_Photos_J1_BestOf.zip", nameEn: "2026-05-20_Photos_Selection_D1_BestOf.zip", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Traces_Participation", 
+                    nameEn: "Participation_Proof", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-05-20_Travaux_Groupe_Atelier2_Scan.pdf", nameEn: "2026-05-20_Group_Work_Workshop2_Scan.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Indicateurs", 
+                    nameEn: "Indicators", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-06-01_Tableau_Bord_Indicateurs_Final.xlsx", nameEn: "2026-06-01_Indicators_Dashboard_Final.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Bilan_Narratif", 
+                    nameEn: "Narrative_Report", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-06-15_Rapport_Final_Narratif_V1_Validation.docx", nameEn: "2026-06-15_Final_Narrative_Report_V1.docx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Bilan_Financier", 
+                    nameEn: "Financial_Report", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-06-20_Bilan_Financier_Certifie_V1.pdf", nameEn: "2026-06-20_Financial_Report_Certified_V1.pdf", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Annexes", 
+                    nameEn: "Appendices", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-06-15_Annexe_1_Revue_Presse_Complete.pdf", nameEn: "2026-06-15_Appendix_1_Press_Review_Full.pdf", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "90",
+                nameFr: "90_A_RANGER (zone tampon)",
+                nameEn: "90_TO_SORT (buffer zone)",
+                children: [
+                  { 
+                    nameFr: "A_Trier_CetteSemaine", 
+                    nameEn: "To_Sort_ThisWeek", 
+                    type: "folder",
+                    children: [{ nameFr: "IMG_2938.jpg", nameEn: "IMG_2938.jpg", type: "file" }]
+                  },
+                  { 
+                    nameFr: "A_Renommer", 
+                    nameEn: "To_Rename", 
+                    type: "folder",
+                    children: [{ nameFr: "compte_rendu_final_brouillon.docx", nameEn: "final_report_draft.docx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Doublons_A_Supprimer", 
+                    nameEn: "Duplicates_To_Delete", 
+                    type: "folder",
+                    children: [{ nameFr: "Budget_V2_copie.xlsx", nameEn: "Budget_V2_copy.xlsx", type: "file" }]
+                  }
+                ]
+              },
+              {
+                id: "99",
+                nameFr: "99_ARCHIVE",
+                nameEn: "99_ARCHIVE",
+                children: [
+                  { 
+                    nameFr: "Versions_Anciennes", 
+                    nameEn: "Old_Versions", 
+                    type: "folder",
+                    children: [{ nameFr: "2025-12-01_Budget_Prev_V1_OBSOLETE.xlsx", nameEn: "2025-12-01_Budget_Forecast_V1_OBSOLETE.xlsx", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Projet_Precedent", 
+                    nameEn: "Previous_Project", 
+                    type: "folder",
+                    children: [{ nameFr: "2025_Bilan_Complet_Projet_Alpha.zip", nameEn: "2025_Full_Report_Project_Alpha.zip", type: "file" }]
+                  },
+                  { 
+                    nameFr: "Docs_Obsoletes", 
+                    nameEn: "Obsolete_Docs", 
+                    type: "folder",
+                    children: [{ nameFr: "2026-01-05_Devis_Non_Retenu_Bus.pdf", nameEn: "2026-01-05_Rejected_Quote_Bus.pdf", type: "file" }]
+                  }
+                ]
+              }
+            ]
+          }
+        ];
+
+        // --- GAME DATA ---
+        // Sorter Questions (Game 1)
+        const sorterQuestions = [
+            { file: "Facture_Traiteur_Mars.pdf", folderId: "03", folderNameFr: "03_BUDGET", folderNameEn: "03_BUDGET" },
+            { file: "Logo_Projet_HD.png", folderId: "09", folderNameFr: "09_COMMUNICATION", folderNameEn: "09_COMMUNICATION" },
+            { file: "Contrat_Partenaire_Signe.pdf", folderId: "04", folderNameFr: "04_ADMINISTRATIF", folderNameEn: "04_ADMIN" },
+            { file: "Liste_Inscrits_Eventbrite.csv", folderId: "06", folderNameFr: "06_PARTICIPANTS", folderNameEn: "06_PARTICIPANTS" },
+            { file: "Devis_Location_Sono.pdf", folderId: "03", folderNameFr: "03_BUDGET", folderNameEn: "03_BUDGET" },
+            { file: "Photos_Atelier_J1.zip", folderId: "10", folderNameFr: "10_PREUVES", folderNameEn: "10_EVIDENCE" },
+            { file: "Plan_Acces_Salle.pdf", folderId: "05", folderNameFr: "05_LOGISTIQUE", folderNameEn: "05_LOGISTICS" },
+            { file: "Note_Cadrage_V2.docx", folderId: "01", folderNameFr: "01_CADRAGE", folderNameEn: "01_SCOPING" }
+        ];
+
+        // Naming Questions (Game 2)
+        const namingQuestions = [
+            {
+                contextFr: "Une facture reçue le 12 mars 2026 de l'entreprise 'SuperBus'.",
+                contextEn: "An invoice received on March 12, 2026 from 'SuperBus'.",
+                options: [
+                    "Facture_SuperBus.pdf",
+                    "2026-03-12_Facture_SuperBus_V1.pdf",
+                    "12-03-2026_Facture_Bus.pdf"
+                ],
+                correctIndex: 1
+            },
+            {
+                contextFr: "Le budget prévisionnel mis à jour par Jean Dupont (JD) le 5 janvier 2026.",
+                contextEn: "Forecast budget updated by Jean Dupont (JD) on Jan 5, 2026.",
+                options: [
+                    "2026-01-05_Budget_Prev_V2_JD.xlsx",
+                    "Budget_Final_JD.xlsx",
+                    "2026-05-01_Budget_Prev_JD.xlsx"
+                ],
+                correctIndex: 0
+            },
+            {
+                contextFr: "Des photos de l'atelier cuisine du 20 mai 2026, triées.",
+                contextEn: "Sorted photos from the cooking workshop on May 20, 2026.",
+                options: [
+                    "Photos_Cuisine.zip",
+                    "2026-05-20_Photos_AtelierCuisine_Tri_V1.zip",
+                    "Atelier_Cuisine_Photos_2026.zip"
+                ],
+                correctIndex: 1
+            },
+            {
+                contextFr: "Compte-rendu de la réunion d'équipe du 1er février 2026.",
+                contextEn: "Minutes of the team meeting on February 1, 2026.",
+                options: [
+                    "CR_Reunion_0102.pdf",
+                    "2026-02-01_CR_Reunion_Equipe.pdf",
+                    "Reunion_Equipe_Fevrier.pdf"
+                ],
+                correctIndex: 1
+            }
+        ];
+
+        // --- STATE ---
+        let currentLang = 'fr';
+        let activeTab = 'structure';
+        let expandedFolders = { 'root': true };
+        let searchTerm = '';
+
+        // Game State
+        let activeGame = null; // 'sorter' or 'naming'
+        let gameQuestionIndex = 0;
+        let gameScore = 0;
+        let gameFeedback = null; // { type: 'success' | 'error', message: '' }
+        let showResult = false;
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+            renderApp();
+        });
+
+        // --- ACTIONS ---
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            renderApp();
+        }
+
+        function setTab(tab) {
+            activeTab = tab;
+            // Reset game state when leaving/entering
+            activeGame = null;
+            showResult = false;
+            gameQuestionIndex = 0;
+            gameScore = 0;
+            gameFeedback = null;
+            renderApp();
+        }
+
+        function toggleExpand(id) {
+            if (expandedFolders[id]) {
+                delete expandedFolders[id];
+            } else {
+                expandedFolders[id] = true;
+            }
+            renderApp();
+        }
+
+        function expandAll() {
+            const allIds = {};
+            const traverse = (nodes) => {
+                nodes.forEach(node => {
+                    if (node.children) {
+                        allIds[node.id] = true;
+                        traverse(node.children);
+                    }
+                });
+            };
+            traverse(treeData);
+            expandedFolders = allIds;
+            renderApp();
+        }
+
+        function collapseAll() {
+            expandedFolders = { 'root': true };
+            renderApp();
+        }
+
+        function updateSearch(e) {
+            searchTerm = e.target.value;
+            renderApp();
+        }
+
+        // --- GAME ACTIONS ---
+        function startGame(gameType) {
+            activeGame = gameType;
+            gameQuestionIndex = 0;
+            gameScore = 0;
+            gameFeedback = null;
+            showResult = false;
+            renderApp();
+        }
+
+        function handleSorterAnswer(selectedFolderId) {
+            if (gameFeedback) return; // Prevent spamming
+            const q = sorterQuestions[gameQuestionIndex];
+            const isCorrect = selectedFolderId === q.folderId;
+            
+            if (isCorrect) gameScore++;
+            
+            const t = translations[currentLang].practice;
+            const correctName = currentLang === 'fr' ? q.folderNameFr : q.folderNameEn;
+
+            gameFeedback = {
+                type: isCorrect ? 'success' : 'error',
+                message: isCorrect ? t.correct : `${t.incorrect} ${correctName}`
+            };
+            renderApp();
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 1500);
+        }
+
+        function handleNamingAnswer(selectedIndex) {
+            if (gameFeedback) return;
+            const q = namingQuestions[gameQuestionIndex];
+            const isCorrect = selectedIndex === q.correctIndex;
+            
+            if (isCorrect) gameScore++;
+            
+            const t = translations[currentLang].practice;
+
+            gameFeedback = {
+                type: isCorrect ? 'success' : 'error',
+                message: isCorrect ? t.correct : t.incorrectNaming
+            };
+            renderApp();
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 1500);
+        }
+
+        function nextQuestion() {
+            gameFeedback = null;
+            const max = activeGame === 'sorter' ? sorterQuestions.length : namingQuestions.length;
+            
+            if (gameQuestionIndex + 1 < max) {
+                gameQuestionIndex++;
+            } else {
+                showResult = true;
+            }
+            renderApp();
+        }
+
+        function exitGame() {
+            activeGame = null;
+            showResult = false;
+            renderApp();
+        }
+
+
+        // --- RENDER LOGIC ---
+
+        function renderApp() {
+            const t = translations[currentLang];
+
+            // Update Header Texts
+            document.getElementById('app-title').textContent = t.title;
+            document.getElementById('app-subtitle').textContent = t.subtitle;
+            document.getElementById('lang-btn-text').textContent = currentLang === 'fr' ? 'English' : 'Français';
+
+            // Update Tabs Styling & Text
+            const tabs = ['structure', 'readme', 'tips', 'practice'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`tab-${tab}`);
+                if (btn) {
+                    const label = btn.querySelector('.tab-label');
+                    if (label) label.textContent = t.tabs[tab];
+                    
+                    if (tab === activeTab) {
+                        btn.className = "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all bg-white text-blue-600 shadow-sm";
+                        btn.classList.remove('text-gray-600', 'hover:text-gray-900', 'text-indigo-600');
+                    } else {
+                        btn.className = "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-gray-600 hover:text-gray-900";
+                        if (tab === 'practice') btn.classList.add('text-indigo-600');
+                    }
+                }
+            });
+
+            // Render Content
+            const contentArea = document.getElementById('content-area');
+            contentArea.innerHTML = '';
+
+            if (activeTab === 'structure') {
+                contentArea.innerHTML = renderStructureTab(t);
+                const searchInput = document.getElementById('search-input');
+                if(searchInput) {
+                    searchInput.addEventListener('input', updateSearch);
+                    searchInput.focus();
+                    const val = searchInput.value; 
+                    searchInput.value = ''; 
+                    searchInput.value = val;
+                }
+            } else if (activeTab === 'readme') {
+                contentArea.innerHTML = renderReadmeTab(t);
+            } else if (activeTab === 'tips') {
+                contentArea.innerHTML = renderTipsTab(t);
+            } else if (activeTab === 'practice') {
+                contentArea.innerHTML = renderPracticeTab(t);
+            }
+
+            // Init Icons
+            lucide.createIcons();
+        }
+
+        // ... Existing render functions ...
+        function renderStructureTab(t) {
+            return `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row h-[calc(100vh-200px)] md:h-[700px] animate-fadeIn">
+                    <!-- SIDEBAR -->
+                    <div class="w-full md:w-1/3 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 p-4 flex flex-col gap-4">
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-4 h-4"></i>
+                            <input 
+                                type="text" 
+                                id="search-input"
+                                placeholder="${t.searchPlaceholder}"
+                                value="${searchTerm}"
+                                class="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            >
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="expandAll()" class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded hover:bg-gray-50 text-xs font-medium text-gray-600 transition-colors">
+                                ${t.expandAll}
+                            </button>
+                            <button onclick="collapseAll()" class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded hover:bg-gray-50 text-xs font-medium text-gray-600 transition-colors">
+                                ${t.collapseAll}
+                            </button>
+                        </div>
+
+                        <div class="hidden md:block mt-auto p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <h4 class="text-blue-800 font-bold text-sm mb-2 flex items-center gap-2">
+                                <i data-lucide="info" class="w-3 h-3"></i> ${t.noteTitle}
+                            </h4>
+                            <p class="text-xs text-blue-700 leading-relaxed">
+                                ${t.noteText}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- TREE VIEW -->
+                    <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                        ${treeData.map((node, idx) => renderTreeNode(node, 0, idx)).join('')}
+                        ${searchTerm ? `<div class="mt-8 text-center text-gray-400 text-sm italic">${t.endResults}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTreeNode(node, depth, idx) {
+             const isFolder = node.children && node.children.length > 0;
+            const isRoot = node.type === 'root';
+            const isExpandable = node.type === 'folder' || isFolder || isRoot;
+            
+            const name = currentLang === 'fr' ? node.nameFr : node.nameEn;
+            
+            const matchesSearch = searchTerm === '' || name.toLowerCase().includes(searchTerm.toLowerCase());
+            const hasMatchingChildren = node.children?.some(child => {
+                 const cName = currentLang === 'fr' ? child.nameFr : child.nameEn;
+                 if (cName.toLowerCase().includes(searchTerm.toLowerCase())) return true;
+                 if (child.children) return child.children.some(grandChild => {
+                     const gcName = currentLang === 'fr' ? grandChild.nameFr : grandChild.nameEn;
+                     return gcName.toLowerCase().includes(searchTerm.toLowerCase());
+                 });
+                 return false;
+            });
+
+            if (!matchesSearch && !hasMatchingChildren && searchTerm !== '') return '';
+
+            const nodeId = node.id || `node-${depth}-${idx}-${name.substring(0,3)}`;
+            const isExpanded = expandedFolders[nodeId] || (searchTerm !== '' && hasMatchingChildren);
+            
+            let iconHtml = '';
+            if (isRoot) iconHtml = '<i data-lucide="layout" class="w-5 h-5 text-blue-600"></i>';
+            else if (node.type === 'file') iconHtml = '<i data-lucide="file" class="w-4 h-4 text-gray-500"></i>';
+            else iconHtml = '<i data-lucide="folder" class="w-5 h-5 text-amber-400 fill-current"></i>';
+
+            let chevron = '';
+            if (isExpandable) {
+                if (isExpanded) chevron = '<i data-lucide="chevron-down" class="w-4 h-4"></i>';
+                else chevron = '<i data-lucide="chevron-right" class="w-4 h-4"></i>';
+            } else {
+                chevron = '<span class="w-4 inline-block"></span>';
+            }
+
+            const containerClass = isRoot 
+                ? 'font-bold bg-blue-50 text-blue-900 mb-2' 
+                : 'hover:bg-gray-100 text-gray-700';
+            
+            const textStyle = node.type === 'file' ? 'text-gray-500 italic' : '';
+            const textSize = isRoot ? 'text-lg' : 'text-sm';
+            const paddingLeft = `padding-left: ${depth * 1.5 + 0.5}rem;`;
+            const onClick = isExpandable ? `onclick="toggleExpand('${nodeId}')"` : '';
+
+            let html = `
+                <div class="select-none">
+                    <div 
+                        class="flex items-center gap-2 py-1.5 px-2 rounded-md cursor-pointer transition-colors duration-200 ${containerClass}"
+                        style="${paddingLeft}"
+                        ${onClick}
+                    >
+                        <span class="text-gray-400">${chevron}</span>
+                        ${iconHtml}
+                        <span class="truncate ${textSize} ${textStyle}">${name}</span>
+                    </div>
+            `;
+
+            if (isExpandable && isExpanded && node.children) {
+                html += `<div class="border-l border-gray-200 ml-4">`;
+                node.children.forEach((child, cIdx) => {
+                    html += renderTreeNode({...child, id: child.id || `${nodeId}-${cIdx}`}, depth + 1, cIdx);
+                });
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        function renderReadmeTab(t) {
+            return `
+                <div class="space-y-6 animate-fadeIn">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <i data-lucide="book-open" class="text-blue-500"></i> 
+                            00_README
+                        </h3>
+                        <p class="text-gray-600 mb-4">${t.readme.welcome}</p>
+                        <div class="p-4 bg-blue-50 text-blue-800 rounded-md border-l-4 border-blue-500 italic">
+                            ${t.readme.intro}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h4 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">${t.readme.rulesTitle}</h4>
+                        <ul class="space-y-3">
+                            ${t.readme.rules.map(rule => `
+                                <li class="flex items-start gap-3 text-gray-600">
+                                    <i data-lucide="check" class="w-5 h-5 text-green-500 shrink-0 mt-0.5"></i>
+                                    <span>${rule}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h4 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">${t.readme.namingTitle}</h4>
+                         <div class="bg-gray-800 text-green-400 font-mono p-4 rounded-md mb-4 text-center text-sm md:text-base break-all">
+                            ${t.readme.namingFormat}
+                        </div>
+                        <div class="space-y-2">
+                            ${t.readme.namingExamples.map(ex => `
+                                <div class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
+                                    <i data-lucide="file-text" class="w-4 h-4"></i> ${ex}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-amber-50 p-5 rounded-lg border border-amber-100">
+                            <h4 class="font-bold text-amber-800 mb-2">${t.readme.routineTitle}</h4>
+                            <p class="text-sm text-amber-900">${t.readme.routine}</p>
+                        </div>
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                            <h4 class="font-bold text-gray-800 mb-2">${t.readme.paperTitle}</h4>
+                            <p class="text-sm text-gray-600">${t.readme.paper}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTipsTab(t) {
+            return `
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
+                    ${t.tips.map(tip => `
+                        <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-indigo-500 hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="lightbulb" class="w-5 h-5 text-indigo-500"></i>
+                                <h4 class="font-bold text-gray-800">${tip.title}</h4>
+                            </div>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                ${tip.content}
+                            </p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // --- NEW: PRACTICE TAB RENDERER ---
+        function renderPracticeTab(t) {
+            const tp = t.practice;
+
+            // 1. GAME MENU (If no active game)
+            if (!activeGame) {
+                return `
+                    <div class="animate-fadeIn max-w-2xl mx-auto space-y-6 text-center">
+                        <div class="mb-8">
+                            <h2 class="text-3xl font-bold text-indigo-900 mb-2">${tp.menuTitle}</h2>
+                            <p class="text-indigo-600">${tp.menuSubtitle}</p>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- GAME 1 CARD -->
+                            <div class="bg-white p-6 rounded-xl shadow-md border-2 border-transparent hover:border-indigo-400 transition-all cursor-pointer group" onclick="startGame('sorter')">
+                                <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="folder-input" class="w-8 h-8"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">${tp.game1Title}</h3>
+                                <p class="text-sm text-gray-500 mb-6">${tp.game1Desc}</p>
+                                <button class="w-full py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                                    ${tp.start}
+                                </button>
+                            </div>
+
+                            <!-- GAME 2 CARD -->
+                            <div class="bg-white p-6 rounded-xl shadow-md border-2 border-transparent hover:border-indigo-400 transition-all cursor-pointer group" onclick="startGame('naming')">
+                                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="file-edit" class="w-8 h-8"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">${tp.game2Title}</h3>
+                                <p class="text-sm text-gray-500 mb-6">${tp.game2Desc}</p>
+                                <button class="w-full py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors">
+                                    ${tp.start}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 2. RESULT SCREEN
+            if (showResult) {
+                const total = activeGame === 'sorter' ? sorterQuestions.length : namingQuestions.length;
+                const percentage = (gameScore / total) * 100;
+                let msg = "";
+                let color = "text-red-500";
+                
+                if (percentage === 100) { msg = "Excellent !"; color = "text-emerald-500"; }
+                else if (percentage >= 70) { msg = "Bravo !"; color = "text-indigo-500"; }
+                else { msg = "Encore un effort !"; color = "text-orange-500"; }
+
+                return `
+                    <div class="animate-fadeIn max-w-md mx-auto text-center bg-white p-8 rounded-xl shadow-lg mt-8">
+                        <div class="mb-4">
+                             ${percentage === 100 ? 
+                                '<i data-lucide="trophy" class="w-16 h-16 mx-auto text-yellow-400 animate-bounce-short"></i>' : 
+                                '<i data-lucide="award" class="w-16 h-16 mx-auto text-indigo-200"></i>'}
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-1">${tp.finalScore}</h2>
+                        <div class="text-5xl font-black ${color} mb-2">${gameScore} / ${total}</div>
+                        <p class="text-gray-500 mb-8">${msg}</p>
+                        
+                        <div class="space-y-3">
+                            <button onclick="startGame('${activeGame}')" class="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700">
+                                ${tp.replay}
+                            </button>
+                            <button onclick="exitGame()" class="w-full py-3 bg-gray-100 text-gray-600 rounded-lg font-medium hover:bg-gray-200">
+                                ${tp.back}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. GAMEPLAY
+            const total = activeGame === 'sorter' ? sorterQuestions.length : namingQuestions.length;
+            const progress = ((gameQuestionIndex + 1) / total) * 100;
+
+            // Feedback Banner
+            let feedbackHtml = '';
+            if (gameFeedback) {
+                const bg = gameFeedback.type === 'success' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200';
+                const icon = gameFeedback.type === 'success' ? 'check-circle' : 'x-circle';
+                feedbackHtml = `
+                    <div class="${bg} border p-4 rounded-lg mb-4 flex items-center justify-center gap-2 animate-fadeIn font-bold">
+                        <i data-lucide="${icon}" class="w-5 h-5"></i>
+                        ${gameFeedback.message}
+                    </div>
+                `;
+            }
+
+            // --- GAME 1: SORTER ---
+            if (activeGame === 'sorter') {
+                const q = sorterQuestions[gameQuestionIndex];
+                
+                // Get top-level folders for buttons (IDs 01 to 10 + 99)
+                const folders = treeData[0].children.filter(c => c.id !== '00' && c.id !== '90').map(c => ({
+                    id: c.id,
+                    name: currentLang === 'fr' ? c.nameFr.split(' ')[0] : c.nameEn.split(' ')[0], // Keep simple name
+                    fullName: currentLang === 'fr' ? c.nameFr : c.nameEn
+                }));
+
+                return `
+                    <div class="max-w-3xl mx-auto animate-fadeIn">
+                        <!-- HEADER -->
+                        <div class="flex items-center justify-between mb-6">
+                            <button onclick="exitGame()" class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i> ${tp.back}
+                            </button>
+                            <div class="text-sm font-bold text-indigo-600">${tp.question} ${gameQuestionIndex + 1} / ${total}</div>
+                        </div>
+
+                        <!-- PROGRESS -->
+                        <div class="w-full bg-gray-200 h-2 rounded-full mb-8 overflow-hidden">
+                            <div class="bg-indigo-500 h-full transition-all duration-300" style="width: ${progress}%"></div>
+                        </div>
+
+                        <!-- QUESTION CARD -->
+                        <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center mb-8">
+                            <p class="text-gray-400 text-sm uppercase tracking-wider font-bold mb-4">${tp.questionLabel}</p>
+                            <div class="inline-flex items-center gap-3 bg-gray-50 px-6 py-4 rounded-lg border-2 border-dashed border-gray-300">
+                                <i data-lucide="file" class="w-8 h-8 text-gray-400"></i>
+                                <span class="text-xl md:text-2xl font-mono text-gray-800 break-all">${q.file}</span>
+                            </div>
+                        </div>
+
+                        ${feedbackHtml}
+
+                        <!-- OPTIONS GRID -->
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 ${gameFeedback ? 'opacity-50 pointer-events-none' : ''}">
+                            ${folders.map(f => `
+                                <button onclick="handleSorterAnswer('${f.id}')" class="p-3 bg-white border border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 hover:shadow-sm transition-all text-left flex items-center gap-2 group">
+                                    <i data-lucide="folder" class="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-medium text-gray-700">${f.fullName}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- GAME 2: NAMING ---
+            if (activeGame === 'naming') {
+                const q = namingQuestions[gameQuestionIndex];
+                const context = currentLang === 'fr' ? q.contextFr : q.contextEn;
+
+                return `
+                    <div class="max-w-3xl mx-auto animate-fadeIn">
+                        <!-- HEADER -->
+                        <div class="flex items-center justify-between mb-6">
+                            <button onclick="exitGame()" class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i> ${tp.back}
+                            </button>
+                            <div class="text-sm font-bold text-emerald-600">${tp.question} ${gameQuestionIndex + 1} / ${total}</div>
+                        </div>
+
+                        <!-- PROGRESS -->
+                        <div class="w-full bg-gray-200 h-2 rounded-full mb-8 overflow-hidden">
+                            <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${progress}%"></div>
+                        </div>
+
+                        <!-- CONTEXT CARD -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-emerald-500 mb-6">
+                            <h4 class="text-emerald-800 font-bold mb-2 flex items-center gap-2">
+                                <i data-lucide="info" class="w-4 h-4"></i> ${tp.contextLabel}
+                            </h4>
+                            <p class="text-lg text-gray-700">${context}</p>
+                        </div>
+
+                        ${feedbackHtml}
+
+                        <!-- OPTIONS LIST -->
+                        <div class="space-y-3 ${gameFeedback ? 'opacity-50 pointer-events-none' : ''}">
+                            ${q.options.map((opt, idx) => `
+                                <button onclick="handleNamingAnswer(${idx})" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-sm transition-all text-left flex items-center gap-3 group">
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-300 group-hover:border-emerald-500 flex items-center justify-center shrink-0">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    </div>
+                                    <span class="text-base font-mono text-gray-700 break-all">${opt}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
