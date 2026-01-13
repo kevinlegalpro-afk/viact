@@ -27,16 +27,45 @@
             /* Force background colors in print */
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
+        /* Animation pour le drag and drop */
+        .drag-card { cursor: grab; transition: transform 0.1s; }
+        .drag-card:active { cursor: grabbing; transform: scale(1.02); }
+        .drop-zone { transition: all 0.2s ease; }
+        .drop-zone.eligible { border-color: #10b981; background-color: #ecfdf5; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); transform: translateY(-2px); }
+        .drop-zone.ineligible { opacity: 0.4; filter: grayscale(1); pointer-events: none; }
+        
+        /* Slider styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            width: 100%; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            margin-top: -8px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans pb-20 print:pb-0">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         // --- ICONES (SVG) ---
-        // Définition manuelle pour éviter les dépendances externes lourdes
         const Icons = {
             Plus: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             Trash2: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>,
@@ -55,10 +84,12 @@
             RefreshCw: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>,
             FilePlus: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>,
             AlertTriangle: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
-            Eye: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Eye: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>,
+            LayoutGrid: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></svg>,
+            List: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
         };
 
-        const { Plus, Trash2, Save, Upload, FileDown, CheckCircle, Wallet, Receipt, PiggyBank, X, Pencil, Wand2, Maximize, Minimize, RefreshCw, FilePlus, AlertTriangle, Eye } = Icons;
+        const { Plus, Trash2, Save, Upload, FileDown, CheckCircle, Wallet, Receipt, PiggyBank, X, Pencil, Wand2, Maximize, Minimize, RefreshCw, FilePlus, AlertTriangle, Eye, LayoutGrid, List } = Icons;
 
         // --- DATA & DICTIONARIES ---
 
@@ -84,8 +115,8 @@
                 balance: "Balance",
                 totalExpenses: "Total Dépenses",
                 totalIncomes: "Total Recettes",
-                save: "Sauver",
-                load: "Charger",
+                save: "Sauvegarder",
+                load: "Ouvrir",
                 pdf: "PDF / Imprimer",
                 autoDistribute: "Répartition Auto",
                 fullScreen: "Plein Écran",
@@ -94,6 +125,7 @@
                 emptyIncomes: "Aucune recette enregistrée.",
                 notAllocated: "Non affecté",
                 remainingToFund: "Reste à financer",
+                remainingToFundGlobal: "Reste global à financer :",
                 allocationTitle: "Ventilation de la dépense",
                 allocated: "Affecté",
                 remaining: "Reste",
@@ -125,6 +157,13 @@
                 expensesFunded: "Dépenses financées par cette recette :",
                 noExpensesFunded: "Aucune dépense financée pour le moment.",
                 allocAmount: "Financé",
+                viewList: "Vue Liste",
+                viewVisual: "Vue Visuelle",
+                dragDropHint: "Glissez les dépenses vers les recettes",
+                visualLeft: "Dépenses à financer",
+                visualRight: "Répartition sur les Recettes",
+                visualEmpty: "Tout est financé !",
+                amountToAlloc: "Montant à affecter",
                 categories: {
                     cat_1: 'Transport',
                     cat_2: 'Alimentation',
@@ -163,7 +202,7 @@
                 totalExpenses: "Total Expenses",
                 totalIncomes: "Total Income",
                 save: "Save",
-                load: "Load",
+                load: "Open",
                 pdf: "Print / PDF",
                 autoDistribute: "Auto Allocate",
                 fullScreen: "Full Screen",
@@ -172,6 +211,7 @@
                 emptyIncomes: "No income recorded.",
                 notAllocated: "Unallocated",
                 remainingToFund: "Remaining",
+                remainingToFundGlobal: "Total Remaining to Fund:",
                 allocationTitle: "Expense Allocation",
                 allocated: "Allocated",
                 remaining: "Left",
@@ -203,6 +243,13 @@
                 expensesFunded: "Expenses funded by this source:",
                 noExpensesFunded: "No expenses funded yet.",
                 allocAmount: "Funded",
+                viewList: "List View",
+                viewVisual: "Visual View",
+                dragDropHint: "Drag expenses to income sources",
+                visualLeft: "Expenses to Fund",
+                visualRight: "Allocation to Income",
+                visualEmpty: "All Funded!",
+                amountToAlloc: "Amount to allocate",
                 categories: {
                     cat_1: 'Transport',
                     cat_2: 'Food & Catering',
@@ -344,6 +391,28 @@
             return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[color]} border border-opacity-10 border-black`}>{children}</span>;
         };
 
+        // --- NEW SLIDER MODAL FOR VISUAL DRAG/DROP ---
+        const AllocationSliderModal = ({ isOpen, onClose, onConfirm, expense, income, currencyCode }) => {
+            const [amount, setAmount] = useState(0);
+            const [maxAmount, setMaxAmount] = useState(0);
+
+            useEffect(() => {
+                if (isOpen && expense && income) {
+                    const expenseAllocated = expense.allocations ? expense.allocations.reduce((acc, curr) => acc + curr.amount, 0) : 0;
+                    const expenseRemaining = expense.amount - expenseAllocated;
+                    
+                    // Recalculate income remaining properly (it might need full context but passed income obj should ideally have it or we calc it here)
+                    // Since we pass income object, we might not have its current usage context easily without full app state. 
+                    // To simplify, we will pass maxAllocatable directly from parent or calculate it if possible.
+                    // Actually, parent 'handleDrop' has access to state. Let's pass 'maxAllocatable' as prop.
+                }
+            }, [isOpen, expense, income]);
+
+            // We need a way to pass the max amount allowed.
+            // Let's change signature to accept maxAllocatable.
+            return null; // Implemented inside App for state access
+        };
+
         // --- APP COMPONENT ---
 
         const App = () => {
@@ -365,6 +434,14 @@
             const [viewingIncome, setViewingIncome] = useState(null); 
             const [isFullScreen, setIsFullScreen] = useState(false);
             const [confirmModal, setConfirmModal] = useState({ isOpen: false, message: '', onConfirm: () => {} });
+            
+            // New State for Visual Mode
+            const [viewMode, setViewMode] = useState('list'); // 'list' or 'visual'
+            const [draggingExpenseId, setDraggingExpenseId] = useState(null);
+            
+            // Slider Modal State
+            const [sliderModal, setSliderModal] = useState({ isOpen: false, expenseId: null, incomeId: null, maxAllocatable: 0 });
+            const [sliderValue, setSliderValue] = useState(0);
 
             const getCategoryName = (cat) => {
                 if (!cat) return '';
@@ -401,9 +478,97 @@
                 return parseFloat(income.amount) - totalAllocatedFromThisIncome;
             };
 
+            const totalAllocatedExpenses = expenses.reduce((sum, item) => sum + getExpenseAllocatedAmount(item), 0);
+            const totalUnfundedExpenses = totalExpenses - totalAllocatedExpenses;
+
             const requestConfirmation = (message, action) => {
                 setConfirmModal({ isOpen: true, message, onConfirm: action });
             };
+
+            // --- DRAG AND DROP LOGIC ---
+            
+            const handleDragStart = (e, expenseId) => {
+                e.dataTransfer.setData("expenseId", expenseId);
+                setDraggingExpenseId(expenseId);
+            };
+
+            const handleDragEnd = () => {
+                setDraggingExpenseId(null);
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault(); 
+            };
+
+            const handleDrop = (e, incomeId) => {
+                e.preventDefault();
+                const expenseId = e.dataTransfer.getData("expenseId");
+                if (!expenseId) return;
+
+                const income = incomes.find(i => i.id === incomeId);
+                const expense = expenses.find(exp => exp.id === expenseId);
+
+                // Check eligibility
+                const isFree = !income.eligibleCategories || income.eligibleCategories.length === 0;
+                const isCompatible = income.eligibleCategories?.includes(expense.categoryId);
+                
+                if (!isFree && !isCompatible) return; // Rejected
+
+                // Calculate smart allocation limits
+                const expenseAllocated = getExpenseAllocatedAmount(expense);
+                const expenseRemaining = expense.amount - expenseAllocated;
+                const incomeRemaining = getIncomeRemaining(incomeId);
+
+                if (expenseRemaining <= 0.01 || incomeRemaining <= 0.01) return;
+
+                const maxAllocatable = Math.min(expenseRemaining, incomeRemaining);
+                const cleanMax = Math.floor(maxAllocatable * 100) / 100;
+
+                // OPEN SLIDER MODAL instead of auto-allocating
+                setSliderValue(cleanMax); // Default to max
+                setSliderModal({
+                    isOpen: true,
+                    expenseId: expenseId,
+                    incomeId: incomeId,
+                    maxAllocatable: cleanMax
+                });
+                
+                setDraggingExpenseId(null);
+            };
+
+            const confirmSliderAllocation = () => {
+                const { expenseId, incomeId } = sliderModal;
+                const amountToAlloc = parseFloat(sliderValue);
+
+                if (amountToAlloc > 0) {
+                    setExpenses(prevExpenses => prevExpenses.map(exp => {
+                        if (exp.id === expenseId) {
+                            const currentAlloc = exp.allocations || [];
+                            const existingAllocIndex = currentAlloc.findIndex(a => a.incomeId === incomeId);
+                            let newAlloc;
+                            if (existingAllocIndex >= 0) {
+                                newAlloc = [...currentAlloc];
+                                newAlloc[existingAllocIndex].amount += amountToAlloc;
+                            } else {
+                                newAlloc = [...currentAlloc, { incomeId, amount: amountToAlloc }];
+                            }
+                            return { ...exp, allocations: newAlloc };
+                        }
+                        return exp;
+                    }));
+                }
+                setSliderModal({ isOpen: false, expenseId: null, incomeId: null, maxAllocatable: 0 });
+            };
+
+            const handleUnallocate = (expenseId, incomeId) => {
+                 setExpenses(prevExpenses => prevExpenses.map(exp => {
+                    if (exp.id === expenseId) {
+                        return { ...exp, allocations: exp.allocations.filter(a => a.incomeId !== incomeId) };
+                    }
+                    return exp;
+                }));
+            };
+
 
             const handlePrint = () => {
                 const originalTitle = document.title;
@@ -521,6 +686,127 @@
             const handleSave = () => { const blob = new Blob([JSON.stringify({ categories, expenses, incomes, currencyCode }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `budget_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(link); link.click(); document.body.removeChild(link); };
             const handleLoad = (e) => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); setCategories(d.categories); setExpenses(d.expenses); setIncomes(d.incomes); if(d.currencyCode) setCurrencyCode(d.currencyCode); } catch(err){alert(t.error)} }; r.readAsText(f); };
 
+            // --- VISUAL VIEW COMPONENT ---
+            const VisualView = () => {
+                const draggingExpense = expenses.find(e => e.id === draggingExpenseId);
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full min-h-[600px]">
+                        {/* LEFT: Unfunded Expenses */}
+                        <div className="md:col-span-4 lg:col-span-3 bg-slate-100 rounded-xl p-4 overflow-y-auto border border-slate-200 shadow-inner max-h-[80vh]">
+                            <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                <Receipt size={20} className="text-rose-500" />
+                                {t.visualLeft}
+                            </h3>
+                            <div className="space-y-3">
+                                {expenses.filter(exp => {
+                                    const allocated = getExpenseAllocatedAmount(exp);
+                                    return Math.abs(exp.amount - allocated) > 0.01;
+                                }).length === 0 && (
+                                    <div className="text-center p-8 text-emerald-500 font-bold">
+                                        <CheckCircle size={48} className="mx-auto mb-2 opacity-50"/>
+                                        {t.visualEmpty}
+                                    </div>
+                                )}
+                                {expenses.filter(exp => {
+                                    const allocated = getExpenseAllocatedAmount(exp);
+                                    return Math.abs(exp.amount - allocated) > 0.01;
+                                }).map(exp => {
+                                    const cat = categories.find(c => c.id === exp.categoryId);
+                                    const allocated = getExpenseAllocatedAmount(exp);
+                                    const remaining = exp.amount - allocated;
+                                    
+                                    return (
+                                        <div 
+                                            key={exp.id}
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, exp.id)}
+                                            onDragEnd={handleDragEnd}
+                                            className="bg-white p-3 rounded-lg border-l-4 border-l-rose-400 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all drag-card"
+                                        >
+                                            <div className="font-bold text-slate-800 text-sm">{exp.name}</div>
+                                            <div className="text-xs text-slate-500 mb-2">{getCategoryName(cat)}</div>
+                                            <div className="flex justify-between items-end">
+                                                <div className="text-xs text-slate-400">{formatCurrency(exp.amount)}</div>
+                                                <div className="font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded text-sm">{formatCurrency(remaining)}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Incomes Buckets */}
+                        <div className="md:col-span-8 lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-start overflow-y-auto max-h-[80vh] p-1">
+                            {incomes.map(inc => {
+                                const remaining = getIncomeRemaining(inc.id);
+                                const percentUsed = ((inc.amount - remaining) / inc.amount) * 100;
+                                
+                                // Check eligibility for styling
+                                let dropStatus = '';
+                                if (draggingExpenseId) {
+                                    const isFree = !inc.eligibleCategories || inc.eligibleCategories.length === 0;
+                                    const isCompatible = inc.eligibleCategories?.includes(draggingExpense?.categoryId);
+                                    if (isFree || isCompatible) {
+                                        dropStatus = 'eligible';
+                                    } else {
+                                        dropStatus = 'ineligible';
+                                    }
+                                }
+
+                                const allocatedExpenses = expenses.filter(e => e.allocations?.some(a => a.incomeId === inc.id));
+
+                                return (
+                                    <div 
+                                        key={inc.id}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, inc.id)}
+                                        className={`bg-white rounded-xl border-2 p-4 flex flex-col h-full shadow-sm drop-zone ${dropStatus === 'eligible' ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200' : (dropStatus === 'ineligible' ? 'border-slate-200 opacity-50 grayscale' : 'border-slate-100')}`}
+                                    >
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div>
+                                                <h4 className="font-bold text-slate-800">{inc.name}</h4>
+                                                <div className="text-xs text-slate-500">
+                                                    {!inc.eligibleCategories?.length ? t.freeFunds : t.targeting}
+                                                </div>
+                                            </div>
+                                            <div className={`text-lg font-bold ${remaining < 0 ? 'text-red-500' : 'text-emerald-600'}`}>{formatCurrency(remaining)}</div>
+                                        </div>
+
+                                        {/* Progress Bar */}
+                                        <div className="w-full bg-slate-100 rounded-full h-2 mb-4 overflow-hidden">
+                                            <div className={`h-full transition-all duration-500 ${percentUsed > 100 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(percentUsed, 100)}%` }}></div>
+                                        </div>
+
+                                        {/* Content inside bucket */}
+                                        <div className="flex-1 space-y-2 min-h-[50px] bg-slate-50 rounded-lg p-2 inner-shadow">
+                                            {allocatedExpenses.length === 0 && <div className="text-center text-xs text-slate-400 py-4 italic">{t.dragDropHint}</div>}
+                                            {allocatedExpenses.map(exp => {
+                                                const alloc = exp.allocations.find(a => a.incomeId === inc.id);
+                                                return (
+                                                    <div key={exp.id} className="bg-white border border-emerald-100 p-2 rounded flex justify-between items-center text-sm shadow-sm group">
+                                                        <span className="truncate max-w-[60%]">{exp.name}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-bold text-emerald-700">{formatCurrency(alloc.amount)}</span>
+                                                            <button 
+                                                                onClick={() => handleUnallocate(exp.id, inc.id)}
+                                                                className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                                <X size={14}/>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                );
+            };
+
             return (
                 <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-20 print:bg-white print:pb-0">
                     <header className="bg-gradient-to-r from-indigo-700 to-indigo-800 text-white p-4 shadow-lg print:hidden">
@@ -538,13 +824,43 @@
                                         {CURRENCIES.map(c => <option key={c.code} value={c.code} className="text-slate-800">{c.code} - {c.symbol}</option>)}
                                     </select>
                                 </div>
+                                
+                                {/* View Toggle Button */}
+                                <Button 
+                                    onClick={() => setViewMode(viewMode === 'list' ? 'visual' : 'list')} 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="bg-white/10 text-white border-white/20 hover:bg-white/20" 
+                                    icon={viewMode === 'list' ? LayoutGrid : List} 
+                                    title={viewMode === 'list' ? t.viewVisual : t.viewList}
+                                >
+                                    <span className="hidden sm:inline">{viewMode === 'list' ? t.viewVisual : t.viewList}</span>
+                                </Button>
+
                                 <Button onClick={createNewProject} variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20" icon={FilePlus} title={t.newProject}><span className="hidden sm:inline">{t.newProject}</span></Button>
                                 <Button onClick={resetToExample} variant="ghost" size="sm" className="text-indigo-200 hover:text-white border border-indigo-200/20" icon={RefreshCw} title={t.reset}></Button>
                                 <Button onClick={toggleFullScreen} variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20" icon={isFullScreen ? Minimize : Maximize}>{isFullScreen ? t.exitFullScreen : t.fullScreen}</Button>
                                 <Button onClick={autoDistribute} variant="magic" size="sm" icon={Wand2}>{t.autoDistribute}</Button>
                                 <div className="w-px h-6 bg-indigo-500/50 mx-1 hidden sm:block"></div>
-                                <label className="cursor-pointer bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 border border-white/20 transition-colors text-sm"><Upload size={16} /><span className="hidden sm:inline">{t.load}</span><input type="file" accept=".json" onChange={handleLoad} className="hidden" /></label>
-                                <Button onClick={handleSave} variant="secondary" size="sm" className="bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-500" icon={Save}>{t.save}</Button>
+                                
+                                {/* BOUTON OUVRIR / CHARGER UN FICHIER */}
+                                <label className="cursor-pointer bg-white text-indigo-700 hover:bg-indigo-50 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-sm font-bold">
+                                    <Upload size={16} />
+                                    <span className="hidden sm:inline">{t.load}</span>
+                                    <input type="file" accept=".json" onChange={handleLoad} className="hidden" />
+                                </label>
+                                
+                                {/* BOUTON SAUVEGARDER / TELECHARGER */}
+                                <Button 
+                                    onClick={handleSave} 
+                                    variant="primary" 
+                                    size="sm" 
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm border border-indigo-500" 
+                                    icon={Save}
+                                >
+                                    {t.save}
+                                </Button>
+                                
                                 <Button onClick={handlePrint} variant="success" size="sm" icon={FileDown}>{t.pdf}</Button>
                             </div>
                         </div>
@@ -555,118 +871,146 @@
                         <p className="text-slate-500">{t.generatedOn} {new Date().toLocaleDateString()}</p>
                     </div>
 
-                    <main className={`mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-8 print:block print:p-0 ${isFullScreen ? 'w-full' : 'max-w-7xl'}`}>
-                        <section className="space-y-6 print:mb-8">
-                            <div className="flex items-center justify-between print:border-b print:pb-2 print:mb-4">
-                                <h2 className="text-xl font-bold flex items-center gap-2 text-rose-700"><Receipt className="text-rose-500" /> {t.expenses}</h2>
-                                <div className="text-right"><span className="text-2xl font-bold text-slate-800">{formatCurrency(totalExpenses)}</span></div>
-                            </div>
-                            <Card className="p-4 bg-rose-50 border-rose-100 print:hidden shadow-sm">
-                                <h3 className="text-sm font-semibold text-rose-800 mb-3 uppercase flex items-center gap-2"><Plus size={16}/> {t.newExpense}</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
-                                    <input type="text" placeholder={t.expensePlaceholder} className="w-full px-3 py-2 rounded border border-rose-200 outline-none sm:col-span-2" value={newExpense.name} onChange={e => setNewExpense({...newExpense, name: e.target.value})} />
-                                    <input type="number" placeholder={t.amount} className="w-full px-3 py-2 rounded border border-rose-200 outline-none" value={newExpense.amount} onChange={e => setNewExpense({...newExpense, amount: e.target.value})} />
-                                </div>
-                                <div className="flex gap-2">
-                                    <select className="flex-1 px-3 py-2 rounded border border-rose-200 bg-white text-sm outline-none" value={newExpense.categoryId} onChange={e => setNewExpense({...newExpense, categoryId: e.target.value})}>
-                                        <option value="">-- {t.category} --</option>
-                                        {categories.map(cat => <option key={cat.id} value={cat.id}>{getCategoryName(cat)}</option>)}
-                                    </select>
-                                    <Button onClick={addExpense} variant="primary" className="bg-rose-600">{t.add}</Button>
-                                </div>
-                            </Card>
-                            <div className="space-y-3">
-                                {expenses.length === 0 && <p className="text-center text-slate-400 py-8">{t.emptyExpenses}</p>}
-                                {expenses.map(expense => {
-                                    const category = categories.find(c => c.id === expense.categoryId);
-                                    const allocatedAmt = getExpenseAllocatedAmount(expense);
-                                    const isFullyAllocated = Math.abs(expense.amount - allocatedAmt) < 0.01;
-                                    const isPartiallyAllocated = allocatedAmt > 0 && !isFullyAllocated;
-                                    return (
-                                        <div key={expense.id} className={`bg-white p-4 rounded-lg border-l-4 shadow-sm hover:shadow-md transition-all cursor-pointer group break-inside-avoid ${isFullyAllocated ? 'border-l-emerald-500' : (isPartiallyAllocated ? 'border-l-amber-400' : 'border-l-slate-300')}`} onClick={() => openAllocationModal(expense)}>
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2"><span className="font-bold text-slate-800 text-lg">{expense.name}</span><Badge color="slate">{getCategoryName(category) || 'Autre'}</Badge></div>
-                                                    {expense.allocations?.length > 0 ? (
-                                                        <div className="mt-2 text-xs space-y-1">
-                                                            {expense.allocations.map((alloc, idx) => {
-                                                                const inc = incomes.find(i => i.id === alloc.incomeId);
-                                                                return (<div key={idx} className="flex items-center gap-1 text-slate-600"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div><span>{inc?.name}: <strong>{formatCurrency(alloc.amount)}</strong></span></div>);
-                                                            })}
-                                                            {!isFullyAllocated && <div className="flex items-center gap-1 text-amber-600 font-medium"><div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div><span>{t.remainingToFund}: {formatCurrency(expense.amount - allocatedAmt)}</span></div>}
+                    <main className={`mx-auto p-4 md:p-6 print:block print:p-0 ${isFullScreen ? 'w-full' : 'max-w-7xl'}`}>
+                        {viewMode === 'list' ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <section className="space-y-6 print:mb-8">
+                                    <div className="flex items-center justify-between print:border-b print:pb-2 print:mb-4">
+                                        <h2 className="text-xl font-bold flex items-center gap-2 text-rose-700"><Receipt className="text-rose-500" /> {t.expenses}</h2>
+                                        <div className="text-right"><span className="text-2xl font-bold text-slate-800">{formatCurrency(totalExpenses)}</span></div>
+                                    </div>
+                                    <Card className="p-4 bg-rose-50 border-rose-100 print:hidden shadow-sm">
+                                        <h3 className="text-sm font-semibold text-rose-800 mb-3 uppercase flex items-center gap-2"><Plus size={16}/> {t.newExpense}</h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
+                                            <input type="text" placeholder={t.expensePlaceholder} className="w-full px-3 py-2 rounded border border-rose-200 outline-none sm:col-span-2" value={newExpense.name} onChange={e => setNewExpense({...newExpense, name: e.target.value})} />
+                                            <input type="number" placeholder={t.amount} className="w-full px-3 py-2 rounded border border-rose-200 outline-none" value={newExpense.amount} onChange={e => setNewExpense({...newExpense, amount: e.target.value})} />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <select className="flex-1 px-3 py-2 rounded border border-rose-200 bg-white text-sm outline-none" value={newExpense.categoryId} onChange={e => setNewExpense({...newExpense, categoryId: e.target.value})}>
+                                                <option value="">-- {t.category} --</option>
+                                                {categories.map(cat => <option key={cat.id} value={cat.id}>{getCategoryName(cat)}</option>)}
+                                            </select>
+                                            <Button onClick={addExpense} variant="primary" className="bg-rose-600">{t.add}</Button>
+                                        </div>
+                                        {/* SECTION AJOUT CATEGORIE BIEN VISIBLE */}
+                                        <div className="pt-2 mt-2 border-t border-rose-100">
+                                            {!showCatForm ? (
+                                                <button onClick={() => setShowCatForm(true)} className="text-xs text-indigo-600 font-bold hover:underline flex items-center gap-1">
+                                                    + {t.createCategory}
+                                                </button>
+                                            ) : (
+                                                <div className="flex gap-2 items-center mt-2 bg-white p-2 rounded border border-rose-200 shadow-sm">
+                                                    <input type="text" placeholder={t.catPlaceholder} className="px-2 py-1 text-sm border rounded w-full outline-none focus:ring-1 focus:ring-rose-300" value={newCatName} onChange={e => setNewCatName(e.target.value)} />
+                                                    <Button onClick={addCategory} variant="secondary" size="sm">{t.ok}</Button>
+                                                    <button onClick={() => setShowCatForm(false)} className="text-slate-400 hover:text-rose-600"><X size={16}/></button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Card>
+                                    <div className="space-y-3">
+                                        {expenses.length === 0 && <p className="text-center text-slate-400 py-8">{t.emptyExpenses}</p>}
+                                        {expenses.map(expense => {
+                                            const category = categories.find(c => c.id === expense.categoryId);
+                                            const allocatedAmt = getExpenseAllocatedAmount(expense);
+                                            const remainingAmt = expense.amount - allocatedAmt;
+                                            const isFullyAllocated = Math.abs(remainingAmt) < 0.01;
+                                            const isPartiallyAllocated = allocatedAmt > 0 && !isFullyAllocated;
+                                            return (
+                                                <div key={expense.id} className={`bg-white p-4 rounded-lg border-l-4 shadow-sm hover:shadow-md transition-all cursor-pointer group break-inside-avoid ${isFullyAllocated ? 'border-l-emerald-500' : (isPartiallyAllocated ? 'border-l-amber-400' : 'border-l-slate-300')}`} onClick={() => openAllocationModal(expense)}>
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-bold text-slate-800 text-lg">{expense.name}</span>
+                                                                <Badge color="slate">{getCategoryName(category) || 'Autre'}</Badge>
+                                                                {!isFullyAllocated && <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded ml-1">{t.remainingToFund}: {formatCurrency(remainingAmt)}</span>}
+                                                            </div>
+                                                            {expense.allocations?.length > 0 ? (
+                                                                <div className="mt-2 text-xs space-y-1">
+                                                                    {expense.allocations.map((alloc, idx) => {
+                                                                        const inc = incomes.find(i => i.id === alloc.incomeId);
+                                                                        return (<div key={idx} className="flex items-center gap-1 text-slate-600"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div><span>{inc?.name}: <strong>{formatCurrency(alloc.amount)}</strong></span></div>);
+                                                                    })}
+                                                                </div>
+                                                            ) : <div className="mt-2 text-xs text-slate-400 italic">{t.notAllocated}</div>}
                                                         </div>
-                                                    ) : <div className="mt-2 text-xs text-slate-400 italic">{t.notAllocated}</div>}
+                                                        <div className="flex flex-col items-end gap-2"><span className="font-bold text-rose-700 text-xl">{formatCurrency(expense.amount)}</span><button onClick={(e) => { e.stopPropagation(); deleteExpense(expense.id); }} className="text-slate-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden"><Trash2 size={18} /></button></div>
+                                                    </div>
+                                                    <div className="mt-3 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex print:hidden">
+                                                        {isFullyAllocated ? <div className="h-full w-full bg-emerald-500"></div> : <><div className="h-full bg-emerald-500" style={{ width: `${(allocatedAmt / expense.amount) * 100}%`}}></div><div className="h-full bg-amber-400" style={{ width: `${((expense.amount - allocatedAmt) / expense.amount) * 100}%`}}></div></>}
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-2"><span className="font-bold text-rose-700 text-xl">{formatCurrency(expense.amount)}</span><button onClick={(e) => { e.stopPropagation(); deleteExpense(expense.id); }} className="text-slate-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden"><Trash2 size={18} /></button></div>
-                                            </div>
-                                            <div className="mt-3 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex print:hidden">
-                                                {isFullyAllocated ? <div className="h-full w-full bg-emerald-500"></div> : <><div className="h-full bg-emerald-500" style={{ width: `${(allocatedAmt / expense.amount) * 100}%`}}></div><div className="h-full bg-amber-400" style={{ width: `${((expense.amount - allocatedAmt) / expense.amount) * 100}%`}}></div></>}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
 
-                        <section className="space-y-6">
-                            <div className="flex items-center justify-between print:border-b print:pb-2 print:mb-4">
-                                <h2 className="text-xl font-bold flex items-center gap-2 text-emerald-700"><Wallet className="text-emerald-500" /> {t.incomes}</h2>
-                                <div className="text-right"><span className="text-2xl font-bold text-slate-800">{formatCurrency(totalIncomes)}</span></div>
-                            </div>
-                            <Card className="p-4 bg-emerald-50 border-emerald-100 print:hidden shadow-sm">
-                                <h3 className="text-sm font-semibold text-emerald-800 mb-3 uppercase flex items-center gap-2"><Plus size={16} /> {t.newIncome}</h3>
-                                <div className="space-y-3">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <input type="text" placeholder={t.sourcePlaceholder} className="w-full px-3 py-2 rounded border border-emerald-200 outline-none" value={newIncome.name} onChange={e => setNewIncome({...newIncome, name: e.target.value})} />
-                                        <input type="number" placeholder={t.amount} className="w-full px-3 py-2 rounded border border-emerald-200 outline-none" value={newIncome.amount} onChange={e => setNewIncome({...newIncome, amount: e.target.value})} />
+                                <section className="space-y-6">
+                                    <div className="flex items-center justify-between print:border-b print:pb-2 print:mb-4">
+                                        <h2 className="text-xl font-bold flex items-center gap-2 text-emerald-700"><Wallet className="text-emerald-500" /> {t.incomes}</h2>
+                                        <div className="text-right"><span className="text-2xl font-bold text-slate-800">{formatCurrency(totalIncomes)}</span></div>
                                     </div>
-                                    <div className="bg-white p-3 rounded border border-emerald-200 shadow-sm max-h-32 overflow-y-auto">
-                                        <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1"><CheckCircle size={12}/> {t.targeting}</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {categories.map(cat => <button key={cat.id} onClick={() => toggleCategorySelection(cat.id, newIncome, setNewIncome)} className={`text-xs px-2 py-1 rounded-full border transition-all ${newIncome.eligibleCategories.includes(cat.id) ? 'bg-emerald-600 text-white' : 'bg-slate-50'}`}>{getCategoryName(cat)}</button>)}
-                                        </div>
-                                    </div>
-                                    <Button onClick={addIncome} variant="primary" className="w-full bg-emerald-600">{t.add}</Button>
-                                </div>
-                            </Card>
-                            <div className="space-y-4">
-                                {incomes.length === 0 && <p className="text-center text-slate-400 py-8">{t.emptyIncomes}</p>}
-                                {incomes.map(income => {
-                                    const remaining = getIncomeRemaining(income.id);
-                                    const percentUsed = ((income.amount - remaining) / income.amount) * 100;
-                                    return (
-                                        <div key={income.id} className="bg-white p-4 rounded-lg shadow-sm border border-emerald-100 relative group break-inside-avoid cursor-pointer hover:shadow-md transition-all" onClick={() => setViewingIncome(income)}>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="flex items-center gap-2"><h3 className="font-bold text-slate-800 text-lg">{income.name}</h3><Eye size={16} className="text-emerald-300 opacity-50 group-hover:opacity-100 transition-opacity" /></div>
-                                                <div className="flex items-center gap-1 print:hidden opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-2 bg-white/80 backdrop-blur-sm rounded-lg p-1">
-                                                    <button onClick={(e) => { e.stopPropagation(); setEditingIncome(income); }} className="text-slate-400 hover:text-emerald-600 p-1.5 rounded" title={t.edit}><Pencil size={16}/></button>
-                                                    <button onClick={(e) => { e.stopPropagation(); deleteIncome(income.id); }} className="text-slate-400 hover:text-red-500 p-1.5 rounded" title={t.delete}><Trash2 size={16}/></button>
+                                    <Card className="p-4 bg-emerald-50 border-emerald-100 print:hidden shadow-sm">
+                                        <h3 className="text-sm font-semibold text-emerald-800 mb-3 uppercase flex items-center gap-2"><Plus size={16} /> {t.newIncome}</h3>
+                                        <div className="space-y-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <input type="text" placeholder={t.sourcePlaceholder} className="w-full px-3 py-2 rounded border border-emerald-200 outline-none" value={newIncome.name} onChange={e => setNewIncome({...newIncome, name: e.target.value})} />
+                                                <input type="number" placeholder={t.amount} className="w-full px-3 py-2 rounded border border-emerald-200 outline-none" value={newIncome.amount} onChange={e => setNewIncome({...newIncome, amount: e.target.value})} />
+                                            </div>
+                                            <div className="bg-white p-3 rounded border border-emerald-200 shadow-sm max-h-32 overflow-y-auto">
+                                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1"><CheckCircle size={12}/> {t.targeting}</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {categories.map(cat => <button key={cat.id} onClick={() => toggleCategorySelection(cat.id, newIncome, setNewIncome)} className={`text-xs px-2 py-1 rounded-full border transition-all ${newIncome.eligibleCategories.includes(cat.id) ? 'bg-emerald-600 text-white' : 'bg-slate-50'}`}>{getCategoryName(cat)}</button>)}
                                                 </div>
-                                                <div className="w-12 h-6 hidden sm:block"></div> 
-                                                <div className="flex items-center gap-2"><span className="font-bold text-emerald-700 text-lg">{formatCurrency(income.amount)}</span></div>
                                             </div>
-                                            <div className="flex flex-wrap gap-1 mb-3">
-                                                {income.eligibleCategories?.length > 0 ? income.eligibleCategories.map(catId => { const cat = categories.find(c => c.id === catId); return cat ? <Badge key={catId} color="slate">{getCategoryName(cat)}</Badge> : null; }) : <Badge color="amber">{t.freeFunds}</Badge>}
-                                            </div>
-                                            <div className="w-full bg-slate-100 rounded-full h-4 mb-2 overflow-hidden border border-slate-100 relative print:border-slate-300">
-                                                <div className={`h-full transition-all duration-500 ${percentUsed > 100 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(percentUsed, 100)}%` }}></div>
-                                                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-600 mix-blend-multiply">{Math.round(percentUsed)}% {t.used}</div>
-                                            </div>
-                                            <div className="flex justify-between text-xs">
-                                                <span className="text-slate-500">{t.used}: {formatCurrency(income.amount - remaining)}</span>
-                                                <span className={`font-bold px-2 py-0.5 rounded ${remaining < 0 ? 'bg-red-100 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>{t.available}: {formatCurrency(remaining)}</span>
-                                            </div>
+                                            <Button onClick={addIncome} variant="primary" className="w-full bg-emerald-600">{t.add}</Button>
                                         </div>
-                                    );
-                                })}
+                                    </Card>
+                                    <div className="space-y-4">
+                                        {incomes.length === 0 && <p className="text-center text-slate-400 py-8">{t.emptyIncomes}</p>}
+                                        {incomes.map(income => {
+                                            const remaining = getIncomeRemaining(income.id);
+                                            const percentUsed = ((income.amount - remaining) / income.amount) * 100;
+                                            return (
+                                                <div key={income.id} className="bg-white p-4 rounded-lg shadow-sm border border-emerald-100 relative group break-inside-avoid cursor-pointer hover:shadow-md transition-all" onClick={() => setViewingIncome(income)}>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div className="flex items-center gap-2"><h3 className="font-bold text-slate-800 text-lg">{income.name}</h3><Eye size={16} className="text-emerald-300 opacity-50 group-hover:opacity-100 transition-opacity" /></div>
+                                                        <div className="flex items-center gap-1 print:hidden opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-2 bg-white/80 backdrop-blur-sm rounded-lg p-1">
+                                                            <button onClick={(e) => { e.stopPropagation(); setEditingIncome(income); }} className="text-slate-400 hover:text-emerald-600 p-1.5 rounded" title={t.edit}><Pencil size={16}/></button>
+                                                            <button onClick={(e) => { e.stopPropagation(); deleteIncome(income.id); }} className="text-slate-400 hover:text-red-500 p-1.5 rounded" title={t.delete}><Trash2 size={16}/></button>
+                                                        </div>
+                                                        <div className="w-12 h-6 hidden sm:block"></div> 
+                                                        <div className="flex items-center gap-2"><span className="font-bold text-emerald-700 text-lg">{formatCurrency(income.amount)}</span></div>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1 mb-3">
+                                                        {income.eligibleCategories?.length > 0 ? income.eligibleCategories.map(catId => { const cat = categories.find(c => c.id === catId); return cat ? <Badge key={catId} color="slate">{getCategoryName(cat)}</Badge> : null; }) : <Badge color="amber">{t.freeFunds}</Badge>}
+                                                    </div>
+                                                    <div className="w-full bg-slate-100 rounded-full h-4 mb-2 overflow-hidden border border-slate-100 relative print:border-slate-300">
+                                                        <div className={`h-full transition-all duration-500 ${percentUsed > 100 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(percentUsed, 100)}%` }}></div>
+                                                        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-600 mix-blend-multiply">{Math.round(percentUsed)}% {t.used}</div>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs">
+                                                        <span className="text-slate-500">{t.used}: {formatCurrency(income.amount - remaining)}</span>
+                                                        <span className={`font-bold px-2 py-0.5 rounded ${remaining < 0 ? 'bg-red-100 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>{t.available}: {formatCurrency(remaining)}</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
                             </div>
-                        </section>
+                        ) : (
+                            <VisualView />
+                        )}
                     </main>
 
                     <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg z-10 print:static print:shadow-none print:mt-8">
                         <div className={`mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 ${isFullScreen ? 'w-full px-4' : 'max-w-7xl'}`}>
                             <div className="flex gap-8 text-sm sm:text-base">
-                                <div className="text-slate-600 flex flex-col"><span className="text-xs uppercase font-bold text-slate-400">{t.totalExpenses}</span><span className="font-bold text-slate-900 text-xl">{formatCurrency(totalExpenses)}</span></div>
+                                <div className="text-slate-600 flex flex-col">
+                                    <span className="text-xs uppercase font-bold text-slate-400">{t.totalExpenses}</span>
+                                    <span className="font-bold text-slate-900 text-xl">{formatCurrency(totalExpenses)}</span>
+                                    <span className="text-xs text-rose-500 font-semibold mt-1">{t.remainingToFundGlobal} {formatCurrency(totalUnfundedExpenses)}</span>
+                                </div>
                                 <div className="text-slate-600 flex flex-col"><span className="text-xs uppercase font-bold text-slate-400">{t.totalIncomes}</span><span className="font-bold text-slate-900 text-xl">{formatCurrency(totalIncomes)}</span></div>
                             </div>
                             <div className={`px-6 py-2 rounded-xl font-bold text-lg flex items-center gap-3 border shadow-sm ${globalBalance >= 0 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200'}`}>
@@ -676,6 +1020,37 @@
                     </footer>
 
                     {/* MODALS */}
+                    {/* Allocation Slider Modal */}
+                    {sliderModal.isOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm print:hidden">
+                            <div className="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full border border-slate-100 animate-in fade-in zoom-in duration-200">
+                                <div className="mb-6">
+                                    <h3 className="font-bold text-lg text-slate-800 mb-2">{t.allocationTitle}</h3>
+                                    <p className="text-sm text-slate-500 mb-4">{t.amountToAlloc}</p>
+                                    
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-2xl font-bold text-indigo-600">{formatCurrency(sliderValue)}</span>
+                                        <span className="text-xs text-slate-400">Max: {formatCurrency(sliderModal.maxAllocatable)}</span>
+                                    </div>
+                                    
+                                    <input 
+                                        type="range" 
+                                        min="0" 
+                                        max={sliderModal.maxAllocatable} 
+                                        step="0.01" 
+                                        value={sliderValue} 
+                                        onChange={(e) => setSliderValue(parseFloat(e.target.value))}
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="flex justify-end gap-3">
+                                    <Button variant="secondary" onClick={() => setSliderModal({ ...sliderModal, isOpen: false })}>{t.cancel}</Button>
+                                    <Button variant="primary" onClick={confirmSliderAllocation}>{t.ok}</Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {confirmModal.isOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm print:hidden">
                             <div className="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full border border-slate-100 animate-in fade-in zoom-in duration-200">
