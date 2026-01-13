@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Bonnes Pratiques - Vi-Act</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Print Styles */
+        @media print {
+            @page { margin: 0; size: A4; }
+            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .preview-container { 
+                box-shadow: none !important; 
+                margin: 0 !important; 
+                width: 100% !important; 
+                max-width: 100% !important;
+                min-height: 100vh;
+                border: none !important;
+            }
+            /* Reset columns for print to ensure full width */
+            #main-layout { display: block !important; }
+            #preview-col { width: 100% !important; display: block !important; }
+            #editor-col { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white p-4 shadow-md no-print sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-orange-500 p-2 rounded-lg">
+                    <i data-lucide="book-open" class="text-white w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight" id="header-title">Générateur de Bonnes Pratiques</h1>
+                    <p class="text-xs text-indigo-200" id="header-subtitle">Capitalisation pour le Travail Jeunesse - Projet Vi-Act</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="toggleLang()" class="flex items-center gap-2 px-3 py-1 bg-indigo-800 hover:bg-indigo-700 rounded-full text-sm transition-colors border border-indigo-600">
+                    <i data-lucide="globe" class="w-4 h-4"></i>
+                    <span id="lang-btn-text">English</span>
+                </button>
+                <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold shadow-sm transition-colors">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span class="hidden md:inline" id="download-btn">Télécharger / Imprimer (PDF)</span>
+                    <span class="md:hidden">PDF</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-4 md:p-8 flex flex-col lg:flex-row gap-8" id="main-layout">
+
+        <!-- Mobile Tabs -->
+        <div class="lg:hidden flex gap-2 mb-4 no-print w-full">
+            <button onclick="switchTab('edit')" id="tab-edit" class="flex-1 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-indigo-600 text-white">
+                <i data-lucide="pen-tool" class="w-4 h-4"></i> <span id="tab-edit-text">Éditeur</span>
+            </button>
+            <button onclick="switchTab('preview')" id="tab-preview" class="flex-1 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-white text-slate-600">
+                <i data-lucide="layout" class="w-4 h-4"></i> <span id="tab-preview-text">Aperçu</span>
+            </button>
+        </div>
+
+        <!-- Editor Column -->
+        <div id="editor-col" class="lg:w-1/2 flex flex-col gap-6 no-print">
+            
+            <!-- Info Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-bold text-indigo-900 mb-4 border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="user" class="text-orange-500 w-5 h-5"></i> <span id="section-info">Informations Générales</span>
+                </h2>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-1" id="label-title">Titre</label>
+                    <input type="text" id="input-title" placeholder="Ex: Atelier..." class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-slate-700 mb-1" id="label-author">Auteur</label>
+                        <input type="text" id="input-author" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-slate-700 mb-1" id="label-date">Date</label>
+                        <input type="date" id="input-date" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-slate-700 mb-1" id="label-type">Type</label>
+                        <select id="input-type" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <!-- Options filled by JS -->
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-slate-700 mb-1" id="label-lang-resource">Langue Ressource</label>
+                        <input type="text" id="input-resource-lang" placeholder="FR, EN..." value="FR" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-1" id="label-location">Lieu</label>
+                    <input type="text" id="input-location" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <!-- Context Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-bold text-indigo-900 mb-4 border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="target" class="text-orange-500 w-5 h-5"></i> <span id="section-context">Contexte & Objectifs</span>
+                </h2>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-1" id="label-context">Contexte</label>
+                    <p class="text-xs text-slate-500 mb-2 italic" id="help-context">Aide...</p>
+                    <textarea id="input-context" rows="3" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none overflow-hidden" oninput="autoResize(this)"></textarea>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-1" id="label-objectives">Objectifs</label>
+                    <p class="text-xs text-slate-500 mb-2 italic" id="help-objectives">Aide...</p>
+                    <textarea id="input-objectives" rows="3" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none overflow-hidden" oninput="autoResize(this)"></textarea>
+                </div>
+            </div>
+
+            <!-- Method Section (Dynamic) -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-bold text-indigo-900 mb-4 border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="layout" class="text-orange-500 w-5 h-5"></i> <span id="section-method">Mise en Œuvre</span>
+                </h2>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-1" id="label-steps">Déroulement</label>
+                    <p class="text-xs text-slate-500 mb-2 italic" id="help-steps">Aide...</p>
+                    <textarea id="input-steps" rows="5" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none overflow-hidden" oninput="autoResize(this)"></textarea>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-1" id="label-resources">Ressources</label>
+                    <p class="text-xs text-slate-500 mb-2 italic" id="help-resources">Aide...</p>
+                    <textarea id="input-resources" rows="3" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none overflow-hidden" oninput="autoResize(this)"></textarea>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-bold text-indigo-900 mb-4 border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="lightbulb" class="text-orange-500 w-5 h-5"></i> <span id="section-results">Résultats</span>
+                </h2>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-1" id="label-results">Impact</label>
+                    <p class="text-xs text-slate-500 mb-2 italic" id="help-results">Aide...</p>
+                    <textarea id="input-results" rows="3" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none overflow-hidden" oninput="autoResize(this)"></textarea>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-1" id="label-tips">Conseils</label>
+                    <p class="text-xs text-slate-500 mb-2 italic" id="help-tips">Aide...</p>
+                    <textarea id="input-tips" rows="3" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none overflow-hidden" oninput="autoResize(this)"></textarea>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Preview Column -->
+        <div id="preview-col" class="hidden lg:block lg:w-1/2">
+            <div class="sticky top-24">
+                
+                <!-- The A4 Sheet Simulation -->
+                <div id="printable-area" class="preview-container bg-white w-full mx-auto shadow-2xl overflow-hidden relative" style="aspect-ratio: 210/297;">
+                    
+                    <!-- Decorative Header Bar -->
+                    <div class="h-4 w-full bg-gradient-to-r from-indigo-900 via-indigo-700 to-orange-500"></div>
+
+                    <div class="p-8 md:p-12 h-full flex flex-col">
+                        
+                        <!-- Header Preview -->
+                        <div class="flex justify-between items-start border-b-2 border-indigo-100 pb-6 mb-8">
+                            <div class="w-3/4">
+                                <div class="flex gap-2 mb-2">
+                                    <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold uppercase tracking-wider rounded" id="preview-header-tag">Fiche</span>
+                                    <span class="inline-block px-3 py-1 bg-orange-100 text-orange-800 text-xs font-bold uppercase tracking-wider rounded" id="preview-viact-tag">Projet Vi-Act</span>
+                                </div>
+                                <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight" id="preview-title">...</h1>
+                                <p class="text-slate-500 mt-2 flex items-center gap-1" id="preview-location-container">
+                                    <i data-lucide="globe" class="w-3 h-3"></i> <span id="preview-location"></span>
+                                </p>
+                            </div>
+                            <div class="w-1/4 text-right">
+                                <div class="inline-flex items-center justify-center w-16 h-16 bg-orange-50 rounded-full text-orange-500 mb-2">
+                                    <i data-lucide="file-text" class="w-8 h-8"></i>
+                                </div>
+                                <div class="text-xs text-slate-400 font-mono" id="preview-date-print"></div>
+                            </div>
+                        </div>
+
+                        <!-- Grid Layout Preview -->
+                        <div class="flex flex-col md:flex-row gap-8 flex-grow">
+                            
+                            <!-- Sidebar -->
+                            <div class="w-full md:w-1/3 flex flex-col gap-6">
+                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Info</h3>
+                                    
+                                    <div class="mb-4">
+                                        <p class="text-xs text-slate-500" id="preview-label-author">Auteur</p>
+                                        <p class="font-semibold text-indigo-900 break-words" id="preview-author">-</p>
+                                    </div>
+                                    <div class="mb-4">
+                                        <p class="text-xs text-slate-500" id="preview-label-type">Type</p>
+                                        <p class="font-semibold text-indigo-900" id="preview-type">-</p>
+                                    </div>
+                                    <div class="mb-4">
+                                        <p class="text-xs text-slate-500" id="preview-label-lang">Langue</p>
+                                        <p class="font-semibold text-indigo-900 flex items-center gap-1">
+                                            <i data-lucide="languages" class="w-3 h-3 text-orange-500"></i>
+                                            <span id="preview-resource-lang">-</span>
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-500" id="preview-label-date">Date</p>
+                                        <p class="font-semibold text-indigo-900" id="preview-date">-</p>
+                                    </div>
+                                </div>
+
+                                <div id="preview-resources-box" class="hidden bg-orange-50 p-4 rounded-lg border border-orange-100">
+                                    <h3 class="text-sm font-bold text-orange-800 mb-2 flex items-center gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i> <span id="preview-resources-title">Ressources</span>
+                                    </h3>
+                                    <p class="text-sm text-slate-700 whitespace-pre-wrap" id="preview-resources"></p>
+                                </div>
+
+                                <div id="preview-tips-box" class="hidden bg-indigo-50 p-4 rounded-lg border border-indigo-100 mt-auto">
+                                    <h3 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                                        <i data-lucide="alert-triangle" class="w-4 h-4"></i> <span id="preview-tips-title">Conseils</span>
+                                    </h3>
+                                    <p class="text-sm text-slate-700 italic whitespace-pre-wrap" id="preview-tips"></p>
+                                </div>
+                            </div>
+
+                            <!-- Main Body -->
+                            <div class="w-full md:w-2/3 flex flex-col gap-6">
+                                
+                                <section>
+                                    <h3 class="text-lg font-bold text-indigo-900 mb-2 border-b border-indigo-100 pb-1" id="preview-context-title">Contexte</h3>
+                                    <p class="text-slate-700 leading-relaxed text-sm whitespace-pre-wrap" id="preview-context">...</p>
+                                </section>
+
+                                <section>
+                                    <h3 class="text-lg font-bold text-indigo-900 mb-2 border-b border-indigo-100 pb-1" id="preview-objectives-title">Objectifs</h3>
+                                    <p class="text-slate-700 leading-relaxed text-sm whitespace-pre-wrap" id="preview-objectives">...</p>
+                                </section>
+
+                                <section class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                                    <h3 class="text-lg font-bold text-indigo-900 mb-3" id="preview-steps-title">Déroulement</h3>
+                                    <p class="text-slate-700 leading-relaxed text-sm whitespace-pre-wrap" id="preview-steps">...</p>
+                                </section>
+
+                                <section>
+                                    <h3 class="text-lg font-bold text-indigo-900 mb-2 border-b border-indigo-100 pb-1" id="preview-impact-title">Impact</h3>
+                                    <p class="text-slate-700 leading-relaxed text-sm whitespace-pre-wrap" id="preview-results">...</p>
+                                </section>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400">
+                            <span id="preview-footer-project">Projet Vi-Act - Generated with Capitalization Tool</span>
+                            <span>Page 1/1</span>
+                        </div>
+
+                    </div>
+                    
+                    <!-- Decorative Corner -->
+                    <div class="absolute bottom-0 right-0 w-16 h-16 bg-orange-500 opacity-10 rounded-tl-full"></div>
+                </div>
+
+                <!-- Print Hint -->
+                <div class="mt-4 text-center no-print">
+                    <p class="text-sm text-slate-500 flex items-center justify-center gap-2">
+                        <i data-lucide="printer" class="w-4 h-4"></i> <span id="download-hint">Conseil : "Enregistrer au format PDF"</span>
+                    </p>
+                    <p class="text-xs text-slate-400 mt-1" id="filename-preview">Nom du fichier : ...</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data & Translations ---
+        const TRANSLATIONS = {
+            fr: {
+                title: "Générateur de Bonnes Pratiques",
+                subtitle: "Capitalisation pour le Travail Jeunesse - Projet Vi-Act",
+                download: "Télécharger / Imprimer (PDF)",
+                downloadHint: "Choisissez 'Enregistrer au format PDF'.",
+                tabEdit: "Éditeur",
+                tabPreview: "Aperçu",
+                
+                // Sections
+                info: "Informations Générales",
+                context: "Contexte & Objectifs",
+                method: "Mise en Œuvre",
+                results: "Résultats & Impact",
+
+                // Labels
+                lblTitle: "Titre de la bonne pratique",
+                lblAuthor: "Auteur / Organisation",
+                lblDate: "Date de réalisation",
+                lblType: "Type de ressource",
+                lblLang: "Langue de la ressource",
+                lblLoc: "Lieu / Contexte géographique",
+                
+                lblContext: "Contexte et Besoin",
+                hlpContext: "Pourquoi avez-vous mis cela en place ? Quel était le problème initial ?",
+                
+                lblObj: "Objectifs Pédagogiques",
+                hlpObj: "Que vouliez-vous accomplir ? (Ex: Développer l'autonomie...)",
+
+                lblRes: "Résultats et Impact",
+                hlpRes: "Qu'est-ce qui a fonctionné ? Quels changements observés ?",
+                
+                lblTips: "Conseils et Points de Vigilance",
+                hlpTips: "Si quelqu'un veut refaire ça, que doit-il savoir ? Pièges à éviter ?",
+
+                // Preview
+                pHeader: "Fiche de Capitalisation",
+                pViact: "Projet Vi-Act",
+                pContext: "Contexte",
+                pObj: "Objectifs",
+                pImpact: "Impact",
+                pTips: "Les Clés du Succès"
+            },
+            en: {
+                title: "Best Practice Generator",
+                subtitle: "Capitalization for Youth Work - Vi-Act Project",
+                download: "Download / Print (PDF)",
+                downloadHint: "Select 'Save as PDF' in print dialog.",
+                tabEdit: "Editor",
+                tabPreview: "Preview",
+
+                info: "General Information",
+                context: "Context & Objectives",
+                method: "Implementation",
+                results: "Impact & Analysis",
+
+                lblTitle: "Title of Best Practice",
+                lblAuthor: "Author / Organization",
+                lblDate: "Date of realization",
+                lblType: "Type of Resource",
+                lblLang: "Resource Language",
+                lblLoc: "Location / Setting",
+                
+                lblContext: "Context & Needs",
+                hlpContext: "Why did you start this? What was the initial need?",
+                
+                lblObj: "Educational Objectives",
+                hlpObj: "What did you want to achieve?",
+
+                lblRes: "Results & Impact",
+                hlpRes: "What worked well? What changes did you observe?",
+                
+                lblTips: "Tips & Pitfalls",
+                hlpTips: "If someone wants to replicate this, what should they know?",
+
+                pHeader: "Best Practice Sheet",
+                pViact: "Vi-Act Project",
+                pContext: "Context",
+                pObj: "Objectives",
+                pImpact: "Impact",
+                pTips: "Keys to Success"
+            }
+        };
+
+        const FIELD_CONFIGS = {
+            fr: {
+                default: {
+                    steps_label: "Déroulement / Méthodologie",
+                    steps_help: "Décrivez les étapes clés. Comment cela s'est-il passé concrètement ?",
+                    resources_label: "Ressources Nécessaires",
+                    resources_help: "Matériel, temps, budget, nombre d'animateurs...",
+                },
+                "Activité / Atelier": {
+                    steps_label: "Déroulement de l'activité (Pas à pas)",
+                    steps_help: "Chronologie de l'animation : Accueil, Brise-glace, Corps de séance, Clôture...",
+                    resources_label: "Matériel et Équipe",
+                    resources_help: "Espace requis, fournitures, nombre d'animateurs pour X jeunes...",
+                },
+                "Outil Pédagogique": {
+                    steps_label: "Mode d'emploi / Notice d'utilisation",
+                    steps_help: "Comment utiliser cet outil concrètement avec un groupe ?",
+                    resources_label: "Pré-requis Techniques",
+                    resources_help: "Logiciels, impression, matériel spécifique...",
+                },
+                "Événement": {
+                    steps_label: "Programme / Organisation",
+                    steps_help: "Planning de l'événement et phases de préparation.",
+                    resources_label: "Logistique et Budget",
+                    resources_help: "Lieu, transport, restauration, partenaires...",
+                },
+                "Gestion de Projet": {
+                    steps_label: "Phases du Projet",
+                    steps_help: "Conception, Planification, Réalisation, Évaluation.",
+                    resources_label: "Moyens Humains et Financiers",
+                    resources_help: "Budget global, compétences requises, partenaires...",
+                }
+            },
+            en: {
+                default: {
+                    steps_label: "Process / Methodology",
+                    steps_help: "Describe the key steps. How did it happen concretely?",
+                    resources_label: "Required Resources",
+                    resources_help: "Materials, time, budget, number of youth workers...",
+                },
+                "Activity / Workshop": {
+                    steps_label: "Activity Flow (Step-by-step)",
+                    steps_help: "Timeline: Welcome, Ice-breaker, Main activity, Closing...",
+                    resources_label: "Materials & Staff",
+                    resources_help: "Space needed, supplies, ratio of staff/youth...",
+                },
+                "Pedagogical Tool": {
+                    steps_label: "User Guide / How-to",
+                    steps_help: "How to concretely use this tool with a group?",
+                    resources_label: "Technical Requirements",
+                    resources_help: "Software, printing, specific hardware...",
+                },
+                "Event": {
+                    steps_label: "Program / Organization",
+                    steps_help: "Event schedule and preparation phases.",
+                    resources_label: "Logistics & Budget",
+                    resources_help: "Venue, transport, catering, partners...",
+                },
+                "Project Management": {
+                    steps_label: "Project Phases",
+                    steps_help: "Inception, Planning, Execution, Evaluation.",
+                    resources_label: "Human & Financial Resources",
+                    resources_help: "Global budget, skills required, partners...",
+                }
+            }
+        };
+
+        const RESOURCE_TYPES = {
+            fr: ["Activité / Atelier", "Méthodologie", "Outil Pédagogique", "Événement", "Gestion de Projet", "Autre"],
+            en: ["Activity / Workshop", "Methodology", "Pedagogical Tool", "Event", "Project Management", "Other"]
+        };
+
+        // --- State ---
+        let currentLang = 'fr';
+        
+        // --- Init ---
+        window.onload = function() {
+            // Set today's date
+            document.getElementById('input-date').valueAsDate = new Date();
+            
+            // Populate Types
+            updateTypeOptions();
+            
+            // Initial Render
+            applyTranslations();
+            updateDynamicLabels();
+            updatePreview();
+            
+            // Render Icons
+            lucide.createIcons();
+
+            // Add Event Listeners for Live Preview
+            const inputs = document.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('change', updatePreview);
+            });
+
+            // Specific listener for Type change to update dynamic labels
+            document.getElementById('input-type').addEventListener('change', updateDynamicLabels);
+        };
+
+        // --- Core Logic ---
+
+        function toggleLang() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            document.documentElement.lang = currentLang;
+            
+            document.getElementById('lang-btn-text').textContent = currentLang === 'fr' ? 'English' : 'Français';
+            
+            updateTypeOptions();
+            applyTranslations();
+            updateDynamicLabels();
+            updatePreview();
+        }
+
+        function updateTypeOptions() {
+            const select = document.getElementById('input-type');
+            const currentVal = select.value;
+            select.innerHTML = '';
+            
+            RESOURCE_TYPES[currentLang].forEach(type => {
+                const opt = document.createElement('option');
+                opt.value = type;
+                opt.textContent = type;
+                select.appendChild(opt);
+            });
+            
+            // Try to keep selection or default to first
+            if (RESOURCE_TYPES[currentLang].includes(currentVal)) {
+                select.value = currentVal;
+            } else {
+                select.value = RESOURCE_TYPES[currentLang][0];
+            }
+        }
+
+        function applyTranslations() {
+            const t = TRANSLATIONS[currentLang];
+            
+            // Header
+            document.getElementById('header-title').textContent = t.title;
+            document.getElementById('header-subtitle').textContent = t.subtitle;
+            document.getElementById('download-btn').textContent = t.download;
+            document.getElementById('download-hint').innerHTML = `<i data-lucide="printer" class="w-4 h-4 inline"></i> ${t.downloadHint}`;
+            
+            // Tabs
+            document.getElementById('tab-edit-text').textContent = t.tabEdit;
+            document.getElementById('tab-preview-text').textContent = t.tabPreview;
+
+            // Sections
+            document.getElementById('section-info').textContent = t.info;
+            document.getElementById('section-context').textContent = t.context;
+            document.getElementById('section-method').textContent = t.method;
+            document.getElementById('section-results').textContent = t.results;
+
+            // Labels & Placeholders
+            document.getElementById('label-title').textContent = t.lblTitle;
+            document.getElementById('label-author').textContent = t.lblAuthor;
+            document.getElementById('label-date').textContent = t.lblDate;
+            document.getElementById('label-type').textContent = t.lblType;
+            document.getElementById('label-lang-resource').textContent = t.lblLang;
+            document.getElementById('label-location').textContent = t.lblLoc;
+            
+            document.getElementById('label-context').textContent = t.lblContext;
+            document.getElementById('help-context').textContent = t.hlpContext;
+            
+            document.getElementById('label-objectives').textContent = t.lblObj;
+            document.getElementById('help-objectives').textContent = t.hlpObj;
+
+            document.getElementById('label-results').textContent = t.lblRes;
+            document.getElementById('help-results').textContent = t.hlpRes;
+
+            document.getElementById('label-tips').textContent = t.lblTips;
+            document.getElementById('help-tips').textContent = t.hlpTips;
+
+            // Preview Static
+            document.getElementById('preview-header-tag').textContent = t.pHeader;
+            document.getElementById('preview-viact-tag').textContent = t.pViact;
+            document.getElementById('preview-context-title').textContent = t.pContext;
+            document.getElementById('preview-objectives-title').textContent = t.pObj;
+            document.getElementById('preview-impact-title').textContent = t.pImpact;
+            document.getElementById('preview-tips-title').textContent = t.pTips;
+            document.getElementById('preview-label-author').textContent = t.lblAuthor;
+            document.getElementById('preview-label-type').textContent = t.lblType;
+            document.getElementById('preview-label-lang').textContent = t.lblLang;
+            document.getElementById('preview-label-date').textContent = t.lblDate;
+            document.getElementById('preview-footer-project').textContent = `${t.pViact} - Generated with Capitalization Tool`;
+
+            // Re-render icons since we changed HTML content
+            lucide.createIcons();
+        }
+
+        function updateDynamicLabels() {
+            const type = document.getElementById('input-type').value;
+            const config = FIELD_CONFIGS[currentLang][type] || FIELD_CONFIGS[currentLang]['default'];
+
+            document.getElementById('label-steps').textContent = config.steps_label;
+            document.getElementById('help-steps').textContent = config.steps_help;
+            document.getElementById('preview-steps-title').textContent = config.steps_label;
+
+            document.getElementById('label-resources').textContent = config.resources_label;
+            document.getElementById('help-resources').textContent = config.resources_help;
+            document.getElementById('preview-resources-title').textContent = config.resources_label;
+        }
+
+        function updatePreview() {
+            // Get values
+            const title = document.getElementById('input-title').value;
+            const author = document.getElementById('input-author').value;
+            const date = document.getElementById('input-date').value;
+            const type = document.getElementById('input-type').value;
+            const langRes = document.getElementById('input-resource-lang').value;
+            const location = document.getElementById('input-location').value;
+            
+            const context = document.getElementById('input-context').value;
+            const objectives = document.getElementById('input-objectives').value;
+            const steps = document.getElementById('input-steps').value;
+            const resources = document.getElementById('input-resources').value;
+            const results = document.getElementById('input-results').value;
+            const tips = document.getElementById('input-tips').value;
+
+            // Update DOM
+            document.getElementById('preview-title').textContent = title || '...';
+            document.getElementById('preview-title').className = title ? "text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight" : "text-3xl md:text-4xl font-extrabold text-slate-300 italic leading-tight";
+            
+            document.getElementById('preview-location').textContent = location;
+            document.getElementById('preview-location-container').style.display = location ? 'flex' : 'none';
+
+            document.getElementById('preview-date-print').textContent = new Date().toLocaleDateString();
+
+            document.getElementById('preview-author').textContent = author || '-';
+            document.getElementById('preview-type').textContent = type || '-';
+            document.getElementById('preview-resource-lang').textContent = langRes || '-';
+            document.getElementById('preview-date').textContent = date || '-';
+
+            setTextOrPlaceholder('preview-context', context);
+            setTextOrPlaceholder('preview-objectives', objectives);
+            setTextOrPlaceholder('preview-steps', steps);
+            setTextOrPlaceholder('preview-results', results);
+            
+            // Resources Box Logic
+            const resBox = document.getElementById('preview-resources-box');
+            const resText = document.getElementById('preview-resources');
+            resText.textContent = resources;
+            if(resources.trim()) {
+                resBox.classList.remove('hidden');
+            } else {
+                resBox.classList.add('hidden');
+            }
+
+            // Tips Box Logic
+            const tipsBox = document.getElementById('preview-tips-box');
+            const tipsText = document.getElementById('preview-tips');
+            tipsText.textContent = tips;
+            if(tips.trim()) {
+                tipsBox.classList.remove('hidden');
+            } else {
+                tipsBox.classList.add('hidden');
+            }
+
+            updateFilename(date, langRes, title, author);
+        }
+
+        function setTextOrPlaceholder(id, value) {
+            const el = document.getElementById(id);
+            if (value && value.trim()) {
+                el.textContent = value;
+                el.classList.remove('italic', 'text-slate-300', 'text-xs');
+            } else {
+                el.textContent = '...';
+                el.classList.add('italic', 'text-slate-300', 'text-xs');
+            }
+        }
+
+        // --- Filename Generation ---
+        function getInitials(name) {
+            if (!name) return 'UNK';
+            const parts = name.trim().split(/\s+/);
+            if (parts.length === 1) return parts[0].substring(0, 3).toUpperCase();
+            return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+        }
+
+        function updateFilename(date, langRes, title, author) {
+            const dateStr = date || 'NoDate';
+            const cleanTitle = (title || 'Untitled')
+                .replace(/[^a-zA-Z0-9à-ÿÀ-Ÿ\s-]/g, '')
+                .trim()
+                .replace(/\s+/g, '-')
+                .substring(0, 40);
+            
+            const langCode = (langRes || currentLang).substring(0, 2).toUpperCase();
+            const initials = getInitials(author);
+
+            const fileName = `${dateStr}_${langCode}_${cleanTitle}_${initials}`;
+            
+            document.title = fileName;
+            document.getElementById('filename-preview').textContent = `Fichier : ${fileName}.pdf`;
+        }
+
+        // --- Helper: Auto-resize Textarea ---
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
+        // --- Mobile Tabs ---
+        function switchTab(tab) {
+            const editCol = document.getElementById('editor-col');
+            const previewCol = document.getElementById('preview-col');
+            const btnEdit = document.getElementById('tab-edit');
+            const btnPreview = document.getElementById('tab-preview');
+
+            if (tab === 'edit') {
+                editCol.classList.remove('hidden');
+                editCol.classList.add('flex');
+                previewCol.classList.add('hidden');
+                
+                btnEdit.classList.add('bg-indigo-600', 'text-white');
+                btnEdit.classList.remove('bg-white', 'text-slate-600');
+                
+                btnPreview.classList.add('bg-white', 'text-slate-600');
+                btnPreview.classList.remove('bg-indigo-600', 'text-white');
+            } else {
+                editCol.classList.add('hidden');
+                editCol.classList.remove('flex');
+                previewCol.classList.remove('hidden');
+                previewCol.classList.add('block'); // ensure block display
+                
+                btnPreview.classList.add('bg-indigo-600', 'text-white');
+                btnPreview.classList.remove('bg-white', 'text-slate-600');
+                
+                btnEdit.classList.add('bg-white', 'text-slate-600');
+                btnEdit.classList.remove('bg-indigo-600', 'text-white');
+            }
+        }
+    </script>
+</body>
+</html>
