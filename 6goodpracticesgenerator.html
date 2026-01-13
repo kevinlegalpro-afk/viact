@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Bonnes Pratiques - Vi-Act</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .section-block { transition: all 0.2s ease-in-out; }
+        canvas { touch-action: none; cursor: crosshair; }
+        
+        /* Rich Text Editor Styles */
+        .rich-editor-content { min-height: 100px; outline: none; }
+        .rich-editor-content ul { list-style-type: disc; margin-left: 1.5em; }
+        .rich-editor-content ol { list-style-type: decimal; margin-left: 1.5em; }
+        .rich-editor-content b, .rich-editor-content strong { font-weight: bold; }
+        .rich-editor-content i, .rich-editor-content em { font-style: italic; }
+        .rich-editor-content u { text-decoration: underline; }
+
+        /* Preview Specific Styles */
+        #printable-area ul { list-style-type: disc; margin-left: 1.5em; }
+        #printable-area ol { list-style-type: decimal; margin-left: 1.5em; }
+        .break-words { word-break: break-word; overflow-wrap: break-word; }
+        .color-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s; }
+        .color-btn:hover { transform: scale(1.1); }
+        .color-btn.active { border-color: #6366f1; transform: scale(1.1); box-shadow: 0 0 0 2px white, 0 0 0 4px #6366f1; }
+
+        /* Print Styles */
+        @media print {
+            @page { 
+                margin: 1.5cm; size: A4;
+                @bottom-right { content: "Page " counter(page) " / " counter(pages); font-size: 9pt; color: #64748b; }
+                @top-left { content: "Projet Vi-Act"; font-size: 9pt; color: #f97316; font-weight: bold; }
+            }
+            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .preview-container { box-shadow: none !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; border: none !important; display: block !important; }
+            #main-layout { display: block !important; }
+            #preview-col { width: 100% !important; display: block !important; height: auto !important; position: static !important; overflow: visible !important; }
+            #editor-col { display: none !important; }
+            section, .break-inside-avoid { page-break-inside: avoid; }
+            #print-header-fixed { position: fixed; top: 0; left: 0; right: 0; height: 20px; text-align: right; font-size: 10px; color: #f97316; font-weight: bold; display: block !important; }
+            #print-footer-fixed { position: fixed; bottom: 0; left: 0; right: 0; height: 20px; background: white; border-top: 1px solid #e2e8f0; display: flex !important; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; padding-top: 5px; }
+            #printable-content { margin-top: 20px; margin-bottom: 40px; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+    <header class="bg-indigo-900 text-white p-4 shadow-md no-print sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col xl:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-orange-500 p-2 rounded-lg"><i data-lucide="book-open" class="text-white w-6 h-6"></i></div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight" id="header-title">Générateur de Bonnes Pratiques</h1>
+                    <p class="text-xs text-indigo-200" id="header-subtitle">Capitalisation pour le Travail Jeunesse - Projet Vi-Act</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 md:gap-4 justify-center">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-indigo-200"><i data-lucide="globe" class="w-4 h-4"></i></div>
+                    <select id="lang-selector" onchange="changeLang(this.value)" class="bg-indigo-800 text-white text-sm rounded-lg pl-8 pr-8 py-1 border border-indigo-600 focus:outline-none hover:bg-indigo-700 transition-colors appearance-none cursor-pointer">
+                        <option value="fr">Français</option>
+                        <option value="en">English</option>
+                        <option value="mg">Malagasy</option>
+                        <option value="ro">Română</option>
+                        <option value="bg">Български</option>
+                        <option value="sc">Kreol Seselwa</option>
+                        <option value="mu">Kreol Morisien</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-indigo-200"><i data-lucide="chevron-down" class="w-4 h-4"></i></div>
+                </div>
+                <div class="flex gap-1 bg-indigo-800 rounded-lg p-1 border border-indigo-600">
+                    <button onclick="document.getElementById('input-load-project').click()" id="btn-load-project-wrap" class="flex items-center gap-2 px-2 py-1 hover:bg-indigo-700 rounded text-sm transition-colors text-indigo-100" title="Ouvrir un projet"><i data-lucide="folder-open" class="w-4 h-4"></i><span id="btn-load-project" class="hidden md:inline">Ouvrir</span></button>
+                    <input type="file" id="input-load-project" accept=".json" class="hidden" onchange="loadProject(this)">
+                    <div class="w-px bg-indigo-600"></div>
+                    <button onclick="saveProject()" id="btn-save-project-wrap" class="flex items-center gap-2 px-2 py-1 hover:bg-indigo-700 rounded text-sm transition-colors text-indigo-100" title="Sauvegarder le projet"><i data-lucide="save" class="w-4 h-4"></i><span id="btn-save-project" class="hidden md:inline">Sauvegarder</span></button>
+                </div>
+                <button onclick="loadExample()" id="btn-example-wrap" class="flex items-center gap-2 px-3 py-1 bg-teal-600 hover:bg-teal-500 rounded-lg text-sm transition-colors border border-teal-400"><i data-lucide="sparkles" class="w-4 h-4"></i><span id="btn-example">Exemple</span></button>
+                <button onclick="resetForm()" id="btn-reset-wrap" class="flex items-center gap-2 px-3 py-1 bg-red-600 hover:bg-red-500 rounded-lg text-sm transition-colors border border-red-400"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span id="btn-reset">Réinitialiser</span></button>
+                <button onclick="downloadTool()" id="btn-download-tool-wrap" class="flex items-center gap-2 px-3 py-1 bg-indigo-700 hover:bg-indigo-600 rounded-lg text-sm transition-colors border border-indigo-500"><i data-lucide="download" class="w-4 h-4"></i><span id="btn-download-tool">L'appli</span></button>
+                <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold shadow-sm transition-colors"><i data-lucide="printer" class="w-4 h-4"></i><span class="hidden md:inline" id="download-btn">Imprimer PDF</span><span class="md:hidden">PDF</span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 flex flex-col lg:flex-row gap-8 items-start" id="main-layout">
+        <!-- Mobile Tabs -->
+        <div class="lg:hidden flex gap-2 mb-4 no-print w-full">
+            <button onclick="switchTab('edit')" id="tab-edit" class="flex-1 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-indigo-600 text-white"><i data-lucide="pen-tool" class="w-4 h-4"></i> <span id="tab-edit-text">Éditeur</span></button>
+            <button onclick="switchTab('preview')" id="tab-preview" class="flex-1 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-white text-slate-600"><i data-lucide="layout" class="w-4 h-4"></i> <span id="tab-preview-text">Aperçu</span></button>
+        </div>
+
+        <!-- Editor Column -->
+        <div id="editor-col" class="w-full lg:w-1/2 flex flex-col gap-6 no-print">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-bold text-indigo-900 mb-4 border-b pb-2 flex items-center gap-2"><i data-lucide="user" class="text-orange-500 w-5 h-5"></i> <span id="lbl-section-info">Informations</span></h2>
+                <div class="mb-4"><label class="block text-sm font-bold text-slate-700 mb-1" id="label-title">Titre</label><input type="text" id="input-title" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></div>
+                <div class="mb-4"><label class="block text-sm font-bold text-slate-700 mb-1" id="label-logo">Logo</label><div class="flex items-center gap-3"><label class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg cursor-pointer border border-slate-300 transition-colors"><i data-lucide="image" class="w-4 h-4"></i><span class="text-sm" id="btn-choose-file">Choisir...</span><input type="file" id="input-logo" accept="image/*" class="hidden" onchange="handleLogoUpload(this)"></label><span id="logo-filename" class="text-xs text-slate-400 italic">Aucun fichier</span></div></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4"><label class="block text-sm font-bold text-slate-700 mb-1" id="label-author">Auteur</label><input type="text" id="input-author" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></div>
+                    <div class="mb-4"><label class="block text-sm font-bold text-slate-700 mb-1" id="label-date">Date</label><input type="date" id="input-date" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4"><label class="block text-sm font-bold text-slate-700 mb-1" id="label-type">Type</label><select id="input-type" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"></select></div>
+                    <div class="mb-4"><label class="block text-sm font-bold text-slate-700 mb-1" id="label-lang-resource">Langue Ressource</label><input type="text" id="input-resource-lang" value="FR" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></div>
+                </div>
+                <div class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-1" id="label-location">Lieu</label><input type="text" id="input-location" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></div>
+            </div>
+
+            <div id="dynamic-sections-container" class="flex flex-col gap-6"></div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-dashed border-indigo-300 p-6 text-center">
+                <h3 class="text-indigo-900 font-bold mb-4 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i><span id="lbl-add-section-title">Ajouter une nouvelle section</span></h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <button onclick="addNewSection('text')" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-lg flex flex-col items-center gap-2 transition-colors"><i data-lucide="align-left" class="w-6 h-6 text-indigo-500"></i><span class="text-xs font-medium" id="lbl-layout-text">Texte</span></button>
+                    <button onclick="addNewSection('image')" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-lg flex flex-col items-center gap-2 transition-colors"><i data-lucide="image" class="w-6 h-6 text-orange-500"></i><span class="text-xs font-medium" id="lbl-layout-image">Image</span></button>
+                    <button onclick="addNewSection('drawing')" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-lg flex flex-col items-center gap-2 transition-colors"><i data-lucide="pencil" class="w-6 h-6 text-purple-500"></i><span class="text-xs font-medium" id="lbl-layout-drawing">Dessin</span></button>
+                    <button onclick="addTableSection()" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-lg flex flex-col items-center gap-2 transition-colors"><i data-lucide="table" class="w-6 h-6 text-blue-500"></i><span class="text-xs font-medium" id="lbl-layout-table">Tableau</span></button>
+                    <button onclick="addNewSection('text-image')" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-lg flex flex-col items-center gap-2 transition-colors"><div class="flex gap-1"><i data-lucide="align-left" class="w-4 h-4 text-indigo-500"></i><i data-lucide="image" class="w-4 h-4 text-orange-500"></i></div><span class="text-xs font-medium" id="lbl-layout-text-image">Texte+Img</span></button>
+                    <button onclick="addNewSection('image-text')" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-lg flex flex-col items-center gap-2 transition-colors"><div class="flex gap-1"><i data-lucide="image" class="w-4 h-4 text-orange-500"></i><i data-lucide="align-left" class="w-4 h-4 text-indigo-500"></i></div><span class="text-xs font-medium" id="lbl-layout-image-text">Img+Texte</span></button>
+                    <button onclick="addNewSection('2col-text')" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-lg flex flex-col items-center gap-2 transition-colors"><div class="flex gap-1"><i data-lucide="columns" class="w-6 h-6 text-indigo-500"></i></div><span class="text-xs font-medium" id="lbl-layout-2col">2 Col</span></button>
+                    <button onclick="addNewSection('asym-left')" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-lg flex flex-col items-center gap-2 transition-colors"><div class="flex items-center gap-1"><span class="w-4 h-4 bg-indigo-200 rounded"></span><span class="w-2 h-4 bg-indigo-500 rounded"></span></div><span class="text-xs font-medium" id="lbl-layout-asym">Note</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Column -->
+        <div id="preview-col" class="hidden lg:block w-full lg:w-1/2 sticky top-20 h-[calc(100vh-6rem)] overflow-y-auto pb-10">
+            <div id="printable-area" class="preview-container bg-white w-full mx-auto shadow-2xl relative flex flex-col" style="min-height: 297mm;">
+                <div id="print-header-fixed" class="hidden no-print">Projet Vi-Act</div>
+                <div class="h-4 w-full bg-gradient-to-r from-indigo-900 via-indigo-700 to-orange-500 shrink-0"></div>
+                <div class="p-8 md:p-12 h-full flex flex-col relative">
+                    <div id="printable-content">
+                        <div class="flex justify-between items-start border-b-2 border-indigo-100 pb-6 mb-6 shrink-0">
+                            <div class="w-3/4">
+                                <div class="flex gap-2 mb-2"><span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold uppercase tracking-wider rounded" id="preview-header-tag">Fiche</span><span class="inline-block px-3 py-1 bg-orange-100 text-orange-800 text-xs font-bold uppercase tracking-wider rounded" id="preview-viact-tag">Projet Vi-Act</span></div>
+                                <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight break-words" id="preview-title">...</h1>
+                                <p class="text-slate-500 mt-2 flex items-center gap-1" id="preview-location-container"><i data-lucide="globe" class="w-3 h-3"></i> <span id="preview-location"></span></p>
+                            </div>
+                            <div class="w-1/4 flex flex-col items-end">
+                                <div id="preview-logo-container" class="w-20 h-20 mb-2 flex items-center justify-center"><div id="default-logo-placeholder" class="inline-flex items-center justify-center w-16 h-16 bg-orange-50 rounded-full text-orange-500"><i data-lucide="file-text" class="w-8 h-8"></i></div><img id="custom-logo-img" src="" class="hidden max-w-full max-h-full object-contain" alt="Logo"></div>
+                                <div class="text-xs text-slate-400 font-mono" id="preview-date-print"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-6 flex-grow">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100 items-start shrink-0">
+                                <div><p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1" id="preview-label-author">Auteur</p><p class="text-sm font-semibold text-indigo-900 break-words leading-tight" id="preview-author">-</p></div>
+                                <div><p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1" id="preview-label-type">Type</p><p class="text-sm font-semibold text-indigo-900 leading-tight" id="preview-type">-</p></div>
+                                <div><p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1" id="preview-label-lang">Langue</p><p class="text-sm font-semibold text-indigo-900 flex items-center gap-1 leading-tight"><i data-lucide="languages" class="w-3 h-3 text-orange-500"></i><span id="preview-resource-lang">-</span></p></div>
+                                <div><p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1" id="preview-label-date">Date</p><p class="text-sm font-semibold text-indigo-900 leading-tight" id="preview-date">-</p></div>
+                            </div>
+                            <div id="preview-dynamic-content" class="flex flex-col gap-5"></div>
+                        </div>
+                    </div>
+                    <div id="print-footer-fixed" class="hidden no-print"><span id="print-footer-left">Projet Vi-Act</span></div>
+                    <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400 shrink-0 no-print"><span>Projet Vi-Act - Generated with Capitalization Tool</span></div>
+                </div>
+                <div class="absolute bottom-0 right-0 w-16 h-16 bg-orange-500 opacity-10 rounded-tl-full"></div>
+            </div>
+            <div class="mt-4 text-center no-print"><p class="text-sm text-slate-500 flex items-center justify-center gap-2"><i data-lucide="printer" class="w-4 h-4"></i> <span id="download-hint">Conseil : "Enregistrer au format PDF"</span></p><p class="text-xs text-slate-400 mt-1" id="filename-preview">Nom du fichier : ...</p></div>
+        </div>
+    </main>
+
+    <script>
+        const TRANSLATIONS = {
+            fr: {
+                title: "Générateur de Bonnes Pratiques", subtitle: "Capitalisation pour le Travail Jeunesse - Projet Vi-Act", download: "Télécharger / Imprimer (PDF)", downloadHint: "Choisissez 'Enregistrer au format PDF'.", btnDownloadTool: "Télécharger l'éditeur", btnSaveProject: "Sauvegarder", btnLoadProject: "Ouvrir", btnExample: "Exemple", btnReset: "Réinitialiser",
+                lblAddSection: "Ajouter une nouvelle section", lblLogo: "Logo de votre structure", lblCaption: "Légende", lblHeight: "Taille / Hauteur :", lblBgColor: "Couleur de fond :", sectionInfo: "Informations", btnChoose: "Choisir...", noFile: "Aucun fichier",
+                lblTitle: "Titre de la fiche", lblAuthor: "Auteur / Organisation", lblDate: "Date", lblType: "Type", lblLang: "Langue", lblLoc: "Lieu",
+                layoutText: "Texte Standard", layoutImage: "Image Standard", layoutDrawing: "Dessin", layoutTable: "Tableau", layoutTextImage: "Texte + Img", layoutImageText: "Img + Texte", layout2Col: "2 Colonnes", layoutAsym: "Note Latérale",
+                helpContext: "Pourquoi avez-vous mis cela en place ? Quel était le problème initial ?", helpObjectives: "Que vouliez-vous accomplir ? (Ex: Développer l'autonomie...)", helpResources: "Matériel, temps, budget, nombre d'animateurs...", helpResults: "Qu'est-ce qui a fonctionné ? Quels changements observés ?", helpTips: "Si quelqu'un veut refaire ça, que doit-il savoir ? Pièges à éviter ?", helpSources: "Liens web, bibliographie, partenaires...", helpDefault: "Détaillez cette partie...", helpImage: "Chargez une photo (jpg, png) pour illustrer.", helpDrawing: "Dessinez votre schéma. Utilisez les formes pour plus de précision.", helpTable: "Éditez le tableau. Utilisez les boutons pour ajouter des lignes/colonnes.",
+                pHeader: "Fiche", pViact: "Projet Vi-Act", secContext: 'Contexte & Objectifs', secObjectives: 'Objectifs Pédagogiques', secMethod: 'Mise en Œuvre', secResources: 'Ressources Nécessaires', secResults: 'Résultats & Impact', secTips: 'Conseils et Points de Vigilance', secSources: 'Sources & Références',
+                rteBold: "Gras", rteItalic: "Italique", rteUnderline: "Souligné", rteList: "Liste à puces", rteOrdered: "Liste numérotée", rteSize1: "Taille Normale", rteSize2: "Moyenne", rteSize3: "Grande", tblRow: "Ligne", tblCol: "Colonne",
+                msgConfirmReset: "Tout effacer et recommencer à zéro ?", msgConfirmDelete: "Supprimer cette section ?", msgConfirmLoad: "Cela va remplacer votre contenu actuel. Continuer ?", msgPromptRows: "Nombre de lignes initiales ?", msgPromptCols: "Nombre de colonnes initiales ?", msgPromptText: "Entrez votre texte :", msgLoaded: "Projet chargé avec succès !", msgError: "Erreur lors de la lecture du fichier : "
+            },
+            en: {
+                title: "Best Practice Generator", subtitle: "Capitalization for Youth Work - Vi-Act Project", download: "Download / Print (PDF)", downloadHint: "Select 'Save as PDF' in print dialog.", btnDownloadTool: "Download Editor App", btnSaveProject: "Save Project", btnLoadProject: "Open Project", btnExample: "Example", btnReset: "Reset",
+                lblAddSection: "Add New Section", lblLogo: "Organization Logo", lblCaption: "Caption", lblHeight: "Size / Height:", lblBgColor: "Background Color:", sectionInfo: "Information", btnChoose: "Choose...", noFile: "No file chosen",
+                lblTitle: "Title", lblAuthor: "Author / Organization", lblDate: "Date", lblType: "Type", lblLang: "Language", lblLoc: "Location",
+                layoutText: "Standard Text", layoutImage: "Standard Image", layoutDrawing: "Drawing", layoutTable: "Table", layoutTextImage: "Text + Img", layoutImageText: "Img + Text", layout2Col: "2 Columns", layoutAsym: "Side Note",
+                helpContext: "Why did you start this? What was the initial need?", helpObjectives: "What did you want to achieve?", helpResources: "Materials, time, budget, staff...", helpResults: "What worked well? What changes did you observe?", helpTips: "If someone wants to replicate this, what should they know?", helpSources: "Web links, bibliography, partners...", helpDefault: "Describe this section...", helpImage: "Upload a photo (jpg, png) to illustrate.", helpDrawing: "Draw your diagram. Use shapes for precision.", helpTable: "Edit the table. Use buttons to add rows/columns.",
+                pHeader: "Sheet", pViact: "Vi-Act Project", secContext: 'Context & Objectives', secObjectives: 'Objectives', secMethod: 'Implementation', secResources: 'Resources', secResults: 'Impact', secTips: 'Tips', secSources: 'References',
+                rteBold: "Bold", rteItalic: "Italic", rteUnderline: "Underline", rteList: "Bullet List", rteOrdered: "Numbered List", rteSize1: "Normal", rteSize2: "Medium", rteSize3: "Large", tblRow: "Row", tblCol: "Column",
+                msgConfirmReset: "Clear everything and start over?", msgConfirmDelete: "Delete this section?", msgConfirmLoad: "This will replace your current content. Continue?", msgPromptRows: "Initial rows?", msgPromptCols: "Initial columns?", msgPromptText: "Enter your text:", msgLoaded: "Project loaded successfully!", msgError: "Error loading file: "
+            },
+            mg: {
+                title: "Mpanamboatra Fomba Fanao Tsara", subtitle: "Fanamarinana ho an'ny Asa ho an'ny Tanora - Tetikasa Vi-Act", download: "Ampidino / Natonta (PDF)", downloadHint: "Safidio ny 'Save as PDF'.", btnDownloadTool: "Ampidino ny Fitaovana", btnSaveProject: "Tehirizo", btnLoadProject: "Sokafy", btnExample: "Ohatra", btnReset: "Avereno",
+                lblAddSection: "Ampio fizarana vaovao", lblLogo: "Logo-ny fikambanana", lblCaption: "Lohateny kely", lblHeight: "Haavo :", lblBgColor: "Loko ambadika :", sectionInfo: "Fampahalalana", btnChoose: "Safidio...", noFile: "Tsy misy rakitra",
+                lblTitle: "Lohateny", lblAuthor: "Mpanoratra / Fikambanana", lblDate: "Daty", lblType: "Karazana", lblLang: "Fiteny", lblLoc: "Toerana",
+                layoutText: "Lahatsoratra Tsotra", layoutImage: "Sary Tsotra", layoutDrawing: "Sary hosodoko", layoutTable: "Tabilao", layoutTextImage: "Lahatsoratra + Sary", layoutImageText: "Sary + Lahatsoratra", layout2Col: "Tsanganana 2", layoutAsym: "Fanamarihana",
+                helpContext: "Nahoana no natsanganao ity? Inona no olana voalohany?", helpObjectives: "Inona no tanjonao?", helpResources: "Fitaovana, fotoana, tetibola, isan'ny mpanentana...", helpResults: "Inona no nandeha tsara? Inona no fiovana hita?", helpTips: "Inona no tokony ho fantatry ny olona te hanao ity?", helpSources: "Rohy web, boky, mpiara-miasa...", helpDefault: "Lazalazao eto...", helpImage: "Mampidira sary (jpg, png).", helpDrawing: "Manaova sary eto ambany.", helpTable: "Ovay ny tabilao.",
+                pHeader: "Takelaka", pViact: "Tetikasa Vi-Act", secContext: 'Zava-misy & Tanjona', secObjectives: 'Tanjona Fanabeazana', secMethod: 'Fampiharana', secResources: 'Loharano Ilaina', secResults: 'Vokatra & Fiantraikany', secTips: 'Torohevitra', secSources: 'Loharano',
+                rteBold: "Matavy", rteItalic: "Mandry", rteUnderline: "Tsipika ambany", rteList: "Lisitra teboka", rteOrdered: "Lisitra isa", rteSize1: "Habe mahazatra", rteSize2: "Antonony", rteSize3: "Lehibe", tblRow: "Andalana", tblCol: "Tsanganana",
+                msgConfirmReset: "Hamafa ny zava-drehetra ary hanomboka indray?", msgConfirmDelete: "Hamafa ity fizarana ity?", msgConfirmLoad: "Hanolo ny atiny ankehitriny ity. Hanohy?", msgPromptRows: "Isan'ny andalana?", msgPromptCols: "Isan'ny tsanganana?", msgPromptText: "Ampidiro ny lahatsoratra:", msgLoaded: "Tetikasa voatahiry!", msgError: "Hadisoana: "
+            },
+            ro: {
+                title: "Generator de Bune Practici", subtitle: "Capitalizare pentru Lucrul cu Tineretul - Proiect Vi-Act", download: "Descarcă / Imprimă (PDF)", downloadHint: "Selectați 'Salvare ca PDF'.", btnDownloadTool: "Descarcă Aplicația", btnSaveProject: "Salvează", btnLoadProject: "Deschide", btnExample: "Exemplu", btnReset: "Resetare",
+                lblAddSection: "Adaugă secțiune nouă", lblLogo: "Logo organizație", lblCaption: "Legendă", lblHeight: "Înălțime :", lblBgColor: "Culoare fundal :", sectionInfo: "Informații", btnChoose: "Alege...", noFile: "Niciun fișier",
+                lblTitle: "Titlu", lblAuthor: "Autor / Organizație", lblDate: "Data", lblType: "Tip", lblLang: "Limbă", lblLoc: "Locație",
+                layoutText: "Text Standard", layoutImage: "Imagine Standard", layoutDrawing: "Desen", layoutTable: "Tabel", layoutTextImage: "Text + Img", layoutImageText: "Img + Text", layout2Col: "2 Coloane", layoutAsym: "Notă Laterală",
+                helpContext: "De ce ați început asta? Care a fost nevoia inițială?", helpObjectives: "Ce ați vrut să realizați?", helpResources: "Materiale, timp, buget, personal...", helpResults: "Ce a funcționat bine? Ce schimbări ați observat?", helpTips: "Dacă cineva vrea să reproducă asta, ce ar trebui să știe?", helpSources: "Link-uri web, bibliografie, parteneri...", helpDefault: "Descrieți această secțiune...", helpImage: "Încărcați o fotografie (jpg, png).", helpDrawing: "Desenați schema dvs.", helpTable: "Editați tabelul.",
+                pHeader: "Fișă", pViact: "Proiect Vi-Act", secContext: 'Context & Obiective', secObjectives: 'Obiective Educaționale', secMethod: 'Implementare', secResources: 'Resurse Necesare', secResults: 'Rezultate & Impact', secTips: 'Sfaturi', secSources: 'Surse & Referințe',
+                rteBold: "Îngroșat", rteItalic: "Italic", rteUnderline: "Subliniat", rteList: "Listă cu puncte", rteOrdered: "Listă numerotată", rteSize1: "Normal", rteSize2: "Mediu", rteSize3: "Mare", tblRow: "Rând", tblCol: "Coloană",
+                msgConfirmReset: "Ștergeți totul și reîncepeți?", msgConfirmDelete: "Ștergeți această secțiune?", msgConfirmLoad: "Acesta va înlocui conținutul curent. Continuați?", msgPromptRows: "Rânduri inițiale?", msgPromptCols: "Coloane inițiale?", msgPromptText: "Introduceți textul:", msgLoaded: "Proiect încărcat cu succes!", msgError: "Eroare la încărcare: "
+            },
+            bg: {
+                title: "Генератор на Добри Практики", subtitle: "Капитализация за Младежка Работа - Проект Vi-Act", download: "Изтегляне / Печат (PDF)", downloadHint: "Изберете 'Запази като PDF'.", btnDownloadTool: "Изтегли Приложението", btnSaveProject: "Запази", btnLoadProject: "Отвори", btnExample: "Пример", btnReset: "Нулиране",
+                lblAddSection: "Добави нова секция", lblLogo: "Лого на организацията", lblCaption: "Надпис", lblHeight: "Височина :", lblBgColor: "Цвят на фона :", sectionInfo: "Информация", btnChoose: "Избери...", noFile: "Няма файл",
+                lblTitle: "Заглавие", lblAuthor: "Автор / Организация", lblDate: "Дата", lblType: "Тип", lblLang: "Език", lblLoc: "Място",
+                layoutText: "Стандартен Текст", layoutImage: "Изображение", layoutDrawing: "Рисунка", layoutTable: "Таблица", layoutTextImage: "Текст + Из.", layoutImageText: "Из. + Текст", layout2Col: "2 Колони", layoutAsym: "Странична Бележка",
+                helpContext: "Защо започнахте това? Каква беше началната нужда?", helpObjectives: "Какво искахте да постигнете?", helpResources: "Материали, време, бюджет, персонал...", helpResults: "Какво проработи добре? Какви промени наблюдавахте?", helpTips: "Ако някой иска да повтори това, какво трябва да знае?", helpSources: "Уеб връзки, библиография, партньори...", helpDefault: "Опишете тази секция...", helpImage: "Качете снимка (jpg, png).", helpDrawing: "Начертайте вашата схема.", helpTable: "Редактирайте таблицата.",
+                pHeader: "Лист", pViact: "Проект Vi-Act", secContext: 'Контекст и Цели', secObjectives: 'Образователни Цели', secMethod: 'Изпълнение', secResources: 'Необходими Ресурси', secResults: 'Резултати и Въздействие', secTips: 'Съвети', secSources: 'Източници',
+                rteBold: "Черен", rteItalic: "Курсив", rteUnderline: "Подчертан", rteList: "Списък", rteOrdered: "Номериран списък", rteSize1: "Нормален", rteSize2: "Среден", rteSize3: "Голям", tblRow: "Ред", tblCol: "Колона",
+                msgConfirmReset: "Изчистване на всичко?", msgConfirmDelete: "Изтриване на тази секция?", msgConfirmLoad: "Това ще замени текущото съдържание. Продължи?", msgPromptRows: "Начални редове?", msgPromptCols: "Начални колони?", msgPromptText: "Въведете текст:", msgLoaded: "Проектът е зареден!", msgError: "Грешка при зареждане: "
+            },
+            sc: {
+                title: "Zenerater Bon Pratik", subtitle: "Kapitalizasyon pour Travay Lazenes - Proze Vi-Act", download: "Telesarze / Enprimen (PDF)", downloadHint: "Swazir 'Save as PDF'.", btnDownloadTool: "Donnload Laplikasyon", btnSaveProject: "Sov Proze", btnLoadProject: "Ouvri", btnExample: "Legzanp", btnReset: "Rekomanse",
+                lblAddSection: "Azout en nouvo seksyon", lblLogo: "Logo lorganizasyon", lblCaption: "Kepsyon", lblHeight: "Hoter :", lblBgColor: "Kuler :", sectionInfo: "Enformasyon", btnChoose: "Swazir...", noFile: "Okenn fitye",
+                lblTitle: "Tit", lblAuthor: "Oter / Lorganizasyon", lblDate: "Dat", lblType: "Tip", lblLang: "Langaz", lblLoc: "Lendrwa",
+                layoutText: "Teks Standard", layoutImage: "Imaz Standard", layoutDrawing: "Desin", layoutTable: "Tablo", layoutTextImage: "Teks + Imaz", layoutImageText: "Imaz + Teks", layout2Col: "2 Kolon", layoutAsym: "Not obor",
+                helpContext: "Akoz ou ti komanse sa? Ki ti bezwen inisyal?", helpObjectives: "Ki ou ti oule akonpli?", helpResources: "Materyo, letan, bidze, staf...", helpResults: "Ki in marse byen? Ki sanzman ou in vwar?", helpTips: "Si en dimoun i oule fer parey, ki i devret konnen?", helpSources: "Link web, bibliografi, partner...", helpDefault: "Dekrir sa seksyon...", helpImage: "Upload en portre (jpg, png).", helpDrawing: "Desin ou sema.", helpTable: "Edite sa tab.",
+                pHeader: "Fis", pViact: "Proze Vi-Act", secContext: 'Kontex & Obzektif', secObjectives: 'Obzektif Edikasyonel', secMethod: 'Enplementasyon', secResources: 'Resours Neseser', secResults: 'Rezilta & Lenpak', secTips: 'Konsey', secSources: 'Sours',
+                rteBold: "Fonse", rteItalic: "Italik", rteUnderline: "Soulinye", rteList: "Lalis pwen", rteOrdered: "Lalis nimero", rteSize1: "Normal", rteSize2: "Mwayen", rteSize3: "Gran", tblRow: "Lin", tblCol: "Kolonn",
+                msgConfirmReset: "Efas tou keksoz?", msgConfirmDelete: "Efas sa seksyon?", msgConfirmLoad: "Sa pou ranplas ou travay kouran. Kontinyen?", msgPromptRows: "Kombien lin?", msgPromptCols: "Kombien kolonn?", msgPromptText: "Antre ou teks:", msgLoaded: "Proze sarze!", msgError: "Erreur sarzman: "
+            },
+            mu: {
+                title: "Zenerater Bann Bon Pratik", subtitle: "Kapitalizasyon pou Travay Lazenes - Proze Vi-Act", download: "Telesarze / Inprime (PDF)", downloadHint: "Swazir 'Save as PDF'.", btnDownloadTool: "Donnload Laplikasion", btnSaveProject: "Sov Proze", btnLoadProject: "Uver", btnExample: "Egzamp", btnReset: "Reset",
+                lblAddSection: "Azout enn nouvo seksion", lblLogo: "Logo lorganizasion", lblCaption: "Kepsion", lblHeight: "Oter :", lblBgColor: "Koule :", sectionInfo: "Informasion", btnChoose: "Swazir...", noFile: "Okenn fitye",
+                lblTitle: "Tit", lblAuthor: "Oter / Lorganizasion", lblDate: "Dat", lblType: "Tip", lblLang: "Langaz", lblLoc: "Landrwa",
+                layoutText: "Teks Standard", layoutImage: "Imaz Standard", layoutDrawing: "Desin", layoutTable: "Tablo", layoutTextImage: "Teks + Imaz", layoutImageText: "Imaz + Teks", layout2Col: "2 Kolonn", layoutAsym: "Not akote",
+                helpContext: "Kifer to finn koumans sa? Ki ti bizin o-depar?", helpObjectives: "Ki to ti anvi fer?", helpResources: "Materyel, letan, bidze, staff...", helpResults: "Ki finn mars bien? Ki sanzman to finn trouve?", helpTips: "Si kiken anvi refair sa, ki li bizin kone?", helpSources: "Link web, bibliografi, partner...", helpDefault: "Dekrir sa seksion...", helpImage: "Upload enn foto (jpg, png).", helpDrawing: "Desinn to sema.", helpTable: "Edit sa tab-la.",
+                pHeader: "Fis", pViact: "Proze Vi-Act", secContext: 'Kontex & Obzektif', secObjectives: 'Obzektif Edikasionel', secMethod: 'Inplementasion', secResources: 'Resours Neseser', secResults: 'Rezilta & Linpak', secTips: 'Konsey', secSources: 'Sours',
+                rteBold: "Fonse", rteItalic: "Italik", rteUnderline: "Soulinie", rteList: "Lalis pwin", rteOrdered: "Lalis nimero", rteSize1: "Normal", rteSize2: "Mwayen", rteSize3: "Gran", tblRow: "Ligne", tblCol: "Kolonn",
+                msgConfirmReset: "Efas tou?", msgConfirmDelete: "Efas sa seksion?", msgConfirmLoad: "Sa pou ranplas ou travay. Kontinie?", msgPromptRows: "Kombien ligne?", msgPromptCols: "Kombien kolonn?", msgPromptText: "Met ou teks:", msgLoaded: "Proze sarze!", msgError: "Erer sarzman: "
+            }
+        };
+
+        const RESOURCE_TYPES = {
+            fr: ["Activité / Atelier", "Méthodologie", "Outil Pédagogique", "Événement", "Gestion de Projet", "Autre"],
+            en: ["Activity / Workshop", "Methodology", "Pedagogical Tool", "Event", "Project Management", "Other"],
+            mg: ["Hetsika / Atrikasa", "Fomba Fiasa", "Fitaovana Fanabeazana", "Hetsika", "Fitantanana Tetikasa", "Hafa"],
+            ro: ["Activitate / Atelier", "Metodologie", "Instrument Pedagogic", "Eveniment", "Management de Proiect", "Altele"],
+            bg: ["Дейност / Работилница", "Методология", "Педагогически Инструмент", "Събитие", "Управление на Проекти", "Друго"],
+            sc: ["Aktivite / Latolye", "Metodolozi", "Zouti Pedagozik", "Evenman", "Zesyon Proze", "Lezot"],
+            mu: ["Aktivite / Latolie", "Metodolozi", "Zouti Pedagozik", "Evenman", "Zesion Proze", "Lezot"]
+        };
+
+        const COLORS = [
+            { id: 'white', class: 'bg-white border-transparent', hex: '#ffffff' },
+            { id: 'gray', class: 'bg-slate-50 border-slate-100', hex: '#f8fafc' },
+            { id: 'blue', class: 'bg-blue-50 border-blue-100', hex: '#eff6ff' },
+            { id: 'orange', class: 'bg-orange-50 border-orange-100', hex: '#fff7ed' },
+            { id: 'green', class: 'bg-emerald-50 border-emerald-100', hex: '#ecfdf5' }
+        ];
+
+        let currentLang = 'fr';
+        let sections = [];
+
+        function getDefaultSections() {
+            const t = TRANSLATIONS[currentLang];
+            return [
+                { id: 'context', key: 'secContext', customTitle: t.secContext, content: '', helpKey: 'helpContext', type: 'normal', contentType: 'text', bgColor: 'white' },
+                { id: 'objectives', key: 'secObjectives', customTitle: t.secObjectives, content: '', helpKey: 'helpObjectives', type: 'normal', contentType: 'text', bgColor: 'white' },
+                { id: 'method', key: 'secMethod', customTitle: t.secMethod, content: '', helpKey: 'helpDefault', type: 'box-gray', contentType: 'text', bgColor: 'gray' }, 
+                { id: 'resources', key: 'secResources', customTitle: t.secResources, content: '', helpKey: 'helpResources', type: 'box-orange', contentType: 'text', bgColor: 'orange' },
+                { id: 'results', key: 'secResults', customTitle: t.secResults, content: '', helpKey: 'helpResults', type: 'normal', contentType: 'text', bgColor: 'white' },
+                { id: 'tips', key: 'secTips', customTitle: t.secTips, content: '', helpKey: 'helpTips', type: 'box-indigo', contentType: 'text', bgColor: 'blue' },
+                { id: 'sources', key: 'secSources', customTitle: t.secSources, content: '', helpKey: 'helpSources', type: 'normal', contentType: 'text', bgColor: 'white' }
+            ];
+        }
+
+        window.onload = function() {
+            resetForm(true); 
+            lucide.createIcons();
+            ['input-title', 'input-author', 'input-date', 'input-location', 'input-resource-lang'].forEach(id => document.getElementById(id).addEventListener('input', updatePreview));
+            document.getElementById('input-type').addEventListener('change', updatePreview);
+            window.addEventListener('resize', () => sections.forEach((sec, index) => { if (sec.contentType === 'drawing') initCanvas(index, true); }));
+        };
+
+        function changeLang(lang) {
+            const oldLang = currentLang;
+            currentLang = lang;
+            document.documentElement.lang = currentLang;
+            updateTypeOptions();
+            updateStaticLabels();
+            
+            const tOld = TRANSLATIONS[oldLang];
+            const tNew = TRANSLATIONS[currentLang];
+            
+            sections.forEach(sec => {
+                if(sec.key && tOld[sec.key] === sec.customTitle) {
+                    sec.customTitle = tNew[sec.key];
+                } else {
+                    const layoutKeys = ['layoutText','layoutImage','layoutDrawing','layoutTable','layoutTextImage','layoutImageText','layout2Col','layoutAsym'];
+                    for(let key of layoutKeys) {
+                        if(tOld[key] === sec.customTitle) {
+                            sec.customTitle = tNew[key];
+                            break;
+                        }
+                    }
+                }
+            });
+
+            renderSections(); 
+            updatePreview();
+        }
+        
+        function toggleLang() { const langs = ['fr', 'en', 'mg', 'ro', 'bg', 'sc', 'mu']; changeLang(langs[(langs.indexOf(currentLang) + 1) % langs.length]); document.getElementById('lang-selector').value = currentLang; }
+
+        function updateTypeOptions() {
+            const select = document.getElementById('input-type'); const idx = select.selectedIndex; select.innerHTML = '';
+            (RESOURCE_TYPES[currentLang] || RESOURCE_TYPES['en']).forEach(type => { const opt = document.createElement('option'); opt.value = type; opt.textContent = type; select.appendChild(opt); });
+            select.selectedIndex = idx >= 0 && idx < select.options.length ? idx : 0;
+        }
+
+        function updateStaticLabels() {
+            const t = TRANSLATIONS[currentLang];
+            document.getElementById('header-title').textContent = t.title; document.getElementById('header-subtitle').textContent = t.subtitle; document.getElementById('download-btn').textContent = t.download;
+            document.getElementById('download-hint').childNodes.forEach(node => { if(node.nodeType === 3) node.textContent = " " + t.downloadHint; });
+            document.getElementById('lbl-add-section-title').textContent = t.lblAddSection; document.getElementById('btn-download-tool').textContent = t.btnDownloadTool; document.getElementById('btn-save-project').textContent = t.btnSaveProject; document.getElementById('btn-load-project').textContent = t.btnLoadProject; document.getElementById('btn-example').textContent = t.btnExample; document.getElementById('btn-reset').textContent = t.btnReset;
+            document.getElementById('lbl-layout-text').textContent = t.layoutText; document.getElementById('lbl-layout-image').textContent = t.layoutImage; document.getElementById('lbl-layout-drawing').textContent = t.layoutDrawing; document.getElementById('lbl-layout-table').textContent = t.layoutTable; document.getElementById('lbl-layout-text-image').textContent = t.layoutTextImage; document.getElementById('lbl-layout-image-text').textContent = t.layoutImageText; document.getElementById('lbl-layout-2col').textContent = t.layout2Col; document.getElementById('lbl-layout-asym').textContent = t.layoutAsym;
+            
+            document.getElementById('lbl-section-info').textContent = t.sectionInfo;
+            document.getElementById('btn-choose-file').textContent = t.btnChoose;
+            if(document.getElementById('logo-filename').textContent.includes('Aucun') || document.getElementById('logo-filename').textContent.includes('No file') || document.getElementById('logo-filename').textContent.includes('Tsy misy') || document.getElementById('logo-filename').textContent.includes('Niciun') || document.getElementById('logo-filename').textContent.includes('Няма') || document.getElementById('logo-filename').textContent.includes('Okenn')) {
+               document.getElementById('logo-filename').textContent = t.noFile; 
+            }
+
+            document.getElementById('label-logo').textContent = t.lblLogo; document.getElementById('label-title').textContent = t.lblTitle; document.getElementById('label-author').textContent = t.lblAuthor; document.getElementById('label-date').textContent = t.lblDate; document.getElementById('label-type').textContent = t.lblType; document.getElementById('label-lang-resource').textContent = t.lblLang; document.getElementById('label-location').textContent = t.lblLoc;
+            document.getElementById('preview-header-tag').textContent = t.pHeader; document.getElementById('preview-viact-tag').textContent = t.pViact; document.getElementById('preview-label-author').textContent = t.lblAuthor; document.getElementById('preview-label-type').textContent = t.lblType; document.getElementById('preview-label-lang').textContent = t.lblLang; document.getElementById('preview-label-date').textContent = t.lblDate; document.getElementById('print-footer-left').textContent = t.pViact; document.getElementById('print-header-fixed').textContent = t.pViact;
+            lucide.createIcons();
+        }
+
+        function saveProject() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                title: document.getElementById('input-title').value, author: document.getElementById('input-author').value, date: document.getElementById('input-date').value,
+                typeIndex: document.getElementById('input-type').selectedIndex, langResource: document.getElementById('input-resource-lang').value, location: document.getElementById('input-location').value,
+                logo: document.getElementById('custom-logo-img').src, sections: sections
+            }));
+            const a = document.createElement('a'); a.href = dataStr; a.download = getFilenameBase() + ".json"; document.body.appendChild(a); a.click(); a.remove();
+        }
+
+        function loadProject(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    document.getElementById('input-title').value = data.title || ""; document.getElementById('input-author').value = data.author || ""; document.getElementById('input-date').value = data.date || ""; document.getElementById('input-resource-lang').value = data.langResource || "FR"; document.getElementById('input-location').value = data.location || "";
+                    if (data.typeIndex !== undefined) document.getElementById('input-type').selectedIndex = data.typeIndex;
+                    if (data.logo && data.logo.length > 100) { document.getElementById('custom-logo-img').src = data.logo; document.getElementById('custom-logo-img').classList.remove('hidden'); document.getElementById('default-logo-placeholder').classList.add('hidden'); }
+                    if (data.sections && Array.isArray(data.sections)) { sections = data.sections; renderSections(); sections.forEach((sec, idx) => { if(sec.contentType === 'drawing') initCanvas(idx); }); }
+                    updatePreview(); alert(TRANSLATIONS[currentLang].msgLoaded);
+                } catch (err) { alert(TRANSLATIONS[currentLang].msgError + err); }
+            }; reader.readAsText(file); input.value = '';
+        }
+
+        function downloadTool() {
+            const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["<!DOCTYPE html>\n" + document.documentElement.outerHTML], { type: "text/html" })); a.download = "generateur-vi-act_offline.html"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function resetForm(skip = false) {
+            if (!skip && !confirm(TRANSLATIONS[currentLang].msgConfirmReset)) return;
+            document.getElementById('input-title').value = ""; document.getElementById('input-author').value = ""; document.getElementById('input-date').valueAsDate = new Date(); document.getElementById('input-location').value = ""; document.getElementById('custom-logo-img').src = ""; document.getElementById('custom-logo-img').classList.add('hidden'); document.getElementById('default-logo-placeholder').classList.remove('hidden'); document.getElementById('logo-filename').textContent = TRANSLATIONS[currentLang].noFile;
+            updateTypeOptions(); sections = getDefaultSections(); renderSections(); updatePreview();
+        }
+
+        function loadExample() {
+            if(!confirm(TRANSLATIONS[currentLang].msgConfirmLoad)) return;
+            document.getElementById('input-title').value = "Aménagement d'un Espace d'Apprentissage Collaboratif";
+            document.getElementById('input-author').value = "Équipe Pédagogique Vi-Act";
+            document.getElementById('input-date').valueAsDate = new Date();
+            document.getElementById('input-type').selectedIndex = 4; // Gestion de Projet
+            document.getElementById('input-location').value = "Centre Communautaire Les Lilas";
+            
+            sections = [
+                {
+                    id: 'ex-1', customTitle: 'Contexte et Diagnostic', type: 'normal', contentType: 'text', bgColor: 'white',
+                    content: "<b>1. Le constat initial :</b><br>Dans le cadre de nos activités jeunesse au Centre Social Les Lilas, nous avons constaté que l'aménagement traditionnel des salles (tables alignées face au tableau) ne favorisait ni l'interaction, ni la créativité. Cet agencement créait une barrière implicite entre les animateurs et les jeunes, limitant la participation active et renforçant une posture scolaire peu adaptée à l'éducation populaire.<br><br><b>2. La volonté de changement :</b><br>Nous avons décidé de repenser intégralement l'espace pour en faire un véritable 'Tiers-Lieu' éducatif : flexible, accueillant et modulaire. L'objectif était de créer un environnement capable de s'adapter aussi bien à des ateliers numériques, des débats citoyens, qu'à du travail en petits groupes autonomes ou des temps de convivialité."
+                },
+                {
+                    id: 'ex-2', customTitle: 'Objectifs Pédagogiques', type: 'box-gray', contentType: 'text', bgColor: 'blue',
+                    content: "<ul><li><b>Favoriser l'autonomie :</b> Permettre aux jeunes de s'approprier l'espace et de le configurer eux-mêmes selon leurs besoins du moment.</li><li><b>Encourager le travail collaboratif :</b> Briser les silos par la modularité du mobilier et la disposition en îlots ou en cercle.</li><li><b>Bien-être et inclusion :</b> Créer une ambiance conviviale et sécurisante (<i>safe space</i>) propice à la parole et à la confiance en soi.</li><li><b>Polyvalence :</b> Un même lieu pour la détente, le travail formel, la création artistique et les réunions d'équipe.</li></ul>"
+                },
+                {
+                    id: 'ex-3', customTitle: 'Plan de la Salle (Croquis)', type: 'normal', contentType: 'drawing',
+                    content: '', 
+                    caption: "Schéma de principe : Zones modulables (Espace Détente / Espace Travail / Espace Numérique)",
+                    height: 350
+                },
+                {
+                    id: 'ex-4', customTitle: 'Matériel et Budget Prévisionnel', type: 'normal', contentType: 'table', bgColor: 'white',
+                    content: { rows: [
+                        ['Poste de Dépense', 'Détail Technique', 'Coût Estimé', 'Priorité'],
+                        ['Mobilier Modulaire', '6 Tables pliantes sur roulettes, 20 chaises empilables légères', '1200 €', 'Haute'],
+                        ['Zone Détente', '2 Canapés 3 places, 4 poufs poires, 1 grand tapis', '800 €', 'Moyenne'],
+                        ['Équipement IT', 'Vidéoprojecteur interactif courte focale, Écran blanc mural', '1500 €', 'Haute'],
+                        ['Décoration & Ambiance', 'Plantes vertes, cadres d\'affichage, peinture, lampadaires', '300 €', 'Basse'],
+                        ['Petit Matériel', 'Tableaux blancs mobiles, feutres, post-it', '200 €', 'Moyenne'],
+                        ['Total', '', '4000 €', '']
+                    ]}
+                },
+                {
+                    id: 'ex-5', customTitle: 'Calendrier de Mise en Œuvre', type: 'normal', contentType: 'text', bgColor: 'orange',
+                    content: "Le projet s'est déroulé sur une période de 4 mois, impliquant activement les jeunes à chaque étape :<br><ol><li><b>Mois 1 - Diagnostic partagé :</b> Organisation d'un 'World Café' avec les jeunes pour lister leurs envies, rêver leur espace idéal et voter pour l'agencement final.</li><li><b>Mois 2 - Recherche de financement & Achats :</b> Dépôt de dossier auprès de la CAF (Appel à projet 'Innov'Jeunes') et de la Mairie. Validation du budget et commande du matériel.</li><li><b>Mois 3 - Chantier participatif :</b> Weekend de cohésion : peinture des murs (fresque collective), montage des meubles et installation de la décoration avec un groupe de 15 jeunes bénévoles.</li><li><b>Mois 4 - Inauguration :</b> Goûter festif organisé par les jeunes pour présenter le lieu aux habitants et aux partenaires officiels.</li></ol>"
+                },
+                {
+                    id: 'ex-part', customTitle: 'Partenaires Impliqués', type: 'normal', contentType: 'text', bgColor: 'white',
+                    content: "Ce projet n'aurait pas pu voir le jour sans la collaboration de :<br><ul><li><b>La Mairie :</b> Mise à disposition du local et subvention d'équipement.</li><li><b>La CAF :</b> Financement via le fonds d'innovation sociale.</li><li><b>L'Association 'Bricol'Tout' :</b> Accompagnement technique lors du chantier participatif pour la sécurité et l'apprentissage des outils.</li></ul>"
+                },
+                {
+                    id: 'ex-6', customTitle: 'Retours d\'Expérience & Analyse', type: 'normal', contentType: '2col-text',
+                    content: {
+                        left: "<b>Ce qui fonctionne très bien :</b><br>Les jeunes adorent la zone canapé pour les discussions informelles avant les ateliers, cela crée un sas de décompression essentiel. La modularité permet de passer d'un mode 'conférence' à un mode 'atelier' en moins de 5 minutes. On observe une meilleure écoute lors des temps calmes et plus de dynamisme lors des travaux de groupe.",
+                        right: "<b>Points d'attention / Difficultés :</b><br>Le mobilier clair (canapés) est salissant, il faut absolument prévoir des housses lavables dès le départ. L'acoustique de la pièce s'est révélée problématique avec plusieurs groupes travaillant simultanément : nous envisageons la pose de panneaux phoniques au plafond pour réduire la réverbération."
+                    }
+                },
+                {
+                    id: 'ex-7', customTitle: 'Impact à Long Terme', type: 'box-indigo', contentType: 'text', bgColor: 'white',
+                    content: "Depuis la transformation, la fréquentation du local a augmenté de <b>30%</b> sur les créneaux d'accueil libre. Les jeunes s'investissent davantage et proposent eux-mêmes de nouvelles activités car ils se sentent 'chez eux' et respectent le matériel qu'ils ont aidé à installer."
+                }
+            ];
+
+            renderSections();
+            updatePreview();
+            
+            sections.forEach((sec, idx) => {
+                if(sec.contentType === 'drawing') initCanvas(idx);
+            });
+        }
+
+        function execCmd(cmd, val = null) { document.execCommand(cmd, false, val); }
+        function getRichEditor(val, fn) {
+            const t = TRANSLATIONS[currentLang];
+            return `<div class="border border-slate-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 transition-all bg-white"><div class="flex flex-wrap items-center gap-1 p-2 bg-slate-50 border-b border-slate-200">
+                <button onmousedown="event.preventDefault(); execCmd('bold');" class="p-1.5 hover:bg-slate-200 rounded font-bold" title="${t.rteBold}">B</button><button onmousedown="event.preventDefault(); execCmd('italic');" class="p-1.5 hover:bg-slate-200 rounded italic" title="${t.rteItalic}">I</button><button onmousedown="event.preventDefault(); execCmd('underline');" class="p-1.5 hover:bg-slate-200 rounded underline" title="${t.rteUnderline}">U</button><div class="h-4 w-px bg-slate-300 mx-1"></div>
+                <button onmousedown="event.preventDefault(); execCmd('insertUnorderedList');" class="p-1.5 hover:bg-slate-200 rounded" title="${t.rteList}"><i data-lucide="list" class="w-4 h-4"></i></button><button onmousedown="event.preventDefault(); execCmd('insertOrderedList');" class="p-1.5 hover:bg-slate-200 rounded" title="${t.rteOrdered}"><i data-lucide="list-ordered" class="w-4 h-4"></i></button><div class="h-4 w-px bg-slate-300 mx-1"></div>
+                <button onmousedown="event.preventDefault(); execCmd('fontSize', '3');" class="px-2 py-1 hover:bg-slate-200 rounded text-xs" title="${t.rteSize1}">A</button><button onmousedown="event.preventDefault(); execCmd('fontSize', '4');" class="px-2 py-1 hover:bg-slate-200 rounded text-sm font-bold" title="${t.rteSize2}">A+</button><button onmousedown="event.preventDefault(); execCmd('fontSize', '5');" class="px-2 py-1 hover:bg-slate-200 rounded text-base font-bold" title="${t.rteSize3}">A++</button></div>
+                <div class="rich-editor-content p-3 min-h-[120px] max-h-[400px] overflow-y-auto text-slate-700 text-sm leading-relaxed" contenteditable="true" oninput="${fn}">${val}</div></div>`;
+        }
+
+        function renderSections() {
+            const container = document.getElementById('dynamic-sections-container'); container.innerHTML = '';
+            sections.forEach((sec, index) => {
+                const t = TRANSLATIONS[currentLang];
+                let displayTitle = sec.customTitle || "Section";
+                let colorPickerHTML = '';
+                if (['text', '2col-text', 'asym-left', 'table'].includes(sec.contentType)) {
+                    colorPickerHTML = `<div class="flex items-center gap-1 mr-4 border-l pl-4 border-slate-200">${COLORS.map(c => `<div onclick="updateSectionColor(${index}, '${c.id}')" class="color-btn ${c.id === (sec.bgColor || 'white') ? 'active' : ''}" style="background-color: ${c.hex};" title="Fond ${c.id}"></div>`).join('')}</div>`;
+                }
+                let contentHTML = '';
+                if (sec.contentType === 'text') contentHTML = `<div><p class="text-xs text-slate-500 mb-2 italic">${sec.helpKey ? t[sec.helpKey] : t.helpDefault}</p>${getRichEditor(sec.content, `updateSectionContent(${index}, this.innerHTML)`)}</div>`;
+                else if (sec.contentType === 'image') {
+                    const h = sec.height || 300;
+                    contentHTML = `<div class="mb-3"><p class="text-xs text-slate-500 mb-2 italic">${t.helpImage}</p><div class="flex flex-col gap-3"><label class="flex items-center gap-2 px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg cursor-pointer border border-slate-300 border-dashed justify-center"><i data-lucide="image-plus" class="w-5 h-5"></i><span class="text-sm font-medium">Image</span><input type="file" accept="image/*" class="hidden" onchange="handleSectionImageUpload(${index}, this)"></label>${sec.content ? `<div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center p-2" style="height:${h}px"><img src="${sec.content}" class="max-w-full max-h-full object-contain"><button onclick="clearSectionContent(${index})" class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 hover:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="flex items-center gap-2 text-xs text-slate-500"><span>${t.lblHeight}</span><input type="range" min="150" max="800" value="${h}" class="flex-grow" oninput="updateSectionHeight(${index}, this.value)"></div>` : ''}<div class="mt-2"><label class="block text-xs font-bold text-slate-500 mb-1">${t.lblCaption}</label><input type="text" value="${sec.caption || ''}" oninput="updateSectionCaption(${index}, this.value)" class="w-full p-2 border border-slate-300 rounded text-sm"></div></div></div>`;
+                } else if (sec.contentType === 'drawing') {
+                    const h = sec.height || 350;
+                    contentHTML = `<div class="mb-3"><p class="text-xs text-slate-500 mb-2 italic">${t.helpDrawing}</p><div class="bg-white border border-slate-300 rounded-lg overflow-hidden"><div class="flex items-center gap-2 p-2 bg-slate-50 border-b border-slate-200 overflow-x-auto"><input type="color" id="draw-color-${index}" value="#1e1b4b" class="w-8 h-8 rounded cursor-pointer border-none bg-transparent shrink-0"><input type="range" id="draw-size-${index}" min="1" max="20" value="2" class="w-20 shrink-0"><div class="h-6 w-px bg-slate-200 mx-1 shrink-0"></div><button onclick="setDrawTool(${index}, 'pen')" id="btn-tool-pen-${index}" class="p-1.5 bg-slate-200 rounded"><i data-lucide="pencil" class="w-4 h-4"></i></button><button onclick="setDrawTool(${index}, 'line')" id="btn-tool-line-${index}" class="p-1.5 hover:bg-slate-200 rounded"><i data-lucide="minus" class="w-4 h-4"></i></button><button onclick="setDrawTool(${index}, 'eraser')" id="btn-tool-eraser-${index}" class="p-1.5 hover:bg-slate-200 rounded"><i data-lucide="eraser" class="w-4 h-4"></i></button><div class="h-6 w-px bg-slate-200 mx-1 shrink-0"></div><button onclick="setDrawTool(${index}, 'rect')" id="btn-tool-rect-${index}" class="p-1.5 hover:bg-slate-200 rounded"><i data-lucide="square" class="w-4 h-4"></i></button><button onclick="setDrawTool(${index}, 'circle')" id="btn-tool-circle-${index}" class="p-1.5 hover:bg-slate-200 rounded"><i data-lucide="circle" class="w-4 h-4"></i></button><button onclick="setDrawTool(${index}, 'text')" id="btn-tool-text-${index}" class="p-1.5 hover:bg-slate-200 rounded"><i data-lucide="type" class="w-4 h-4"></i></button><div class="flex-grow"></div><button onclick="clearDrawingCanvas(${index})" class="p-1.5 hover:bg-red-100 text-red-500 rounded"><i data-lucide="trash" class="w-4 h-4"></i></button></div><div class="relative w-full bg-white cursor-crosshair overflow-hidden" style="height:${h}px"><canvas id="canvas-${index}" class="block touch-none"></canvas></div></div><div class="flex items-center gap-2 text-xs text-slate-500 mt-2"><span>${t.lblHeight}</span><input type="range" min="200" max="800" value="${h}" class="flex-grow" oninput="updateSectionHeight(${index}, this.value, true)"></div><div class="mt-2"><label class="block text-xs font-bold text-slate-500 mb-1">${t.lblCaption}</label><input type="text" value="${sec.caption || ''}" oninput="updateSectionCaption(${index}, this.value)" class="w-full p-2 border border-slate-300 rounded text-sm"></div></div>`;
+                } else if (sec.contentType === 'table') {
+                    contentHTML = renderTableEditor(index, sec.content, t);
+                } else if (sec.contentType === 'text-image' || sec.contentType === 'image-text') {
+                    const txt = sec.content?.text || ''; const img = sec.content?.image || '';
+                    contentHTML = `<div class="grid grid-cols-1 gap-4"><div><label class="block text-xs font-bold text-slate-500 mb-1">Texte</label>${getRichEditor(txt, `updateSectionSubContent(${index}, 'text', this.innerHTML)`)}</div><div><label class="block text-xs font-bold text-slate-500 mb-1">Image</label><label class="flex items-center gap-2 px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg cursor-pointer border border-slate-300 border-dashed justify-center"><i data-lucide="image-plus" class="w-5 h-5"></i><span class="text-sm font-medium">Image</span><input type="file" accept="image/*" class="hidden" onchange="handleSubImageUpload(${index}, this)"></label>${img ? `<div class="mt-2 relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-50 h-32"><img src="${img}" class="w-full h-full object-contain"><button onclick="clearSectionSubImage(${index})" class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 hover:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button></div>` : ''}</div></div>`;
+                } else if (['2col-text', 'asym-left'].includes(sec.contentType)) {
+                    contentHTML = `<div class="grid grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-slate-500 mb-1">Gauche</label>${getRichEditor(sec.content?.left||'', `updateSectionSubContent(${index}, 'left', this.innerHTML)`)}</div><div><label class="block text-xs font-bold text-slate-500 mb-1">Droite</label>${getRichEditor(sec.content?.right||'', `updateSectionSubContent(${index}, 'right', this.innerHTML)`)}</div></div>`;
+                }
+                
+                container.insertAdjacentHTML('beforeend', `<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 section-block group" data-index="${index}"><div class="flex justify-between items-center mb-4"><div class="flex-grow mr-4"><input type="text" value="${displayTitle}" oninput="updateSectionTitle(${index}, this.value)" class="font-bold text-lg text-indigo-900 border-b border-transparent hover:border-slate-300 focus:border-indigo-500 focus:outline-none w-full bg-transparent transition-colors placeholder-indigo-300"></div><div class="flex items-center gap-1 opacity-100 lg:opacity-50 lg:group-hover:opacity-100 transition-opacity">${colorPickerHTML}<button onclick="moveSection(${index}, -1)" class="p-2 hover:bg-slate-100 rounded text-slate-500"><i data-lucide="arrow-up" class="w-4 h-4"></i></button><button onclick="moveSection(${index}, 1)" class="p-2 hover:bg-slate-100 rounded text-slate-500"><i data-lucide="arrow-down" class="w-4 h-4"></i></button><button onclick="deleteSection(${index})" class="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>${contentHTML}</div>`);
+            });
+            lucide.createIcons(); container.querySelectorAll('textarea').forEach(ta => autoResize(ta)); sections.forEach((sec, idx) => { if(sec.contentType === 'drawing') initCanvas(idx); });
+        }
+
+        function renderTableEditor(index, data, t) {
+            if (!data || !data.rows) return `<div class="text-red-500">Error</div>`;
+            let rows = data.rows.map((row, r) => `<tr class="border-b last:border-b-0 border-slate-100">${row.map((cell, c) => `<td class="p-1 border-r last:border-r-0 border-slate-100 ${r===0?'bg-slate-50 font-bold':''} min-w-[100px]"><input type="text" value="${cell}" oninput="updateTableCell(${index}, ${r}, ${c}, this.value)" class="w-full bg-transparent p-1 focus:outline-none focus:bg-indigo-50 rounded"></td>`).join('')}<td class="w-8 p-1 text-center bg-slate-50"><button onclick="tableRemoveRow(${index}, ${r})" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" class="w-3 h-3"></i></button></td></tr>`).join('');
+            return `<div class="mb-2 flex gap-2"><button onclick="tableAddRow(${index})" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3"></i> ${t.tblRow}</button><button onclick="tableAddCol(${index})" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3"></i> ${t.tblCol}</button></div><div class="overflow-x-auto border border-slate-200 rounded-lg"><table class="w-full text-sm text-left"><tbody>${rows}</tbody></table></div>`;
+        }
+
+        function addTableSection() {
+            const t = TRANSLATIONS[currentLang];
+            const r = parseInt(prompt(t.msgPromptRows, "3")) || 3; const c = parseInt(prompt(t.msgPromptCols, "3")) || 3;
+            const rows = []; for(let i=0; i<r; i++) { let row = []; for(let j=0; j<c; j++) { row.push(i===0 ? `Titre ${j+1}` : `...`); } rows.push(row); }
+            addNewSection('table', { rows });
+        }
+        function tableAddRow(i) { sections[i].content.rows.push(new Array(sections[i].content.rows[0].length).fill("...")); renderSections(); updatePreview(); }
+        function tableAddCol(i) { sections[i].content.rows.forEach(r => r.push("...")); renderSections(); updatePreview(); }
+        function tableRemoveRow(i, r) { if(sections[i].content.rows.length > 1) { sections[i].content.rows.splice(r, 1); renderSections(); updatePreview(); } }
+        function updateTableCell(i, r, c, v) { sections[i].content.rows[r][c] = v; updatePreview(); }
+
+        function updateSectionContent(i, v) { sections[i].content = v; updatePreview(); }
+        function updateSectionCaption(i, v) { sections[i].caption = v; updatePreview(); }
+        function updateSectionTitle(i, v) { sections[i].customTitle = v; updatePreview(); }
+        function updateSectionHeight(i, v, c=false) { sections[i].height = v; updatePreview(); if(c) initCanvas(i, true); }
+        function updateSectionColor(i, c) { sections[i].bgColor = c; renderSections(); updatePreview(); }
+        function updateSectionSubContent(i, k, v) { if(!sections[i].content) sections[i].content={}; sections[i].content[k] = v; updatePreview(); }
+        function handleSubImageUpload(i, inp) { const f=inp.files[0]; if(f) { const r=new FileReader(); r.onload=e=>{ if(!sections[i].content) sections[i].content={}; sections[i].content.image=e.target.result; renderSections(); updatePreview(); }; r.readAsDataURL(f); } }
+        function clearSectionSubImage(i) { if(sections[i].content) sections[i].content.image=''; renderSections(); updatePreview(); }
+        function moveSection(i, d) { const n=i+d; if(n>=0 && n<sections.length) { [sections[i], sections[n]] = [sections[n], sections[i]]; renderSections(); updatePreview(); } }
+        function deleteSection(i) { if(confirm(TRANSLATIONS[currentLang].msgConfirmDelete)) { sections.splice(i, 1); renderSections(); updatePreview(); } }
+        
+        function addNewSection(type, content = "") {
+            const t = TRANSLATIONS[currentLang];
+            let title = "Section";
+            if(type=='text') title=t.layoutText; if(type=='image') title=t.layoutImage; if(type=='drawing') title=t.layoutDrawing; if(type=='table') title=t.layoutTable; if(type=='text-image') title=t.layoutTextImage; if(type=='image-text') title=t.layoutImageText; if(type=='2col-text') title=t.layout2Col; if(type=='asym-left') title=t.layoutAsym;
+            const newSec = { id: `s-${Date.now()}`, customTitle: title, content: content, caption: "", type: "normal", contentType: type, height: (type=='drawing'?350:300), bgColor: 'white' };
+            if(['text-image','image-text'].includes(type) && !content) newSec.content = {text:"", image:""}; if(['2col-text','asym-left'].includes(type) && !content) newSec.content = {left:"", right:""};
+            sections.push(newSec); renderSections(); setTimeout(() => document.getElementById('dynamic-sections-container').lastElementChild.scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+
+        function handleLogoUpload(inp) { const f=inp.files[0]; if(f) { const r=new FileReader(); r.onload=e=>{ document.getElementById('custom-logo-img').src=e.target.result; document.getElementById('custom-logo-img').classList.remove('hidden'); document.getElementById('default-logo-placeholder').classList.add('hidden'); }; r.readAsDataURL(f); } }
+        function handleSectionImageUpload(i, inp) { const f=inp.files[0]; if(f) { const r=new FileReader(); r.onload=e=>{ sections[i].content=e.target.result; renderSections(); updatePreview(); }; r.readAsDataURL(f); } }
+        function clearSectionContent(i) { sections[i].content=''; renderSections(); updatePreview(); }
+
+        let drawingStates = {};
+        function initCanvas(i, preserve=false) {
+            const c=document.getElementById(`canvas-${i}`); if(!c) return;
+            const p=c.parentElement; const r=p.getBoundingClientRect();
+            if(c.width!==r.width || c.height!==r.height) { c.width=r.width; c.height=r.height; c.style.width='100%'; c.style.height='100%'; }
+            const ctx=c.getContext('2d'); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.fillStyle="white"; ctx.fillRect(0,0,c.width,c.height);
+            if(sections[i].content && typeof sections[i].content==='string') { const img=new Image(); img.onload=()=>{ ctx.drawImage(img,0,0,c.width,c.height); }; img.src=sections[i].content; }
+            if(!drawingStates[i]) drawingStates[i]={mode:'pen'};
+            let sX, sY, snap, draw=false;
+            function getPos(e) { const rc=c.getBoundingClientRect(); const cx=e.changedTouches?e.changedTouches[0].clientX:e.clientX; const cy=e.changedTouches?e.changedTouches[0].clientY:e.clientY; return {x:cx-rc.left, y:cy-rc.top}; }
+            function start(e) {
+                if(e.type!=='touchstart') e.preventDefault();
+                draw=true;
+                const cr=c.getBoundingClientRect();
+                if(c.width!==cr.width || c.height!==cr.height) { const tmp=c.toDataURL(); c.width=cr.width; c.height=cr.height; const im=new Image(); im.onload=()=>{ctx.fillStyle="white";ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(im,0,0,c.width,c.height);}; im.src=tmp; }
+                const pos=getPos(e); sX=pos.x; sY=pos.y;
+                const m=drawingStates[i].mode;
+                if(['rect','circle','line'].includes(m)) snap=ctx.getImageData(0,0,c.width,c.height);
+                else if(m==='text') {
+                    draw=false; const txt=prompt(TRANSLATIONS[currentLang].msgPromptText);
+                    if(txt) { 
+                        const sz=document.getElementById(`draw-size-${i}`).value; 
+                        const cl=document.getElementById(`draw-color-${i}`).value; 
+                        ctx.font=`${sz*5+10}px Arial`; ctx.fillStyle=cl; ctx.textBaseline='middle'; ctx.fillText(txt,sX,sY); saveCanvas(i);
+                    }
+                } else { ctx.beginPath(); ctx.moveTo(pos.x,pos.y); }
+            }
+            function move(e) {
+                if(!draw) return; e.preventDefault(); const pos=getPos(e);
+                const cl=document.getElementById(`draw-color-${i}`).value; const sz=document.getElementById(`draw-size-${i}`).value; const m=drawingStates[i].mode;
+                ctx.lineWidth=sz; ctx.strokeStyle=cl; ctx.globalCompositeOperation='source-over';
+                if(m==='pen') { ctx.lineTo(pos.x,pos.y); ctx.stroke(); }
+                else if(m==='eraser') { ctx.lineWidth=sz*5; ctx.globalCompositeOperation='destination-out'; ctx.strokeStyle="rgba(0,0,0,1)"; ctx.lineTo(pos.x,pos.y); ctx.stroke(); }
+                else if(m==='line') { ctx.putImageData(snap,0,0); ctx.beginPath(); ctx.moveTo(sX,sY); ctx.lineTo(pos.x,pos.y); ctx.stroke(); }
+                else if(m==='rect') { ctx.putImageData(snap,0,0); ctx.beginPath(); ctx.strokeRect(sX,sY,pos.x-sX,pos.y-sY); }
+                else if(m==='circle') { ctx.putImageData(snap,0,0); ctx.beginPath(); const r=Math.sqrt(Math.pow(pos.x-sX,2)+Math.pow(pos.y-sY,2)); ctx.arc(sX,sY,r,0,2*Math.PI); ctx.stroke(); }
+            }
+            function stop() { if(!draw) return; draw=false; if(drawingStates[i].mode!=='text') saveCanvas(i); }
+            c.addEventListener('mousedown',start); c.addEventListener('mousemove',move); c.addEventListener('mouseup',stop); c.addEventListener('mouseout',stop);
+            c.addEventListener('touchstart',start); c.addEventListener('touchmove',move); c.addEventListener('touchend',stop);
+        }
+        function setDrawTool(i,t) { 
+            if(!drawingStates[i]) drawingStates[i]={}; drawingStates[i].mode=t; 
+            ['pen','line','eraser','rect','circle','text'].forEach(tool=>{ const b=document.getElementById(`btn-tool-${tool}-${i}`); if(b) t===tool?b.classList.add('bg-slate-200'):b.classList.remove('bg-slate-200'); });
+        }
+        function clearDrawingCanvas(i) { const c=document.getElementById(`canvas-${i}`); const x=c.getContext('2d'); x.clearRect(0,0,c.width,c.height); x.globalCompositeOperation='source-over'; x.fillStyle="white"; x.fillRect(0,0,c.width,c.height); saveCanvas(i); }
+        function saveCanvas(i) { sections[i].content=document.getElementById(`canvas-${i}`).toDataURL("image/png"); updatePreview(); }
+
+        function getInitials(n) { if(!n) return 'UNK'; const p=n.trim().split(/\s+/); if(p.length===1) return p[0].substring(0,3).toUpperCase(); return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase(); }
+        function getFilenameBase() { const d=document.getElementById('input-date').value||'NoDate'; const t=(document.getElementById('input-title').value||'Untitled').replace(/[^a-zA-Z0-9]/g,'-').substring(0,40); const l=(document.getElementById('input-resource-lang').value||'FR').substring(0,2).toUpperCase(); return `${d}_${l}_${t}`; }
+        function updateFilename() { document.title=getFilenameBase(); document.getElementById('filename-preview').textContent=`Fichier : ${document.title}.pdf`; }
+        function autoResize(el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+        function switchTab(t) { const e=document.getElementById('editor-col'); const p=document.getElementById('preview-col'); if(t==='edit') { e.classList.remove('hidden'); e.classList.add('flex'); p.classList.add('hidden'); } else { e.classList.add('hidden'); e.classList.remove('flex'); p.classList.remove('hidden'); p.classList.add('block'); } }
+
+        function updatePreview() {
+            const container=document.getElementById('preview-dynamic-content'); container.innerHTML='';
+            document.getElementById('preview-title').textContent=document.getElementById('input-title').value||'...';
+            document.getElementById('preview-author').textContent=document.getElementById('input-author').value||'-';
+            document.getElementById('preview-type').textContent=document.getElementById('input-type').value||'-';
+            document.getElementById('preview-resource-lang').textContent=document.getElementById('input-resource-lang').value||'-';
+            document.getElementById('preview-date').textContent=document.getElementById('input-date').value||'-';
+            document.getElementById('preview-location').textContent=document.getElementById('input-location').value;
+            document.getElementById('preview-location-container').style.display=document.getElementById('input-location').value?'flex':'none';
+            
+            sections.forEach(sec => {
+                let html=''; const bg=COLORS.find(c=>c.id===(sec.bgColor||'white'))?.class||'bg-white border-transparent'; const wrap=(sec.bgColor&&sec.bgColor!=='white')?`p-4 rounded-lg border ${bg}`:'';
+                const title=`<h3 class="text-lg font-bold text-indigo-900 mb-2 border-b border-indigo-100 pb-1">${sec.customTitle}</h3>`;
+                if(sec.contentType==='text' && sec.content) html=`<section class="break-inside-avoid ${wrap}">${title}<div class="text-slate-700 text-sm whitespace-pre-wrap">${sec.content}</div></section>`;
+                else if((sec.contentType==='image'||sec.contentType==='drawing') && sec.content) html=`<section class="break-inside-avoid ${wrap}">${title}<div class="mt-3"><div style="height:${sec.height}px" class="flex items-center justify-center"><img src="${sec.content}" class="max-w-full max-h-full object-contain rounded-lg shadow-sm bg-white border border-slate-100"></div>${sec.caption?`<p class="text-sm text-slate-500 mt-2 text-center italic">${sec.caption}</p>`:''}</div></section>`;
+                else if(sec.contentType==='table' && sec.content.rows) {
+                    let tbl=`<table class="w-full text-sm border-collapse border border-slate-300 mb-2 bg-white"><tbody>`;
+                    sec.content.rows.forEach((r,i)=>{ tbl+=`<tr>${r.map(c=>`<${i===0?'th':'td'} class="border border-slate-300 p-2 ${i===0?'bg-slate-100 font-bold':''}">${c}</${i===0?'th':'td'}>`).join('')}</tr>`; });
+                    html=`<section class="break-inside-avoid ${wrap}">${title}${tbl}</tbody></table></section>`;
+                } else if(['text-image','image-text'].includes(sec.contentType) && (sec.content.text||sec.content.image)) {
+                    const txt=`<div class="w-1/2 text-slate-700 text-sm whitespace-pre-wrap">${sec.content.text}</div>`;
+                    const img=`<div class="w-1/2">${sec.content.image?`<img src="${sec.content.image}" class="w-full rounded-lg object-contain bg-white">`:''}</div>`;
+                    html=`<section class="break-inside-avoid ${wrap}">${title}<div class="flex flex-row gap-4">${sec.contentType==='text-image'?txt+img:img+txt}</div></section>`;
+                } else if(['2col-text','asym-left'].includes(sec.contentType) && (sec.content.left||sec.content.right)) {
+                    const wL=sec.contentType==='2col-text'?'w-1/2':'w-3/4'; const wR=sec.contentType==='2col-text'?'w-1/2':'w-1/4';
+                    html=`<section class="break-inside-avoid ${wrap}">${title}<div class="flex flex-row gap-6"><div class="${wL} text-slate-700 text-sm whitespace-pre-wrap break-words">${sec.content.left}</div><div class="${wR} ${sec.contentType==='asym-left'?'bg-white/50 p-3 rounded border border-slate-200 text-xs text-slate-600 italic':''} whitespace-pre-wrap break-words">${sec.content.right}</div></div></section>`;
+                }
+                if(html) container.insertAdjacentHTML('beforeend', html);
+            });
+            updateFilename();
+        }
+    </script>
+</body>
+</html>
