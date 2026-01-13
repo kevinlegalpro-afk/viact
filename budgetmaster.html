@@ -42,13 +42,14 @@
         }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 20px;
-            width: 20px;
+            height: 16px;
+            width: 16px;
             border-radius: 50%;
-            background: #4f46e5;
+            background: #10b981;
             cursor: pointer;
-            margin-top: -8px; 
+            margin-top: -6px; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            border: 2px solid white;
         }
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
@@ -56,6 +57,9 @@
             cursor: pointer;
             background: #e2e8f0;
             border-radius: 2px;
+        }
+        input[type=range]:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
         }
     </style>
 </head>
@@ -86,10 +90,13 @@
             AlertTriangle: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
             Eye: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>,
             LayoutGrid: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></svg>,
-            List: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
+            List: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>,
+            Settings2: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>,
+            Clock: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
+            Settings: ({size=24, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         };
 
-        const { Plus, Trash2, Save, Upload, FileDown, CheckCircle, Wallet, Receipt, PiggyBank, X, Pencil, Wand2, Maximize, Minimize, RefreshCw, FilePlus, AlertTriangle, Eye, LayoutGrid, List } = Icons;
+        const { Plus, Trash2, Save, Upload, FileDown, CheckCircle, Wallet, Receipt, PiggyBank, X, Pencil, Wand2, Maximize, Minimize, RefreshCw, FilePlus, AlertTriangle, Eye, LayoutGrid, List, Settings2, Clock, Settings } = Icons;
 
         // --- DATA & DICTIONARIES ---
 
@@ -102,7 +109,7 @@
                 newExpense: "Nouvelle Dépense",
                 newIncome: "Nouvelle Recette",
                 name: "Intitulé / Source",
-                amount: "Montant",
+                amount: "Montant Total",
                 category: "Catégorie",
                 add: "Ajouter",
                 createCategory: "Créer catégorie",
@@ -113,7 +120,7 @@
                 used: "Utilisé",
                 available: "Dispo",
                 balance: "Balance",
-                totalExpenses: "Total Dépenses",
+                totalExpenses: "Total Dépenses (Effectif)",
                 totalIncomes: "Total Recettes",
                 save: "Sauvegarder",
                 load: "Ouvrir",
@@ -158,26 +165,31 @@
                 noExpensesFunded: "Aucune dépense financée pour le moment.",
                 allocAmount: "Financé",
                 viewList: "Vue Liste",
-                viewVisual: "Vue Visuelle",
+                viewVisual: "Vue Répartition",
                 dragDropHint: "Glissez les dépenses vers les recettes",
                 visualLeft: "Dépenses à financer",
                 visualRight: "Répartition sur les Recettes",
                 visualEmpty: "Tout est financé !",
                 amountToAlloc: "Montant à affecter",
+                adjust: "Ajuster le montant",
+                quantity: "Quantité",
+                unitPrice: "Prix Unitaire",
+                simpleMode: "Montant Simple",
+                detailedMode: "Calcul (Qté x Prix)",
+                isInvestment: "Investissement / Amortissement",
+                amortizationPeriod: "Durée d'amortissement (mois)",
+                incomeDuration: "Durée (mois)",
+                projectSettings: "Paramètres Projet",
+                projectDuration: "Durée du projet (mois)",
+                projectTitle: "Nom du projet",
+                months: "mois",
+                effectiveCost: "Coût imputé au projet",
+                investmentTotal: "Total Invest.",
                 categories: {
-                    cat_1: 'Transport',
-                    cat_2: 'Alimentation',
-                    cat_3: 'Hébergement',
-                    cat_loc: 'Location (Salle/Local)',
-                    cat_4: 'Matériel Pédagogique',
-                    cat_5: 'Salaires / RH',
-                    cat_6: 'Formation',
-                    cat_7: 'Communication',
-                    cat_8: 'Assurances',
-                    cat_impot: 'Taxes & Impôts',
-                    cat_9: 'Frais Administratifs',
-                    cat_10: 'Prestations de Services',
-                    cat_11: 'Petit Matériel & Fournitures'
+                    cat_1: 'Transport', cat_2: 'Alimentation', cat_3: 'Hébergement', cat_loc: 'Location (Salle/Local)',
+                    cat_4: 'Matériel Pédagogique', cat_5: 'Salaires / RH', cat_6: 'Formation', cat_7: 'Communication',
+                    cat_8: 'Assurances', cat_impot: 'Taxes & Impôts', cat_9: 'Frais Administratifs',
+                    cat_10: 'Prestations de Services', cat_11: 'Petit Matériel & Fournitures'
                 }
             },
             en: {
@@ -188,7 +200,7 @@
                 newExpense: "New Expense",
                 newIncome: "New Income",
                 name: "Name / Source",
-                amount: "Amount",
+                amount: "Total Amount",
                 category: "Category",
                 add: "Add",
                 createCategory: "Create Category",
@@ -199,7 +211,7 @@
                 used: "Used",
                 available: "Avail.",
                 balance: "Balance",
-                totalExpenses: "Total Expenses",
+                totalExpenses: "Total Expenses (Effective)",
                 totalIncomes: "Total Income",
                 save: "Save",
                 load: "Open",
@@ -244,26 +256,30 @@
                 noExpensesFunded: "No expenses funded yet.",
                 allocAmount: "Funded",
                 viewList: "List View",
-                viewVisual: "Visual View",
+                viewVisual: "Distribution View",
                 dragDropHint: "Drag expenses to income sources",
                 visualLeft: "Expenses to Fund",
                 visualRight: "Allocation to Income",
                 visualEmpty: "All Funded!",
                 amountToAlloc: "Amount to allocate",
+                adjust: "Adjust Amount",
+                quantity: "Quantity",
+                unitPrice: "Unit Price",
+                simpleMode: "Simple Amount",
+                detailedMode: "Calc (Qty x Price)",
+                isInvestment: "Investment / Amortization",
+                amortizationPeriod: "Amortization Period (months)",
+                incomeDuration: "Duration (months)",
+                projectSettings: "Project Settings",
+                projectDuration: "Project Duration (months)",
+                projectTitle: "Project Name",
+                months: "months",
+                effectiveCost: "Project Charge",
+                investmentTotal: "Total Invest.",
                 categories: {
-                    cat_1: 'Transport',
-                    cat_2: 'Food & Catering',
-                    cat_3: 'Accommodation',
-                    cat_loc: 'Rental (Venue/Office)',
-                    cat_4: 'Educational Equipment',
-                    cat_5: 'Salaries / HR',
-                    cat_6: 'Training',
-                    cat_7: 'Communication',
-                    cat_8: 'Insurance',
-                    cat_impot: 'Taxes',
-                    cat_9: 'Admin Fees',
-                    cat_10: 'Services',
-                    cat_11: 'Small Equipment & Supplies'
+                    cat_1: 'Transport', cat_2: 'Food & Catering', cat_3: 'Accommodation', cat_loc: 'Rental (Venue/Office)',
+                    cat_4: 'Educational Equipment', cat_5: 'Salaries / HR', cat_6: 'Training', cat_7: 'Communication',
+                    cat_8: 'Insurance', cat_impot: 'Taxes', cat_9: 'Admin Fees', cat_10: 'Services', cat_11: 'Small Equipment & Supplies'
                 }
             }
         };
@@ -277,71 +293,6 @@
             { code: 'USD', symbol: '$', label: 'Dollar (USD)' },
             { code: 'GBP', symbol: '£', label: 'Pound (GBP)' },
         ];
-
-        const EXAMPLES = {
-            fr: {
-                expenses: [
-                    { id: 'exp_1', name: 'Location Autocar (50 pl.)', amount: 1500, categoryId: 'cat_1', allocations: [] },
-                    { id: 'exp_2', name: 'Billets Train Animateurs', amount: 500, categoryId: 'cat_1', allocations: [] },
-                    { id: 'exp_3', name: 'Sandwichs Route', amount: 500, categoryId: 'cat_2', allocations: [] },
-                    { id: 'exp_4', name: 'Traiteur Soirée', amount: 1000, categoryId: 'cat_2', allocations: [] },
-                    { id: 'exp_5', name: 'Hôtel Équipe (3 nuits)', amount: 2000, categoryId: 'cat_3', allocations: [] },
-                    { id: 'exp_6', name: 'Location Salle Polyvalente', amount: 500, categoryId: 'cat_loc', allocations: [] },
-                    { id: 'exp_7', name: 'Manuels Scolaires', amount: 300, categoryId: 'cat_4', allocations: [] },
-                    { id: 'exp_8', name: 'Vidéoprojecteur', amount: 700, categoryId: 'cat_4', allocations: [] },
-                    { id: 'exp_9', name: 'Salaire Coordinateur', amount: 1000, categoryId: 'cat_5', allocations: [] },
-                    { id: 'exp_10', name: 'Intervenant Extérieur', amount: 500, categoryId: 'cat_6', allocations: [] },
-                    { id: 'exp_11', name: 'Impression Flyers', amount: 200, categoryId: 'cat_7', allocations: [] },
-                    { id: 'exp_12', name: 'Campagne Réseaux Sociaux', amount: 300, categoryId: 'cat_7', allocations: [] },
-                    { id: 'exp_13', name: 'Assurance RC Événement', amount: 200, categoryId: 'cat_8', allocations: [] },
-                    { id: 'exp_14', name: 'Taxe locale publicité', amount: 100, categoryId: 'cat_impot', allocations: [] },
-                    { id: 'exp_15', name: 'Frais bancaires', amount: 50, categoryId: 'cat_9', allocations: [] },
-                    { id: 'exp_16', name: 'Nettoyage fin de chantier', amount: 200, categoryId: 'cat_10', allocations: [] },
-                    { id: 'exp_17', name: 'Stylos, papier, badges', amount: 100, categoryId: 'cat_11', allocations: [] },
-                    { id: 'exp_18', name: 'Cadeaux bénévoles', amount: 150, categoryId: 'cat_11', allocations: [] },
-                    { id: 'exp_19', name: 'Frais de dossier', amount: 100, categoryId: 'cat_9', allocations: [] },
-                    { id: 'exp_20', name: 'Enveloppe Imprévus', amount: 100, categoryId: 'cat_9', allocations: [] },
-                ],
-                incomes: [
-                    { id: 'inc_1', name: 'Subvention Mairie (Fléchée)', amount: 2000, eligibleCategories: ['cat_1', 'cat_4'] },
-                    { id: 'inc_2', name: 'Conseil Régional (Formation/RH)', amount: 3000, eligibleCategories: ['cat_5', 'cat_6'] },
-                    { id: 'inc_3', name: 'Sponsor Local "SuperMarket"', amount: 1000, eligibleCategories: ['cat_2', 'cat_7', 'cat_11'] },
-                    { id: 'inc_4', name: 'Vente de Produits / Billetterie', amount: 2000, eligibleCategories: [] },
-                    { id: 'inc_5', name: 'Fonds Propres / Cotisations', amount: 2000, eligibleCategories: [] },
-                ]
-            },
-            en: {
-                expenses: [
-                    { id: 'exp_1', name: 'Coach Rental (50 seats)', amount: 1500, categoryId: 'cat_1', allocations: [] },
-                    { id: 'exp_2', name: 'Staff Train Tickets', amount: 500, categoryId: 'cat_1', allocations: [] },
-                    { id: 'exp_3', name: 'Road Sandwiches', amount: 500, categoryId: 'cat_2', allocations: [] },
-                    { id: 'exp_4', name: 'Evening Catering', amount: 1000, categoryId: 'cat_2', allocations: [] },
-                    { id: 'exp_5', name: 'Team Hotel (3 nights)', amount: 2000, categoryId: 'cat_3', allocations: [] },
-                    { id: 'exp_6', name: 'Community Hall Rental', amount: 500, categoryId: 'cat_loc', allocations: [] },
-                    { id: 'exp_7', name: 'Textbooks', amount: 300, categoryId: 'cat_4', allocations: [] },
-                    { id: 'exp_8', name: 'Video Projector', amount: 700, categoryId: 'cat_4', allocations: [] },
-                    { id: 'exp_9', name: 'Coordinator Salary', amount: 1000, categoryId: 'cat_5', allocations: [] },
-                    { id: 'exp_10', name: 'External Speaker', amount: 500, categoryId: 'cat_6', allocations: [] },
-                    { id: 'exp_11', name: 'Flyer Printing', amount: 200, categoryId: 'cat_7', allocations: [] },
-                    { id: 'exp_12', name: 'Social Media Campaign', amount: 300, categoryId: 'cat_7', allocations: [] },
-                    { id: 'exp_13', name: 'Event Liability Insurance', amount: 200, categoryId: 'cat_8', allocations: [] },
-                    { id: 'exp_14', name: 'Local Advertising Tax', amount: 100, categoryId: 'cat_impot', allocations: [] },
-                    { id: 'exp_15', name: 'Bank Fees', amount: 50, categoryId: 'cat_9', allocations: [] },
-                    { id: 'exp_16', name: 'Post-event Cleaning', amount: 200, categoryId: 'cat_10', allocations: [] },
-                    { id: 'exp_17', name: 'Pens, paper, badges', amount: 100, categoryId: 'cat_11', allocations: [] },
-                    { id: 'exp_18', name: 'Volunteer Gifts', amount: 150, categoryId: 'cat_11', allocations: [] },
-                    { id: 'exp_19', name: 'Admin Fees', amount: 100, categoryId: 'cat_9', allocations: [] },
-                    { id: 'exp_20', name: 'Contingency Fund', amount: 100, categoryId: 'cat_9', allocations: [] },
-                ],
-                incomes: [
-                    { id: 'inc_1', name: 'City Grant (Earmarked)', amount: 2000, eligibleCategories: ['cat_1', 'cat_4'] },
-                    { id: 'inc_2', name: 'Regional Council (Training/HR)', amount: 3000, eligibleCategories: ['cat_5', 'cat_6'] },
-                    { id: 'inc_3', name: 'Local Sponsor "SuperMarket"', amount: 1000, eligibleCategories: ['cat_2', 'cat_7', 'cat_11'] },
-                    { id: 'inc_4', name: 'Product Sales / Ticketing', amount: 2000, eligibleCategories: [] },
-                    { id: 'inc_5', name: 'Own Funds / Membership Fees', amount: 2000, eligibleCategories: [] },
-                ]
-            }
-        };
 
         const BASE_CATEGORIES = [
             { id: 'cat_1', name: 'Transport' },
@@ -358,6 +309,57 @@
             { id: 'cat_10', name: 'Prestations de Services' },
             { id: 'cat_11', name: 'Petit Matériel & Fournitures' },
         ];
+
+        // --- EXAMPLES WITH NEW FIELDS ---
+        const EXAMPLES = {
+            fr: {
+                expenses: [
+                    { id: 'exp_1', name: 'Location Autocar (50 pl.)', amount: 1500, categoryId: 'cat_1', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_2', name: 'Billets Train Animateurs', amount: 500, categoryId: 'cat_1', mode: 'detailed', quantity: 10, unitPrice: 50, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_3', name: 'Sandwichs Route', amount: 500, categoryId: 'cat_2', mode: 'detailed', quantity: 100, unitPrice: 5, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_4', name: 'Traiteur Soirée', amount: 1000, categoryId: 'cat_2', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_5', name: 'Hôtel Équipe (3 nuits)', amount: 2000, categoryId: 'cat_3', mode: 'detailed', quantity: 20, unitPrice: 100, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    // PC: Cost 3600, Amort 36 months. Project 12 months. Effective cost = 1200.
+                    { id: 'exp_6', name: 'PC Graphiste (Amort. 3 ans)', amount: 3600, categoryId: 'cat_4', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: true, amortizationDuration: 36, allocations: [] },
+                    // Salary: 1000/month * 12 months = 12000. Effective = 12000.
+                    { id: 'exp_7', name: 'Salaire Coordinateur (12 mois)', amount: 12000, categoryId: 'cat_5', mode: 'detailed', quantity: 12, unitPrice: 1000, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_8', name: 'Location Salle Polyvalente', amount: 500, categoryId: 'cat_loc', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_9', name: 'Assurance RC Événement', amount: 200, categoryId: 'cat_8', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_10', name: 'Impression Flyers', amount: 500, categoryId: 'cat_7', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_11', name: 'Enveloppe Imprévus', amount: 100, categoryId: 'cat_9', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                ],
+                incomes: [
+                    { id: 'inc_1', name: 'Subvention Mairie (Fléchée)', amount: 8000, eligibleCategories: ['cat_1', 'cat_4', 'cat_loc'], mode: 'simple', quantity: 1, unitPrice: 0 },
+                    { id: 'inc_2', name: 'Billetterie Spectacle', amount: 2000, eligibleCategories: [], mode: 'detailed', quantity: 200, unitPrice: 10 },
+                    { id: 'inc_3', name: 'Dons', amount: 1000, eligibleCategories: [], mode: 'simple', quantity: 1, unitPrice: 0 },
+                    { id: 'inc_4', name: 'Sponsors', amount: 4000, eligibleCategories: ['cat_7', 'cat_2'], mode: 'simple', quantity: 1, unitPrice: 0 },
+                    { id: 'inc_5', name: 'Fonds Propres', amount: 5000, eligibleCategories: [], mode: 'simple', quantity: 1, unitPrice: 0 },
+                ]
+            },
+            en: {
+                expenses: [
+                    { id: 'exp_1', name: 'Bus Rental', amount: 1500, categoryId: 'cat_1', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_2', name: 'Train Tickets', amount: 500, categoryId: 'cat_1', mode: 'detailed', quantity: 10, unitPrice: 50, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_6', name: 'Graphic Designer PC (3y Amort.)', amount: 3600, categoryId: 'cat_4', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: true, amortizationDuration: 36, allocations: [] },
+                    { id: 'exp_7', name: 'Coordinator Salary (12m)', amount: 12000, categoryId: 'cat_5', mode: 'detailed', quantity: 12, unitPrice: 1000, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    // Filling to reach 20k equivalent structure
+                    { id: 'exp_3', name: 'Sandwiches', amount: 500, categoryId: 'cat_2', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_4', name: 'Catering', amount: 1000, categoryId: 'cat_2', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_5', name: 'Hotel', amount: 2000, categoryId: 'cat_3', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_8', name: 'Venue Rental', amount: 500, categoryId: 'cat_loc', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_9', name: 'Insurance', amount: 200, categoryId: 'cat_8', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_10', name: 'Flyers', amount: 500, categoryId: 'cat_7', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                    { id: 'exp_11', name: 'Contingency', amount: 100, categoryId: 'cat_9', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 0, allocations: [] },
+                ],
+                incomes: [
+                    { id: 'inc_1', name: 'City Grant', amount: 8000, eligibleCategories: ['cat_1', 'cat_4', 'cat_loc'], mode: 'simple', quantity: 1, unitPrice: 0 },
+                    { id: 'inc_2', name: 'Ticket Sales', amount: 2000, eligibleCategories: [], mode: 'detailed', quantity: 200, unitPrice: 10 },
+                    { id: 'inc_3', name: 'Donations', amount: 1000, eligibleCategories: [], mode: 'simple', quantity: 1, unitPrice: 0 },
+                    { id: 'inc_4', name: 'Sponsors', amount: 4000, eligibleCategories: ['cat_7', 'cat_2'], mode: 'simple', quantity: 1, unitPrice: 0 },
+                    { id: 'inc_5', name: 'Own Funds', amount: 5000, eligibleCategories: [], mode: 'simple', quantity: 1, unitPrice: 0 },
+                ]
+            }
+        };
 
         // --- COMPONENTS ---
 
@@ -376,6 +378,7 @@
                 danger: "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 focus:ring-red-500",
                 success: "bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500",
                 ghost: "bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100",
+                glass: "bg-white/10 text-white border border-white/20 hover:bg-white/20",
                 magic: "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-700 hover:to-fuchsia-700 shadow-sm"
             };
             return (
@@ -391,28 +394,6 @@
             return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[color]} border border-opacity-10 border-black`}>{children}</span>;
         };
 
-        // --- NEW SLIDER MODAL FOR VISUAL DRAG/DROP ---
-        const AllocationSliderModal = ({ isOpen, onClose, onConfirm, expense, income, currencyCode }) => {
-            const [amount, setAmount] = useState(0);
-            const [maxAmount, setMaxAmount] = useState(0);
-
-            useEffect(() => {
-                if (isOpen && expense && income) {
-                    const expenseAllocated = expense.allocations ? expense.allocations.reduce((acc, curr) => acc + curr.amount, 0) : 0;
-                    const expenseRemaining = expense.amount - expenseAllocated;
-                    
-                    // Recalculate income remaining properly (it might need full context but passed income obj should ideally have it or we calc it here)
-                    // Since we pass income object, we might not have its current usage context easily without full app state. 
-                    // To simplify, we will pass maxAllocatable directly from parent or calculate it if possible.
-                    // Actually, parent 'handleDrop' has access to state. Let's pass 'maxAllocatable' as prop.
-                }
-            }, [isOpen, expense, income]);
-
-            // We need a way to pass the max amount allowed.
-            // Let's change signature to accept maxAllocatable.
-            return null; // Implemented inside App for state access
-        };
-
         // --- APP COMPONENT ---
 
         const App = () => {
@@ -420,28 +401,55 @@
             const [currencyCode, setCurrencyCode] = useState('EUR');
             const t = DICTIONARY[lang];
 
+            // PROJECT SETTINGS STATE
+            const [projectSettings, setProjectSettings] = useState({ name: "Mon Projet", durationMonths: 12 });
+            const [showSettingsModal, setShowSettingsModal] = useState(false);
+
             const [categories, setCategories] = useState(BASE_CATEGORIES);
             const [expenses, setExpenses] = useState(EXAMPLES.fr.expenses);
             const [incomes, setIncomes] = useState(EXAMPLES.fr.incomes);
             
+            // New Expense State Extended
             const [newCatName, setNewCatName] = useState('');
             const [showCatForm, setShowCatForm] = useState(false);
-            const [newExpense, setNewExpense] = useState({ name: '', amount: '', categoryId: '' });
-            const [newIncome, setNewIncome] = useState({ name: '', amount: '', eligibleCategories: [] });
+            const [newExpense, setNewExpense] = useState({ 
+                name: '', amount: '', categoryId: '', 
+                mode: 'simple', quantity: 1, unitPrice: 0,
+                isInvestment: false, amortizationDuration: 36
+            });
+            const [newIncome, setNewIncome] = useState({ 
+                name: '', amount: '', eligibleCategories: [],
+                mode: 'simple', quantity: 1, unitPrice: 0
+            });
+
             const [selectedExpenseForAlloc, setSelectedExpenseForAlloc] = useState(null);
             const [tempAllocations, setTempAllocations] = useState({}); 
-            const [editingIncome, setEditingIncome] = useState(null);
+            
+            // Editing State
+            const [editingItem, setEditingItem] = useState(null); // { type: 'expense'|'income', ...data }
             const [viewingIncome, setViewingIncome] = useState(null); 
+            
             const [isFullScreen, setIsFullScreen] = useState(false);
             const [confirmModal, setConfirmModal] = useState({ isOpen: false, message: '', onConfirm: () => {} });
             
-            // New State for Visual Mode
-            const [viewMode, setViewMode] = useState('list'); // 'list' or 'visual'
+            const [viewMode, setViewMode] = useState('list');
             const [draggingExpenseId, setDraggingExpenseId] = useState(null);
             
-            // Slider Modal State
+            // New State for Inline Slider
+            const [editingAllocation, setEditingAllocation] = useState({ expenseId: null, incomeId: null });
             const [sliderModal, setSliderModal] = useState({ isOpen: false, expenseId: null, incomeId: null, maxAllocatable: 0 });
             const [sliderValue, setSliderValue] = useState(0);
+
+            // --- CALCULATIONS ---
+
+            const calculateEffectiveExpenseAmount = (expense) => {
+                let total = parseFloat(expense.amount);
+                if (expense.isInvestment && expense.amortizationDuration > 0) {
+                    const ratio = Math.min(projectSettings.durationMonths, expense.amortizationDuration) / expense.amortizationDuration;
+                    total = total * ratio;
+                }
+                return Math.round(total * 100) / 100;
+            };
 
             const getCategoryName = (cat) => {
                 if (!cat) return '';
@@ -459,7 +467,7 @@
                 }
             };
 
-            const totalExpenses = expenses.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+            const totalExpenses = expenses.reduce((sum, item) => sum + calculateEffectiveExpenseAmount(item), 0);
             const totalIncomes = incomes.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
             const globalBalance = totalIncomes - totalExpenses;
 
@@ -485,38 +493,25 @@
                 setConfirmModal({ isOpen: true, message, onConfirm: action });
             };
 
-            // --- DRAG AND DROP LOGIC ---
+            // --- HANDLERS ---
             
-            const handleDragStart = (e, expenseId) => {
-                e.dataTransfer.setData("expenseId", expenseId);
-                setDraggingExpenseId(expenseId);
-            };
-
-            const handleDragEnd = () => {
-                setDraggingExpenseId(null);
-            };
-
-            const handleDragOver = (e) => {
-                e.preventDefault(); 
-            };
+            const handleDragStart = (e, expenseId) => { e.dataTransfer.setData("expenseId", expenseId); setDraggingExpenseId(expenseId); };
+            const handleDragEnd = () => { setDraggingExpenseId(null); };
+            const handleDragOver = (e) => { e.preventDefault(); };
 
             const handleDrop = (e, incomeId) => {
                 e.preventDefault();
                 const expenseId = e.dataTransfer.getData("expenseId");
                 if (!expenseId) return;
-
                 const income = incomes.find(i => i.id === incomeId);
                 const expense = expenses.find(exp => exp.id === expenseId);
-
-                // Check eligibility
                 const isFree = !income.eligibleCategories || income.eligibleCategories.length === 0;
                 const isCompatible = income.eligibleCategories?.includes(expense.categoryId);
-                
-                if (!isFree && !isCompatible) return; // Rejected
+                if (!isFree && !isCompatible) return;
 
-                // Calculate smart allocation limits
+                const effectiveCost = calculateEffectiveExpenseAmount(expense);
                 const expenseAllocated = getExpenseAllocatedAmount(expense);
-                const expenseRemaining = expense.amount - expenseAllocated;
+                const expenseRemaining = effectiveCost - expenseAllocated;
                 const incomeRemaining = getIncomeRemaining(incomeId);
 
                 if (expenseRemaining <= 0.01 || incomeRemaining <= 0.01) return;
@@ -524,22 +519,14 @@
                 const maxAllocatable = Math.min(expenseRemaining, incomeRemaining);
                 const cleanMax = Math.floor(maxAllocatable * 100) / 100;
 
-                // OPEN SLIDER MODAL instead of auto-allocating
-                setSliderValue(cleanMax); // Default to max
-                setSliderModal({
-                    isOpen: true,
-                    expenseId: expenseId,
-                    incomeId: incomeId,
-                    maxAllocatable: cleanMax
-                });
-                
+                setSliderValue(cleanMax);
+                setSliderModal({ isOpen: true, expenseId: expenseId, incomeId: incomeId, maxAllocatable: cleanMax });
                 setDraggingExpenseId(null);
             };
 
             const confirmSliderAllocation = () => {
                 const { expenseId, incomeId } = sliderModal;
                 const amountToAlloc = parseFloat(sliderValue);
-
                 if (amountToAlloc > 0) {
                     setExpenses(prevExpenses => prevExpenses.map(exp => {
                         if (exp.id === expenseId) {
@@ -569,6 +556,16 @@
                 }));
             };
 
+            const handleUpdateAllocation = (expenseId, incomeId, newAmount) => {
+                setExpenses(prev => prev.map(e => {
+                    if (e.id !== expenseId) return e;
+                    const newAllocations = e.allocations.map(a => {
+                        if (a.incomeId !== incomeId) return a;
+                        return { ...a, amount: parseFloat(newAmount) };
+                    });
+                    return { ...e, allocations: newAllocations };
+                }));
+            };
 
             const handlePrint = () => {
                 const originalTitle = document.title;
@@ -598,10 +595,14 @@
                     alert(t.addExpensesFirst); 
                     return;
                 }
-                
                 requestConfirmation(t.confirmAuto, () => {
                     try {
-                        let simulatedExpenses = expenses.map(e => ({ ...e, amount: parseFloat(e.amount), allocations: [] }));
+                        let simulatedExpenses = expenses.map(e => ({ 
+                            ...e, 
+                            amount: parseFloat(e.amount),
+                            _effectiveAmount: calculateEffectiveExpenseAmount(e),
+                            allocations: [] 
+                        }));
                         let incomeBalances = {};
                         incomes.forEach(inc => { incomeBalances[inc.id] = parseFloat(inc.amount); });
 
@@ -619,11 +620,11 @@
 
                         expensesWithMetadata.sort((a, b) => {
                             if (a._optionCount !== b._optionCount) return a._optionCount - b._optionCount;
-                            return b.amount - a.amount;
+                            return b._effectiveAmount - a._effectiveAmount;
                         });
 
                         expensesWithMetadata = expensesWithMetadata.map(exp => {
-                            let remainingToFund = exp.amount;
+                            let remainingToFund = exp._effectiveAmount;
                             let newAllocations = [];
                             if (exp._options.length === 0) return exp;
 
@@ -650,16 +651,13 @@
                                     }
                                 }
                             }
-                            delete exp._options;
-                            delete exp._optionCount;
                             return { ...exp, allocations: newAllocations };
                         });
 
                         const finalExpenses = expenses.map(original => {
                             const computed = expensesWithMetadata.find(e => e.id === original.id);
-                            return computed || original;
+                            return computed ? { ...original, allocations: computed.allocations } : original;
                         });
-
                         setExpenses(finalExpenses);
                     } catch (e) {
                         console.error(e);
@@ -669,65 +667,87 @@
             };
 
             const addCategory = () => { if (!newCatName.trim()) return; setCategories([...categories, { id: `cat_${Date.now()}`, name: newCatName }]); setNewCatName(''); setShowCatForm(false); };
-            const addExpense = () => { if (!newExpense.name || !newExpense.amount || !newExpense.categoryId) return; setExpenses([...expenses, { id: `exp_${Date.now()}`, name: newExpense.name, amount: parseFloat(newExpense.amount), categoryId: newExpense.categoryId, allocations: [] }]); setNewExpense({ name: '', amount: '', categoryId: '' }); };
-            const addIncome = () => { if (!newIncome.name || !newIncome.amount) return; setIncomes([...incomes, { id: `inc_${Date.now()}`, name: newIncome.name, amount: parseFloat(newIncome.amount), eligibleCategories: newIncome.eligibleCategories }]); setNewIncome({ name: '', amount: '', eligibleCategories: [] }); };
+            
+            const addExpense = () => {
+                let finalAmount = parseFloat(newExpense.amount);
+                if (newExpense.mode === 'detailed') finalAmount = parseFloat(newExpense.quantity) * parseFloat(newExpense.unitPrice);
+                if (!newExpense.name || isNaN(finalAmount) || !newExpense.categoryId) return;
+                
+                setExpenses([...expenses, { 
+                    id: `exp_${Date.now()}`, name: newExpense.name, amount: finalAmount, categoryId: newExpense.categoryId, allocations: [],
+                    mode: newExpense.mode, quantity: newExpense.quantity, unitPrice: newExpense.unitPrice, isInvestment: newExpense.isInvestment, amortizationDuration: newExpense.amortizationDuration
+                }]);
+                setNewExpense({ name: '', amount: '', categoryId: '', mode: 'simple', quantity: 1, unitPrice: 0, isInvestment: false, amortizationDuration: 36 });
+            };
+
+            const addIncome = () => {
+                let finalAmount = parseFloat(newIncome.amount);
+                if (newIncome.mode === 'detailed') finalAmount = parseFloat(newIncome.quantity) * parseFloat(newIncome.unitPrice);
+                if (!newIncome.name || isNaN(finalAmount)) return;
+                setIncomes([...incomes, { 
+                    id: `inc_${Date.now()}`, name: newIncome.name, amount: finalAmount, eligibleCategories: newIncome.eligibleCategories,
+                    mode: newIncome.mode, quantity: newIncome.quantity, unitPrice: newIncome.unitPrice
+                }]);
+                setNewIncome({ name: '', amount: '', eligibleCategories: [], mode: 'simple', quantity: 1, unitPrice: 0 });
+            };
+
             const deleteExpense = (id) => setExpenses(expenses.filter(e => e.id !== id));
             const deleteIncome = (id) => { setExpenses(expenses.map(e => ({ ...e, allocations: e.allocations.filter(a => a.incomeId !== id) }))); setIncomes(incomes.filter(i => i.id !== id)); };
-            const saveEditedIncome = () => { if (!editingIncome) return; setIncomes(incomes.map(inc => inc.id === editingIncome.id ? { ...inc, ...editingIncome, amount: parseFloat(editingIncome.amount) } : inc)); setEditingIncome(null); };
-            const toggleCategorySelection = (catId, targetState, setTargetState) => { const current = targetState.eligibleCategories || []; if (current.includes(catId)) { setTargetState({ ...targetState, eligibleCategories: current.filter(id => id !== catId) }); } else { setTargetState({ ...targetState, eligibleCategories: [...current, catId] }); } };
             
-            const toggleFullScreen = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch((e) => console.error(e)); setIsFullScreen(true); } else { if (document.exitFullscreen) document.exitFullscreen(); setIsFullScreen(false); } };
-            useEffect(() => { const h = () => setIsFullScreen(!!document.fullscreenElement); document.addEventListener('fullscreenchange', h); return () => document.removeEventListener('fullscreenchange', h); }, []);
+            const openEditModal = (item, type) => setEditingItem({ ...item, type });
+            
+            const saveEditedItem = () => {
+                if (!editingItem) return;
+                let finalAmount = parseFloat(editingItem.amount);
+                if (editingItem.mode === 'detailed') finalAmount = parseFloat(editingItem.quantity) * parseFloat(editingItem.unitPrice);
+                
+                if (editingItem.type === 'expense') {
+                    setExpenses(expenses.map(exp => exp.id === editingItem.id ? { 
+                        ...exp, name: editingItem.name, amount: finalAmount, categoryId: editingItem.categoryId,
+                        mode: editingItem.mode, quantity: editingItem.quantity, unitPrice: editingItem.unitPrice,
+                        isInvestment: editingItem.isInvestment, amortizationDuration: editingItem.amortizationDuration
+                    } : exp));
+                } else {
+                    setIncomes(incomes.map(inc => inc.id === editingItem.id ? { 
+                        ...inc, name: editingItem.name, amount: finalAmount,
+                        eligibleCategories: editingItem.eligibleCategories,
+                        mode: editingItem.mode, quantity: editingItem.quantity, unitPrice: editingItem.unitPrice
+                    } : inc));
+                }
+                setEditingItem(null);
+            };
 
+            const toggleCategorySelection = (catId, targetState, setTargetState) => { const current = targetState.eligibleCategories || []; if (current.includes(catId)) { setTargetState({ ...targetState, eligibleCategories: current.filter(id => id !== catId) }); } else { setTargetState({ ...targetState, eligibleCategories: [...current, catId] }); } };
+            const toggleEditCategorySelection = (catId) => { const current = editingItem.eligibleCategories || []; if (current.includes(catId)) { setEditingItem({...editingItem, eligibleCategories: current.filter(id => id !== catId)}); } else { setEditingItem({...editingItem, eligibleCategories: [...current, catId]}); } };
+            
+            useEffect(() => { setCategories(BASE_CATEGORIES); }, []);
+            const toggleFullScreen = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(console.error); setIsFullScreen(true); } else { if (document.exitFullscreen) document.exitFullscreen(); setIsFullScreen(false); } };
             const openAllocationModal = (expense) => { setSelectedExpenseForAlloc(expense); const map = {}; expense.allocations?.forEach(a => map[a.incomeId] = a.amount); setTempAllocations(map); };
-            const updateTempAllocation = (incomeId, val) => { const v = parseFloat(val); const m = { ...tempAllocations }; if (isNaN(v) || v <= 0) delete m[incomeId]; else m[incomeId] = v; setTempAllocations(m); };
             const saveAllocations = () => { if (!selectedExpenseForAlloc) return; const arr = Object.entries(tempAllocations).map(([id, amt]) => ({ incomeId: id, amount: amt })); setExpenses(expenses.map(e => e.id === selectedExpenseForAlloc.id ? { ...e, allocations: arr } : e)); setSelectedExpenseForAlloc(null); };
+            const updateTempAllocation = (id, val) => { const v = parseFloat(val); const m = { ...tempAllocations }; if(isNaN(v) || v<=0) delete m[id]; else m[id]=v; setTempAllocations(m); };
+            const handleSave = () => { const blob = new Blob([JSON.stringify({ categories, expenses, incomes, currencyCode, projectSettings }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `budget_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(link); link.click(); document.body.removeChild(link); };
+            const handleLoad = (e) => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); setCategories(d.categories || BASE_CATEGORIES); setExpenses(d.expenses || []); setIncomes(d.incomes || []); if(d.currencyCode) setCurrencyCode(d.currencyCode); if(d.projectSettings) setProjectSettings(d.projectSettings); } catch(err){alert(t.error)} }; r.readAsText(f); };
 
-            const handleSave = () => { const blob = new Blob([JSON.stringify({ categories, expenses, incomes, currencyCode }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `budget_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(link); link.click(); document.body.removeChild(link); };
-            const handleLoad = (e) => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); setCategories(d.categories); setExpenses(d.expenses); setIncomes(d.incomes); if(d.currencyCode) setCurrencyCode(d.currencyCode); } catch(err){alert(t.error)} }; r.readAsText(f); };
-
-            // --- VISUAL VIEW COMPONENT ---
+            // --- VISUAL VIEW ---
             const VisualView = () => {
                 const draggingExpense = expenses.find(e => e.id === draggingExpenseId);
-
                 return (
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full min-h-[600px]">
-                        {/* LEFT: Unfunded Expenses */}
                         <div className="md:col-span-4 lg:col-span-3 bg-slate-100 rounded-xl p-4 overflow-y-auto border border-slate-200 shadow-inner max-h-[80vh]">
-                            <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                                <Receipt size={20} className="text-rose-500" />
-                                {t.visualLeft}
-                            </h3>
+                            <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2"><Receipt size={20} className="text-rose-500" />{t.visualLeft}</h3>
                             <div className="space-y-3">
-                                {expenses.filter(exp => {
-                                    const allocated = getExpenseAllocatedAmount(exp);
-                                    return Math.abs(exp.amount - allocated) > 0.01;
-                                }).length === 0 && (
-                                    <div className="text-center p-8 text-emerald-500 font-bold">
-                                        <CheckCircle size={48} className="mx-auto mb-2 opacity-50"/>
-                                        {t.visualEmpty}
-                                    </div>
-                                )}
-                                {expenses.filter(exp => {
-                                    const allocated = getExpenseAllocatedAmount(exp);
-                                    return Math.abs(exp.amount - allocated) > 0.01;
-                                }).map(exp => {
+                                {expenses.filter(exp => Math.abs(calculateEffectiveExpenseAmount(exp) - getExpenseAllocatedAmount(exp)) > 0.01).length === 0 && <div className="text-center p-8 text-emerald-500 font-bold"><CheckCircle size={48} className="mx-auto mb-2 opacity-50"/>{t.visualEmpty}</div>}
+                                {expenses.filter(exp => Math.abs(calculateEffectiveExpenseAmount(exp) - getExpenseAllocatedAmount(exp)) > 0.01).map(exp => {
                                     const cat = categories.find(c => c.id === exp.categoryId);
                                     const allocated = getExpenseAllocatedAmount(exp);
-                                    const remaining = exp.amount - allocated;
-                                    
+                                    const effectiveCost = calculateEffectiveExpenseAmount(exp);
+                                    const remaining = effectiveCost - allocated;
                                     return (
-                                        <div 
-                                            key={exp.id}
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, exp.id)}
-                                            onDragEnd={handleDragEnd}
-                                            className="bg-white p-3 rounded-lg border-l-4 border-l-rose-400 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all drag-card"
-                                        >
+                                        <div key={exp.id} draggable onDragStart={(e) => handleDragStart(e, exp.id)} onDragEnd={handleDragEnd} className="bg-white p-3 rounded-lg border-l-4 border-l-rose-400 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all drag-card">
                                             <div className="font-bold text-slate-800 text-sm">{exp.name}</div>
                                             <div className="text-xs text-slate-500 mb-2">{getCategoryName(cat)}</div>
                                             <div className="flex justify-between items-end">
-                                                <div className="text-xs text-slate-400">{formatCurrency(exp.amount)}</div>
+                                                <div className="text-xs text-slate-400">{formatCurrency(effectiveCost)}</div>
                                                 <div className="font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded text-sm">{formatCurrency(remaining)}</div>
                                             </div>
                                         </div>
@@ -735,66 +755,51 @@
                                 })}
                             </div>
                         </div>
-
-                        {/* RIGHT: Incomes Buckets */}
                         <div className="md:col-span-8 lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-start overflow-y-auto max-h-[80vh] p-1">
                             {incomes.map(inc => {
                                 const remaining = getIncomeRemaining(inc.id);
                                 const percentUsed = ((inc.amount - remaining) / inc.amount) * 100;
-                                
-                                // Check eligibility for styling
                                 let dropStatus = '';
                                 if (draggingExpenseId) {
                                     const isFree = !inc.eligibleCategories || inc.eligibleCategories.length === 0;
                                     const isCompatible = inc.eligibleCategories?.includes(draggingExpense?.categoryId);
-                                    if (isFree || isCompatible) {
-                                        dropStatus = 'eligible';
-                                    } else {
-                                        dropStatus = 'ineligible';
-                                    }
+                                    if (isFree || isCompatible) dropStatus = 'eligible'; else dropStatus = 'ineligible';
                                 }
-
                                 const allocatedExpenses = expenses.filter(e => e.allocations?.some(a => a.incomeId === inc.id));
-
                                 return (
-                                    <div 
-                                        key={inc.id}
-                                        onDragOver={handleDragOver}
-                                        onDrop={(e) => handleDrop(e, inc.id)}
-                                        className={`bg-white rounded-xl border-2 p-4 flex flex-col h-full shadow-sm drop-zone ${dropStatus === 'eligible' ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200' : (dropStatus === 'ineligible' ? 'border-slate-200 opacity-50 grayscale' : 'border-slate-100')}`}
-                                    >
+                                    <div key={inc.id} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, inc.id)} className={`bg-white rounded-xl border-2 p-4 flex flex-col h-full shadow-sm drop-zone ${dropStatus === 'eligible' ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200' : (dropStatus === 'ineligible' ? 'border-slate-200 opacity-50 grayscale' : 'border-slate-100')}`}>
                                         <div className="flex justify-between items-start mb-3">
-                                            <div>
-                                                <h4 className="font-bold text-slate-800">{inc.name}</h4>
-                                                <div className="text-xs text-slate-500">
-                                                    {!inc.eligibleCategories?.length ? t.freeFunds : t.targeting}
-                                                </div>
-                                            </div>
+                                            <div><h4 className="font-bold text-slate-800">{inc.name}</h4><div className="text-xs text-slate-500">{!inc.eligibleCategories?.length ? t.freeFunds : t.targeting}</div></div>
                                             <div className={`text-lg font-bold ${remaining < 0 ? 'text-red-500' : 'text-emerald-600'}`}>{formatCurrency(remaining)}</div>
                                         </div>
-
-                                        {/* Progress Bar */}
-                                        <div className="w-full bg-slate-100 rounded-full h-2 mb-4 overflow-hidden">
-                                            <div className={`h-full transition-all duration-500 ${percentUsed > 100 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(percentUsed, 100)}%` }}></div>
-                                        </div>
-
-                                        {/* Content inside bucket */}
+                                        <div className="w-full bg-slate-100 rounded-full h-2 mb-4 overflow-hidden"><div className={`h-full transition-all duration-500 ${percentUsed > 100 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(percentUsed, 100)}%` }}></div></div>
                                         <div className="flex-1 space-y-2 min-h-[50px] bg-slate-50 rounded-lg p-2 inner-shadow">
                                             {allocatedExpenses.length === 0 && <div className="text-center text-xs text-slate-400 py-4 italic">{t.dragDropHint}</div>}
                                             {allocatedExpenses.map(exp => {
                                                 const alloc = exp.allocations.find(a => a.incomeId === inc.id);
+                                                const isEditing = editingAllocation.expenseId === exp.id && editingAllocation.incomeId === inc.id;
+                                                const expenseTotalAllocated = getExpenseAllocatedAmount(exp);
+                                                const expenseEffectiveCost = calculateEffectiveExpenseAmount(exp);
+                                                const expenseUnallocated = expenseEffectiveCost - expenseTotalAllocated;
+                                                const incomeUnallocated = getIncomeRemaining(inc.id);
+                                                const maxVal = alloc.amount + Math.min(expenseUnallocated, incomeUnallocated);
+                                                const safeMaxVal = Math.floor(maxVal * 100) / 100;
                                                 return (
-                                                    <div key={exp.id} className="bg-white border border-emerald-100 p-2 rounded flex justify-between items-center text-sm shadow-sm group">
-                                                        <span className="truncate max-w-[60%]">{exp.name}</span>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-bold text-emerald-700">{formatCurrency(alloc.amount)}</span>
-                                                            <button 
-                                                                onClick={() => handleUnallocate(exp.id, inc.id)}
-                                                                className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            >
-                                                                <X size={14}/>
-                                                            </button>
+                                                    <div key={exp.id} className="bg-white border border-emerald-100 p-2 rounded text-sm shadow-sm group">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="truncate max-w-[55%] font-medium">{exp.name}</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="font-bold text-emerald-700">{formatCurrency(alloc.amount)}</span>
+                                                                <button onClick={() => setEditingAllocation(isEditing ? { expenseId: null, incomeId: null } : { expenseId: exp.id, incomeId: inc.id })} className={`p-1 rounded hover:bg-slate-100 ${isEditing ? 'text-indigo-600 bg-indigo-50' : 'text-slate-300 hover:text-indigo-500'}`} title={t.adjust}><Settings2 size={14}/></button>
+                                                                <button onClick={() => handleUnallocate(exp.id, inc.id)} className="text-slate-300 hover:text-red-500 p-1 rounded hover:bg-red-50"><X size={14}/></button>
+                                                            </div>
                                                         </div>
+                                                        {isEditing && (
+                                                            <div className="pt-2 pb-1 border-t border-slate-100 mt-2 animate-in fade-in zoom-in duration-200">
+                                                                <div className="flex justify-between text-[10px] text-slate-400 mb-1"><span>0</span><span>Max: {formatCurrency(safeMaxVal)}</span></div>
+                                                                <input type="range" min="0" max={safeMaxVal} step="0.01" value={alloc.amount} onChange={(e) => handleUpdateAllocation(exp.id, inc.id, e.target.value)} className="w-full accent-emerald-500"/>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
@@ -816,51 +821,24 @@
                                 <div><h1 className="text-xl md:text-2xl font-bold">{t.title}</h1><p className="text-indigo-200 text-xs opacity-90">{t.subtitle}</p></div>
                             </div>
                             <div className="flex flex-wrap gap-2 items-center justify-center">
+                                <Button onClick={() => setShowSettingsModal(true)} variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20" icon={Settings} title={t.projectSettings} />
                                 <div className="flex items-center bg-indigo-900/30 rounded-lg p-1 mr-2">
                                     <button onClick={() => setLang('fr')} className={`px-2 py-1 text-xs rounded font-bold ${lang === 'fr' ? 'bg-white text-indigo-900' : 'text-indigo-200'}`}>FR</button>
                                     <button onClick={() => setLang('en')} className={`px-2 py-1 text-xs rounded font-bold ${lang === 'en' ? 'bg-white text-indigo-900' : 'text-indigo-200'}`}>EN</button>
-                                    <div className="w-px h-4 bg-indigo-500/50 mx-2"></div>
-                                    <select value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value)} className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer">
-                                        {CURRENCIES.map(c => <option key={c.code} value={c.code} className="text-slate-800">{c.code} - {c.symbol}</option>)}
+                                    <select value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value)} className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer ml-2">
+                                        {CURRENCIES.map(c => <option key={c.code} value={c.code} className="text-slate-800">{c.code}</option>)}
                                     </select>
                                 </div>
-                                
-                                {/* View Toggle Button */}
-                                <Button 
-                                    onClick={() => setViewMode(viewMode === 'list' ? 'visual' : 'list')} 
-                                    variant="secondary" 
-                                    size="sm" 
-                                    className="bg-white/10 text-white border-white/20 hover:bg-white/20" 
-                                    icon={viewMode === 'list' ? LayoutGrid : List} 
-                                    title={viewMode === 'list' ? t.viewVisual : t.viewList}
-                                >
-                                    <span className="hidden sm:inline">{viewMode === 'list' ? t.viewVisual : t.viewList}</span>
-                                </Button>
-
-                                <Button onClick={createNewProject} variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20" icon={FilePlus} title={t.newProject}><span className="hidden sm:inline">{t.newProject}</span></Button>
-                                <Button onClick={resetToExample} variant="ghost" size="sm" className="text-indigo-200 hover:text-white border border-indigo-200/20" icon={RefreshCw} title={t.reset}></Button>
-                                <Button onClick={toggleFullScreen} variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20" icon={isFullScreen ? Minimize : Maximize}>{isFullScreen ? t.exitFullScreen : t.fullScreen}</Button>
+                                <Button onClick={() => setViewMode(viewMode === 'list' ? 'visual' : 'list')} variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20" icon={viewMode === 'list' ? LayoutGrid : List} />
+                                <Button onClick={createNewProject} variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20" icon={FilePlus} />
+                                <Button onClick={resetToExample} variant="secondary" size="sm" className="bg-rose-600 text-white hover:bg-rose-700 border-none shadow-sm" icon={RefreshCw} title={t.reset}><span className="hidden xl:inline">{t.reset}</span></Button>
+                                <Button onClick={toggleFullScreen} variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20" icon={isFullScreen ? Minimize : Maximize} />
                                 <Button onClick={autoDistribute} variant="magic" size="sm" icon={Wand2}>{t.autoDistribute}</Button>
                                 <div className="w-px h-6 bg-indigo-500/50 mx-1 hidden sm:block"></div>
-                                
-                                {/* BOUTON OUVRIR / CHARGER UN FICHIER */}
-                                <label className="cursor-pointer bg-white text-indigo-700 hover:bg-indigo-50 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-sm font-bold">
-                                    <Upload size={16} />
-                                    <span className="hidden sm:inline">{t.load}</span>
-                                    <input type="file" accept=".json" onChange={handleLoad} className="hidden" />
+                                <label className="cursor-pointer bg-white text-indigo-700 px-3 py-1.5 rounded-lg flex items-center gap-2 border border-slate-200 hover:bg-indigo-50 transition-colors text-sm shadow-sm font-bold">
+                                    <Upload size={16} /><span className="hidden sm:inline">{t.load}</span><input type="file" accept=".json" onChange={handleLoad} className="hidden" />
                                 </label>
-                                
-                                {/* BOUTON SAUVEGARDER / TELECHARGER */}
-                                <Button 
-                                    onClick={handleSave} 
-                                    variant="primary" 
-                                    size="sm" 
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm border border-indigo-500" 
-                                    icon={Save}
-                                >
-                                    {t.save}
-                                </Button>
-                                
+                                <Button onClick={handleSave} variant="secondary" size="sm" className="bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50 font-bold shadow-sm" icon={Save}>{t.save}</Button>
                                 <Button onClick={handlePrint} variant="success" size="sm" icon={FileDown}>{t.pdf}</Button>
                             </div>
                         </div>
@@ -876,7 +854,10 @@
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <section className="space-y-6 print:mb-8">
                                     <div className="flex items-center justify-between print:border-b print:pb-2 print:mb-4">
-                                        <h2 className="text-xl font-bold flex items-center gap-2 text-rose-700"><Receipt className="text-rose-500" /> {t.expenses}</h2>
+                                        <div>
+                                            <h2 className="text-xl font-bold flex items-center gap-2 text-rose-700"><Receipt className="text-rose-500" /> {t.expenses}</h2>
+                                            <div className="text-xs text-rose-600 font-medium mt-1">{t.remainingToFundGlobal} {formatCurrency(totalUnfundedExpenses)}</div>
+                                        </div>
                                         <div className="text-right"><span className="text-2xl font-bold text-slate-800">{formatCurrency(totalExpenses)}</span></div>
                                     </div>
                                     <Card className="p-4 bg-rose-50 border-rose-100 print:hidden shadow-sm">
@@ -911,32 +892,43 @@
                                         {expenses.length === 0 && <p className="text-center text-slate-400 py-8">{t.emptyExpenses}</p>}
                                         {expenses.map(expense => {
                                             const category = categories.find(c => c.id === expense.categoryId);
+                                            const effectiveCost = calculateEffectiveExpenseAmount(expense);
                                             const allocatedAmt = getExpenseAllocatedAmount(expense);
-                                            const remainingAmt = expense.amount - allocatedAmt;
+                                            const remainingAmt = effectiveCost - allocatedAmt;
                                             const isFullyAllocated = Math.abs(remainingAmt) < 0.01;
                                             const isPartiallyAllocated = allocatedAmt > 0 && !isFullyAllocated;
+                                            
                                             return (
                                                 <div key={expense.id} className={`bg-white p-4 rounded-lg border-l-4 shadow-sm hover:shadow-md transition-all cursor-pointer group break-inside-avoid ${isFullyAllocated ? 'border-l-emerald-500' : (isPartiallyAllocated ? 'border-l-amber-400' : 'border-l-slate-300')}`} onClick={() => openAllocationModal(expense)}>
                                                     <div className="flex justify-between items-start">
                                                         <div className="flex-1">
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2 flex-wrap">
                                                                 <span className="font-bold text-slate-800 text-lg">{expense.name}</span>
                                                                 <Badge color="slate">{getCategoryName(category) || 'Autre'}</Badge>
-                                                                {!isFullyAllocated && <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded ml-1">{t.remainingToFund}: {formatCurrency(remainingAmt)}</span>}
+                                                                {expense.isInvestment && <Badge color="violet"><Clock size={12} className="mr-1 inline"/> {expense.amortizationDuration} {t.months}</Badge>}
                                                             </div>
-                                                            {expense.allocations?.length > 0 ? (
-                                                                <div className="mt-2 text-xs space-y-1">
-                                                                    {expense.allocations.map((alloc, idx) => {
-                                                                        const inc = incomes.find(i => i.id === alloc.incomeId);
-                                                                        return (<div key={idx} className="flex items-center gap-1 text-slate-600"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div><span>{inc?.name}: <strong>{formatCurrency(alloc.amount)}</strong></span></div>);
-                                                                    })}
+                                                            {expense.mode === 'detailed' && (
+                                                                <div className="text-xs text-slate-400 mt-0.5">
+                                                                    {expense.quantity} x {formatCurrency(expense.unitPrice)}
                                                                 </div>
-                                                            ) : <div className="mt-2 text-xs text-slate-400 italic">{t.notAllocated}</div>}
+                                                            )}
+                                                            {expense.isInvestment && (
+                                                                <div className="text-xs text-violet-600 mt-1 font-medium bg-violet-50 px-2 py-1 rounded inline-block">
+                                                                    {t.investmentTotal}: {formatCurrency(expense.amount)} → {t.effectiveCost}: {formatCurrency(effectiveCost)}
+                                                                </div>
+                                                            )}
+                                                            {!isFullyAllocated && <div className="mt-1 text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded w-fit">{t.remainingToFund}: {formatCurrency(remainingAmt)}</div>}
                                                         </div>
-                                                        <div className="flex flex-col items-end gap-2"><span className="font-bold text-rose-700 text-xl">{formatCurrency(expense.amount)}</span><button onClick={(e) => { e.stopPropagation(); deleteExpense(expense.id); }} className="text-slate-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden"><Trash2 size={18} /></button></div>
+                                                        <div className="flex flex-col items-end gap-2">
+                                                            <span className="font-bold text-rose-700 text-xl">{formatCurrency(effectiveCost)}</span>
+                                                            <div className="flex gap-1">
+                                                                <button onClick={(e) => { e.stopPropagation(); openEditModal(expense, 'expense'); }} className="text-slate-400 hover:text-emerald-600 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity" title={t.edit}><Pencil size={18} /></button>
+                                                                <button onClick={(e) => { e.stopPropagation(); deleteExpense(expense.id); }} className="text-slate-400 hover:text-red-500 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity" title={t.delete}><Trash2 size={18} /></button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div className="mt-3 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex print:hidden">
-                                                        {isFullyAllocated ? <div className="h-full w-full bg-emerald-500"></div> : <><div className="h-full bg-emerald-500" style={{ width: `${(allocatedAmt / expense.amount) * 100}%`}}></div><div className="h-full bg-amber-400" style={{ width: `${((expense.amount - allocatedAmt) / expense.amount) * 100}%`}}></div></>}
+                                                        <div className="h-full bg-emerald-500" style={{ width: `${(allocatedAmt / effectiveCost) * 100}%`}}></div>
                                                     </div>
                                                 </div>
                                             );
@@ -951,19 +943,21 @@
                                     </div>
                                     <Card className="p-4 bg-emerald-50 border-emerald-100 print:hidden shadow-sm">
                                         <h3 className="text-sm font-semibold text-emerald-800 mb-3 uppercase flex items-center gap-2"><Plus size={16} /> {t.newIncome}</h3>
-                                        <div className="space-y-3">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                <input type="text" placeholder={t.sourcePlaceholder} className="w-full px-3 py-2 rounded border border-emerald-200 outline-none" value={newIncome.name} onChange={e => setNewIncome({...newIncome, name: e.target.value})} />
-                                                <input type="number" placeholder={t.amount} className="w-full px-3 py-2 rounded border border-emerald-200 outline-none" value={newIncome.amount} onChange={e => setNewIncome({...newIncome, amount: e.target.value})} />
-                                            </div>
-                                            <div className="bg-white p-3 rounded border border-emerald-200 shadow-sm max-h-32 overflow-y-auto">
-                                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1"><CheckCircle size={12}/> {t.targeting}</p>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {categories.map(cat => <button key={cat.id} onClick={() => toggleCategorySelection(cat.id, newIncome, setNewIncome)} className={`text-xs px-2 py-1 rounded-full border transition-all ${newIncome.eligibleCategories.includes(cat.id) ? 'bg-emerald-600 text-white' : 'bg-slate-50'}`}>{getCategoryName(cat)}</button>)}
-                                                </div>
-                                            </div>
-                                            <Button onClick={addIncome} variant="primary" className="w-full bg-emerald-600">{t.add}</Button>
+                                        <div className="flex gap-4 mb-3 text-xs">
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="incMode" checked={newIncome.mode === 'simple'} onChange={() => setNewIncome({...newIncome, mode: 'simple'})} className="accent-emerald-600" />{t.simpleMode}</label>
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="incMode" checked={newIncome.mode === 'detailed'} onChange={() => setNewIncome({...newIncome, mode: 'detailed'})} className="accent-emerald-600" />{t.detailedMode}</label>
                                         </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <input type="text" placeholder={t.sourcePlaceholder} className="w-full px-3 py-2 rounded border border-emerald-200 outline-none" value={newIncome.name} onChange={e => setNewIncome({...newIncome, name: e.target.value})} />
+                                            {newIncome.mode === 'simple' ? <input type="number" placeholder={t.amount} className="w-full px-3 py-2 rounded border border-emerald-200 outline-none" value={newIncome.amount} onChange={e => setNewIncome({...newIncome, amount: e.target.value})} /> : <div className="flex gap-1"><input type="number" placeholder={t.quantity} className="w-1/3 px-2 py-2 rounded border border-emerald-200 outline-none text-center" value={newIncome.quantity} onChange={e => setNewIncome({...newIncome, quantity: e.target.value})} /><input type="number" placeholder={t.unitPrice} className="w-2/3 px-2 py-2 rounded border border-emerald-200 outline-none" value={newIncome.unitPrice} onChange={e => setNewIncome({...newIncome, unitPrice: e.target.value})} /></div>}
+                                        </div>
+                                        <div className="bg-white p-3 rounded border border-emerald-200 shadow-sm max-h-32 overflow-y-auto mt-3 mb-3">
+                                            <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1"><CheckCircle size={12}/> {t.targeting}</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {categories.map(cat => <button key={cat.id} onClick={() => toggleCategorySelection(cat.id, newIncome, setNewIncome)} className={`text-xs px-2 py-1 rounded-full border transition-all ${newIncome.eligibleCategories.includes(cat.id) ? 'bg-emerald-600 text-white' : 'bg-slate-50'}`}>{getCategoryName(cat)}</button>)}
+                                            </div>
+                                        </div>
+                                        <Button onClick={addIncome} variant="primary" className="w-full bg-emerald-600">{t.add}</Button>
                                     </Card>
                                     <div className="space-y-4">
                                         {incomes.length === 0 && <p className="text-center text-slate-400 py-8">{t.emptyIncomes}</p>}
@@ -975,12 +969,13 @@
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div className="flex items-center gap-2"><h3 className="font-bold text-slate-800 text-lg">{income.name}</h3><Eye size={16} className="text-emerald-300 opacity-50 group-hover:opacity-100 transition-opacity" /></div>
                                                         <div className="flex items-center gap-1 print:hidden opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-2 bg-white/80 backdrop-blur-sm rounded-lg p-1">
-                                                            <button onClick={(e) => { e.stopPropagation(); setEditingIncome(income); }} className="text-slate-400 hover:text-emerald-600 p-1.5 rounded" title={t.edit}><Pencil size={16}/></button>
+                                                            <button onClick={(e) => { e.stopPropagation(); openEditModal(income, 'income'); }} className="text-slate-400 hover:text-emerald-600 p-1.5 rounded" title={t.edit}><Pencil size={16}/></button>
                                                             <button onClick={(e) => { e.stopPropagation(); deleteIncome(income.id); }} className="text-slate-400 hover:text-red-500 p-1.5 rounded" title={t.delete}><Trash2 size={16}/></button>
                                                         </div>
                                                         <div className="w-12 h-6 hidden sm:block"></div> 
                                                         <div className="flex items-center gap-2"><span className="font-bold text-emerald-700 text-lg">{formatCurrency(income.amount)}</span></div>
                                                     </div>
+                                                    {income.mode === 'detailed' && <div className="text-xs text-slate-400 mb-2">{income.quantity} x {formatCurrency(income.unitPrice)}</div>}
                                                     <div className="flex flex-wrap gap-1 mb-3">
                                                         {income.eligibleCategories?.length > 0 ? income.eligibleCategories.map(catId => { const cat = categories.find(c => c.id === catId); return cat ? <Badge key={catId} color="slate">{getCategoryName(cat)}</Badge> : null; }) : <Badge color="amber">{t.freeFunds}</Badge>}
                                                     </div>
@@ -1017,6 +1012,9 @@
                                 <span className="text-sm uppercase tracking-wider opacity-70">{t.balance}</span><span className="text-2xl">{globalBalance > 0 ? '+' : ''}{formatCurrency(globalBalance)}</span>
                             </div>
                         </div>
+                        <div className="w-full text-center text-[10px] text-slate-400 mt-2 print:hidden">
+                            © Kévin Le Gal 2026
+                        </div>
                     </footer>
 
                     {/* MODALS */}
@@ -1050,12 +1048,32 @@
                             </div>
                         </div>
                     )}
-
+                    {/* Project Settings Modal */}
+                    {showSettingsModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm print:hidden">
+                            <div className="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full animate-in fade-in zoom-in">
+                                <h3 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2"><Settings size={20}/> {t.projectSettings}</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">{t.projectTitle}</label>
+                                        <input type="text" value={projectSettings.name} onChange={e => setProjectSettings({...projectSettings, name: e.target.value})} className="w-full border rounded p-2 text-sm" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">{t.projectDuration}</label>
+                                        <input type="number" value={projectSettings.durationMonths} onChange={e => setProjectSettings({...projectSettings, durationMonths: parseInt(e.target.value) || 12})} className="w-full border rounded p-2 text-sm" />
+                                    </div>
+                                </div>
+                                <div className="mt-6 flex justify-end">
+                                    <Button onClick={() => setShowSettingsModal(false)} variant="primary">{t.ok}</Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {confirmModal.isOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm print:hidden">
-                            <div className="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full border border-slate-100 animate-in fade-in zoom-in duration-200">
+                            <div className="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full">
                                 <div className="flex items-center gap-3 mb-4 text-amber-600"><AlertTriangle size={24} /><h3 className="font-bold text-lg text-slate-800">{t.confirmTitle}</h3></div>
-                                <p className="mb-6 text-slate-600 leading-relaxed text-sm">{confirmModal.message}</p>
+                                <p className="mb-6 text-slate-600 text-sm">{confirmModal.message}</p>
                                 <div className="flex justify-end gap-3">
                                     <Button variant="secondary" onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}>{t.cancel}</Button>
                                     <Button variant="danger" onClick={() => { confirmModal.onConfirm(); setConfirmModal({ ...confirmModal, isOpen: false }); }}>{t.ok}</Button>
@@ -1063,7 +1081,79 @@
                             </div>
                         </div>
                     )}
-
+                    {/* EDIT ITEM MODAL */}
+                    {editingItem && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden">
+                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
+                                <h3 className="font-bold text-lg mb-4">{t.edit}</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">{t.name}</label>
+                                        <input type="text" value={editingItem.name} onChange={e => setEditingItem({...editingItem, name: e.target.value})} className="w-full border rounded p-2" />
+                                    </div>
+                                    <div className="flex gap-4 text-xs">
+                                        <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="editMode" checked={editingItem.mode === 'simple'} onChange={() => setEditingItem({...editingItem, mode: 'simple'})} className="accent-indigo-600" />{t.simpleMode}</label>
+                                        <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="editMode" checked={editingItem.mode === 'detailed'} onChange={() => setEditingItem({...editingItem, mode: 'detailed'})} className="accent-indigo-600" />{t.detailedMode}</label>
+                                    </div>
+                                    {editingItem.mode === 'simple' ? (
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 mb-1">{t.amount}</label>
+                                            <input type="number" value={editingItem.amount} onChange={e => setEditingItem({...editingItem, amount: e.target.value})} className="w-full border rounded p-2" />
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs font-bold text-slate-500 mb-1">{editingItem.type === 'income' ? t.incomeDuration : t.quantity}</label>
+                                                <input type="number" value={editingItem.quantity} onChange={e => setEditingItem({...editingItem, quantity: e.target.value})} className="w-full border rounded p-2" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-xs font-bold text-slate-500 mb-1">{t.unitPrice}</label>
+                                                <input type="number" value={editingItem.unitPrice} onChange={e => setEditingItem({...editingItem, unitPrice: e.target.value})} className="w-full border rounded p-2" />
+                                            </div>
+                                        </div>
+                                    )}
+                                    {editingItem.type === 'expense' && (
+                                        <>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 mb-1">{t.category}</label>
+                                                <select className="w-full border rounded p-2 text-sm" value={editingItem.categoryId} onChange={e => setEditingItem({...editingItem, categoryId: e.target.value})}>
+                                                    {categories.map(cat => <option key={cat.id} value={cat.id}>{getCategoryName(cat)}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="p-2 bg-slate-50 rounded border border-slate-200">
+                                                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                                                    <input type="checkbox" checked={editingItem.isInvestment} onChange={e => setEditingItem({...editingItem, isInvestment: e.target.checked})} className="accent-indigo-600 w-4 h-4" />
+                                                    {t.isInvestment}
+                                                </label>
+                                                {editingItem.isInvestment && (
+                                                    <div className="mt-2 flex items-center gap-2">
+                                                        <span className="text-xs text-slate-500">{t.amortizationPeriod}:</span>
+                                                        <input type="number" value={editingItem.amortizationDuration} onChange={e => setEditingItem({...editingItem, amortizationDuration: parseInt(e.target.value) || 0})} className="w-20 px-2 py-1 border rounded text-xs" />
+                                                        <span className="text-xs text-slate-400">({t.months})</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                    {editingItem.type === 'income' && (
+                                        <div className="bg-slate-50 p-3 rounded border border-slate-200">
+                                            <p className="text-xs font-bold text-slate-500 mb-2">{t.targeting}</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {categories.map(cat => (
+                                                    <button key={cat.id} onClick={() => toggleEditCategorySelection(cat.id)} className={`text-xs px-2 py-1 rounded border ${editingItem.eligibleCategories?.includes(cat.id) ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600'}`}>{getCategoryName(cat)}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-6 flex justify-end gap-2">
+                                    <Button variant="secondary" onClick={() => setEditingItem(null)}>{t.cancel}</Button>
+                                    <Button onClick={saveEditedItem}>{t.saveChanges}</Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
                     {selectedExpenseForAlloc && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden">
                             <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -1072,9 +1162,9 @@
                                     <button onClick={() => setSelectedExpenseForAlloc(null)} className="text-slate-400 hover:text-slate-600"><X size={24} /></button>
                                 </div>
                                 <div className="flex bg-white border-b border-slate-100 p-4 justify-around text-center shadow-sm z-10">
-                                    <div><div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Total</div><div className="text-xl font-bold text-slate-800">{formatCurrency(selectedExpenseForAlloc.amount)}</div></div>
+                                    <div><div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Total</div><div className="text-xl font-bold text-slate-800">{formatCurrency(calculateEffectiveExpenseAmount(selectedExpenseForAlloc))}</div></div>
                                     <div><div className="text-xs text-slate-400 uppercase font-bold tracking-wider">{t.allocated}</div><div className="text-xl font-bold text-indigo-600">{formatCurrency(Object.values(tempAllocations).reduce((a, b) => a + b, 0))}</div></div>
-                                    <div><div className="text-xs text-slate-400 uppercase font-bold tracking-wider">{t.remaining}</div><div className="text-xl font-bold text-amber-500">{formatCurrency(selectedExpenseForAlloc.amount - Object.values(tempAllocations).reduce((a, b) => a + b, 0))}</div></div>
+                                    <div><div className="text-xs text-slate-400 uppercase font-bold tracking-wider">{t.remaining}</div><div className="text-xl font-bold text-amber-500">{formatCurrency(calculateEffectiveExpenseAmount(selectedExpenseForAlloc) - Object.values(tempAllocations).reduce((a, b) => a + b, 0))}</div></div>
                                 </div>
                                 <div className="p-4 overflow-y-auto flex-1 bg-slate-50/50">
                                     <div className="space-y-3">
@@ -1082,12 +1172,13 @@
                                             const globalRemaining = getIncomeRemaining(inc.id);
                                             const savedAlloc = selectedExpenseForAlloc.allocations?.find(a => a.incomeId === inc.id)?.amount || 0;
                                             const availableForThisRow = globalRemaining + savedAlloc;
+                                            const effectiveCost = calculateEffectiveExpenseAmount(selectedExpenseForAlloc);
                                             return (
                                                 <div key={inc.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
                                                     <div className="flex justify-between mb-2"><span className="font-semibold text-slate-700">{inc.name}</span><span className="text-emerald-600 text-xs">{t.available}: {formatCurrency(availableForThisRow)}</span></div>
                                                     <div className="flex gap-2">
                                                         <input type="number" min="0" step="0.01" value={tempAllocations[inc.id] || ''} onChange={(e) => updateTempAllocation(inc.id, e.target.value)} className="w-full border rounded px-2" placeholder="0.00" />
-                                                        <button onClick={() => updateTempAllocation(inc.id, Math.min(Math.max(0, (selectedExpenseForAlloc.amount - Object.values(tempAllocations).reduce((a, b) => a + b, 0)) + (tempAllocations[inc.id] || 0)), availableForThisRow))} className="bg-indigo-50 text-indigo-600 px-3 rounded text-xs font-bold">{t.complete}</button>
+                                                        <button onClick={() => updateTempAllocation(inc.id, Math.min(Math.max(0, (effectiveCost - Object.values(tempAllocations).reduce((a, b) => a + b, 0)) + (tempAllocations[inc.id] || 0)), availableForThisRow))} className="bg-indigo-50 text-indigo-600 px-3 rounded text-xs font-bold">{t.complete}</button>
                                                     </div>
                                                 </div>
                                             );
@@ -1098,21 +1189,6 @@
                             </div>
                         </div>
                     )}
-
-                    {editingIncome && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden">
-                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
-                                <h3 className="font-bold text-lg mb-4">{t.editRecette}</h3>
-                                <div className="space-y-4">
-                                    <input type="text" value={editingIncome.name} onChange={e => setEditingIncome({...editingIncome, name: e.target.value})} className="w-full border rounded p-2" />
-                                    <input type="number" value={editingIncome.amount} onChange={e => setEditingIncome({...editingIncome, amount: e.target.value})} className="w-full border rounded p-2" />
-                                    <div className="flex flex-wrap gap-2">{categories.map(cat => <button key={cat.id} onClick={() => toggleCategorySelection(cat.id, editingIncome, setEditingIncome)} className={`text-xs px-2 py-1 rounded border ${editingIncome.eligibleCategories?.includes(cat.id) ? 'bg-emerald-600 text-white' : 'bg-slate-100'}`}>{getCategoryName(cat)}</button>)}</div>
-                                </div>
-                                <div className="mt-6 flex justify-end gap-2"><Button variant="secondary" onClick={() => setEditingIncome(null)}>{t.cancel}</Button><Button onClick={saveEditedIncome}>{t.saveChanges}</Button></div>
-                            </div>
-                        </div>
-                    )}
-
                     {viewingIncome && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden">
                             <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -1134,7 +1210,7 @@
                                             const allocation = exp.allocations.find(a => a.incomeId === viewingIncome.id);
                                             return (
                                                 <div key={exp.id} className="bg-white p-3 rounded border border-slate-200 flex justify-between items-center shadow-sm">
-                                                    <div><div className="font-medium text-slate-800">{exp.name}</div><div className="text-xs text-slate-500 flex items-center gap-2"><Badge color="slate">{getCategoryName(category)}</Badge><span>Total dépense: {formatCurrency(exp.amount)}</span></div></div>
+                                                    <div><div className="font-medium text-slate-800">{exp.name}</div><div className="text-xs text-slate-500 flex items-center gap-2"><Badge color="slate">{getCategoryName(category)}</Badge><span>Total: {formatCurrency(calculateEffectiveExpenseAmount(exp))}</span></div></div>
                                                     <div className="text-right"><div className="text-xs text-emerald-600 font-bold uppercase">{t.allocAmount}</div><div className="font-bold text-lg text-emerald-700">{formatCurrency(allocation.amount)}</div></div>
                                                 </div>
                                             )
