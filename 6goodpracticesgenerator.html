@@ -89,7 +89,7 @@
                 </div>
                 <button onclick="loadExample()" id="btn-example-wrap" class="flex items-center gap-2 px-3 py-1 bg-teal-600 hover:bg-teal-500 rounded-lg text-sm transition-colors border border-teal-400"><i data-lucide="sparkles" class="w-4 h-4"></i><span id="btn-example">Exemple</span></button>
                 <button onclick="resetForm()" id="btn-reset-wrap" class="flex items-center gap-2 px-3 py-1 bg-red-600 hover:bg-red-500 rounded-lg text-sm transition-colors border border-red-400"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span id="btn-reset">Réinitialiser</span></button>
-                <button onclick="downloadTool()" id="btn-download-tool-wrap" class="flex items-center gap-2 px-3 py-1 bg-indigo-700 hover:bg-indigo-600 rounded-lg text-sm transition-colors border border-indigo-500"><i data-lucide="download" class="w-4 h-4"></i><span id="btn-download-tool">L'appli</span></button>
+                <button onclick="downloadTool()" id="btn-download-tool-wrap" class="flex items-center gap-2 px-3 py-1 bg-indigo-700 hover:bg-indigo-600 rounded-lg text-sm transition-colors border border-indigo-500"><i data-lucide="download" class="w-4 h-4"></i><span id="btn-download-tool">L'éditeur</span></button>
                 <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold shadow-sm transition-colors"><i data-lucide="printer" class="w-4 h-4"></i><span class="hidden md:inline" id="download-btn">Imprimer PDF</span><span class="md:hidden">PDF</span></button>
             </div>
         </div>
@@ -343,6 +343,37 @@
             lucide.createIcons();
         }
 
+        function getFilenameBase() { 
+            const d = document.getElementById('input-date').value || 'NoDate'; 
+            
+            // Type: Normalize to remove accents (É -> E), keep letters, take 3
+            const typeRaw = document.getElementById('input-type').value || 'DOC';
+            const typeCode = typeRaw.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                    .replace(/[^a-zA-Z]/g, '')
+                                    .substring(0, 3).toUpperCase();
+
+            // Title: Allow accents, replace spaces with dash
+            const rawTitle = document.getElementById('input-title').value || 'Sans-Titre';
+            const t = rawTitle.replace(/[^a-zA-Z0-9à-ÿÀ-Ÿ\s-]/g, '')
+                              .trim()
+                              .replace(/\s+/g, '-')
+                              .substring(0, 50);
+
+            // Lang
+            const l = (document.getElementById('input-resource-lang').value || currentLang).substring(0, 2).toUpperCase();
+            
+            return `${d}_${typeCode}_${t}_${l}`; 
+        }
+
+        function updateFilename() { 
+            const name = getFilenameBase();
+            document.title = name;
+            const filenameDisplay = document.getElementById('filename-preview');
+            if (filenameDisplay) {
+                filenameDisplay.textContent = `Fichier : ${name}.pdf`; 
+            }
+        }
+
         function saveProject() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
                 title: document.getElementById('input-title').value, author: document.getElementById('input-author').value, date: document.getElementById('input-date').value,
@@ -572,8 +603,8 @@
         function saveCanvas(i) { sections[i].content=document.getElementById(`canvas-${i}`).toDataURL("image/png"); updatePreview(); }
 
         function getInitials(n) { if(!n) return 'UNK'; const p=n.trim().split(/\s+/); if(p.length===1) return p[0].substring(0,3).toUpperCase(); return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase(); }
-        function getFilenameBase() { const d=document.getElementById('input-date').value||'NoDate'; const t=(document.getElementById('input-title').value||'Untitled').replace(/[^a-zA-Z0-9]/g,'-').substring(0,40); const l=(document.getElementById('input-resource-lang').value||'FR').substring(0,2).toUpperCase(); return `${d}_${l}_${t}`; }
-        function updateFilename() { document.title=getFilenameBase(); document.getElementById('filename-preview').textContent=`Fichier : ${document.title}.pdf`; }
+        function getFilenameBase() { const d=document.getElementById('input-date').value||'NoDate'; const rawT=(document.getElementById('input-title').value||'Untitled'); const t=rawT.replace(/[^a-zA-Z0-9à-ÿÀ-Ÿ\s-]/g,'').trim().replace(/\s+/g,'-').substring(0,40); const rawType=(document.getElementById('input-type').value||'DOC'); const typeCode=rawType.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z]/g,'').substring(0,3).toUpperCase(); const l=(document.getElementById('input-resource-lang').value||currentLang).substring(0,2).toUpperCase(); return `${d}_${typeCode}_${t}_${l}`; }
+        function updateFilename() { const n=getFilenameBase(); document.title=n; document.getElementById('filename-preview').textContent=`Fichier : ${n}.pdf`; }
         function autoResize(el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
         function switchTab(t) { const e=document.getElementById('editor-col'); const p=document.getElementById('preview-col'); if(t==='edit') { e.classList.remove('hidden'); e.classList.add('flex'); p.classList.add('hidden'); } else { e.classList.add('hidden'); e.classList.remove('flex'); p.classList.remove('hidden'); p.classList.add('block'); } }
 
