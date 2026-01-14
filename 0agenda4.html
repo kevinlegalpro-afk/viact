@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vi-Act - Agenda Interactif V6</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Police Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Scrollbars fines */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Ligne de temps actuelle */
+        .now-indicator-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #ef4444;
+            z-index: 50;
+            pointer-events: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .now-indicator-line::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: -4px;
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444;
+            border-radius: 50%;
+        }
+        /* Badge "MAINTENANT" sur la ligne */
+        .now-badge {
+            position: absolute;
+            left: 5px;
+            top: -20px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Grille de fond */
+        .grid-background {
+            background-image: linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
+            background-size: 100% 60px; /* 60px = 1 heure si 1px/min */
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 p-2 md:p-4 min-h-screen flex flex-col">
+
+    <div id="app" class="max-w-[1600px] mx-auto w-full flex-grow flex flex-col">
+        <!-- Contenu généré par JS -->
+    </div>
+
+    <script>
+        // --- DONNÉES & CONFIGURATION ---
+
+        const timezones = [
+            { id: 'fr', name: 'France (Paris)', offset: 0, flag: '🇫🇷' },
+            { id: 'ro', name: 'Roumanie / Bulgarie', offset: 1, flag: '🇷🇴' },
+            { id: 'mg', name: 'Madagascar', offset: 2, flag: '🇲🇬' },
+            { id: 'sc', name: 'Seychelles / Maurice', offset: 3, flag: '🇸🇨' },
+        ];
+
+        const translations = {
+            fr: {
+                title: "Vi-Act - Virtual youth work",
+                subtitle: "Agenda de Formation",
+                view_week: "Vue Semaine (Alignée)",
+                view_day: "Vue Journée (Détail)",
+                legend_synchrone: "Synchrone",
+                legend_elearning: "E-learning",
+                legend_blended: "Blended",
+                legend_opening: "Ouverture",
+                legend_social: "Social Club",
+                opening: "Ouverture salle virtuelle",
+                break_label: "Pause",
+                days: ["Jour 1", "Jour 2", "Jour 3", "Jour 4", "Jour 5", "Jour 6"],
+                day_themes: [
+                    "Intro & Réalités Jeunes",
+                    "Initiatives Jeunes",
+                    "Écosystème Local",
+                    "Conception Animations",
+                    "Animation Groupe",
+                    "Évaluation & Impact"
+                ],
+                day_themes_full: [
+                    "Introduction au travail de jeunesse numérique et aux réalités des jeunes",
+                    "Accompagner les initiatives de jeunes",
+                    "Construire un écosystème local de travail jeunesse",
+                    "Conception d'animations",
+                    "Animation de groupe et d'activités",
+                    "Evaluer, communiquer et maximiser l'impact des nos actions"
+                ],
+                social_club_title: "Social Club",
+                social_club_short: "Social Club",
+                social_club_parallel: "Ouvert en parallèle",
+                time_label: "Heure",
+                note: "* Horaires ajustés au fuseau sélectionné (Base: 07:30 FR)",
+                next_day: "Jour Suivant",
+                prev_day: "Jour Précédent",
+                current_time: "Heure actuelle : ",
+                now_badge: "EN COURS",
+                fullscreen: "Plein Écran"
+            },
+            en: {
+                title: "Vi-Act - Virtual youth work",
+                subtitle: "Training Schedule",
+                view_week: "Week View (Aligned)",
+                view_day: "Day View (Detail)",
+                legend_synchrone: "Synchronous",
+                legend_elearning: "E-learning",
+                legend_blended: "Blended",
+                legend_opening: "Opening",
+                legend_social: "Social Club",
+                opening: "Virtual Room Opening",
+                break_label: "Break",
+                days: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6"],
+                day_themes: [
+                    "Intro & Youth Realities",
+                    "Youth Initiatives",
+                    "Local Ecosystem",
+                    "Animation Design",
+                    "Group Animation",
+                    "Evaluation & Impact"
+                ],
+                day_themes_full: [
+                    "Introduction to Digital Youth Work and Youth Realities",
+                    "Supporting Youth Initiatives",
+                    "Building a Local Youth Work Ecosystem",
+                    "Designing Animations",
+                    "Group Facilitation and Activities",
+                    "Evaluating, Communicating, and Maximizing Impact"
+                ],
+                social_club_title: "Social Club",
+                social_club_short: "Social Club",
+                social_club_parallel: "Open in parallel",
+                time_label: "Time",
+                note: "* Times adjusted to selected timezone (Base: 07:30 FR)",
+                next_day: "Next Day",
+                prev_day: "Previous Day",
+                current_time: "Current Time: ",
+                now_badge: "NOW",
+                fullscreen: "Fullscreen"
+            }
+        };
+
+        const scheduleData = [
+            // --- JOUR 1 ---
+            { day: 0, start: 7.5, duration: 30, type: 'opening', titleFr: "Ouverture salle virtuelle", titleEn: "Virtual Room Opening" },
+            { day: 0, start: 8.0, duration: 120, type: 'synchrone', titleFr: "1. Ouverture de la formation", titleEn: "1. Opening of the Training" },
+            { day: 0, start: 10.0, duration: 30, type: 'break', titleFr: "Pause", titleEn: "Break" },
+            { day: 0, start: 10.5, duration: 120, type: 'synchrone', titleFr: "2. Animateur/travailleur jeunesse digital, c'est quoi?", titleEn: "2. Digital Youth Worker: What is it?" },
+            { day: 0, start: 12.5, duration: 60, type: 'break', titleFr: "Pause", titleEn: "Break" },
+            { day: 0, start: 13.5, duration: 90, type: 'blended', titleFr: "3. Les réalités des jeunes - Partie 1", titleEn: "3. Youth Realities - Part 1" },
+            { day: 0, start: 15.0, duration: 30, type: 'opening', titleFr: "Reflection Time", titleEn: "Reflection Time" },
+            { day: 0, start: 15.5, duration: 120, type: 'elearning', titleFr: "3 bis. Les réalités des jeunes - Partie 2", titleEn: "3 bis. Youth Realities - Part 2" },
+
+            // --- JOUR 2 ---
+            { day: 1, start: 7.5, duration: 30, type: 'opening', titleFr: "Ouverture salle virtuelle", titleEn: "Virtual Room Opening" },
+            { day: 1, start: 8.0, duration: 120, type: 'synchrone', titleFr: "4. Accompagner les processus créatifs", titleEn: "4. Supporting Youth Creative Processes" },
+            { day: 1, start: 10.0, duration: 30, type: 'break', titleFr: "Pause", titleEn: "Break" },
+            { day: 1, start: 10.5, duration: 120, type: 'blended', titleFr: "5. Encourager la vie bénévole", titleEn: "5. Encouraging Volunteering" },
+            { day: 1, start: 12.5, duration: 60, type: 'opening', titleFr: "Reflection Time", titleEn: "Reflection Time" },
+            { day: 1, start: 13.5, duration: 120, type: 'elearning', titleFr: "6. Méthodologies d'apprentissage actifs", titleEn: "6. Active Learning Methodologies" },
+            { day: 1, start: 15.5, duration: 120, type: 'elearning', titleFr: "7. Méthodologies d'accompagnement", titleEn: "7. Support Methodologies" },
+
+            // --- JOUR 3 ---
+            { day: 2, start: 7.5, duration: 30, type: 'opening', titleFr: "Ouverture salle virtuelle", titleEn: "Virtual Room Opening" },
+            { day: 2, start: 8.0, duration: 120, type: 'synchrone', titleFr: "8. Cartographier les partenaires", titleEn: "8. Mapping Partners" },
+            { day: 2, start: 10.0, duration: 30, type: 'break', titleFr: "Pause", titleEn: "Break" },
+            { day: 2, start: 10.5, duration: 120, type: 'synchrone', titleFr: "9. Espace participatif & interculturel", titleEn: "9. Participatory & Intercultural Spaces" },
+            { day: 2, start: 12.5, duration: 60, type: 'opening', titleFr: "Reflection Time", titleEn: "Reflection Time" },
+            { day: 2, start: 13.5, duration: 120, type: 'elearning', titleFr: "10. Objectifs d’apprentissage", titleEn: "10. Learning Objectives" },
+            { day: 2, start: 15.5, duration: 120, type: 'elearning', titleFr: "11. Progression pédagogique", titleEn: "11. Pedagogical Progression" },
+
+            // --- JOUR 4 ---
+            { day: 3, start: 7.5, duration: 30, type: 'opening', titleFr: "Ouverture salle virtuelle", titleEn: "Virtual Room Opening" },
+            { day: 3, start: 8.0, duration: 210, type: 'synchrone', titleFr: "12. Construire le déroulé d'une animation", titleEn: "12. Building an Animation Flow" },
+            { day: 3, start: 11.5, duration: 60, type: 'elearning', titleFr: "13. Inclusion, sécurité & légal", titleEn: "13. Inclusion, Safety & Legal" },
+            { day: 3, start: 12.5, duration: 60, type: 'opening', titleFr: "Reflection Time", titleEn: "Reflection Time" },
+            { day: 3, start: 13.5, duration: 120, type: 'elearning', titleFr: "14. Budget & Logistique: Outils", titleEn: "14. Budget & Logistics: Tools" },
+            { day: 3, start: 15.5, duration: 120, type: 'blended', titleFr: "12 bis. Construire le déroulé (Suite)", titleEn: "12 bis. Building an Animation Flow (Cont.)" },
+
+            // --- JOUR 5 ---
+            { day: 4, start: 7.5, duration: 30, type: 'opening', titleFr: "Ouverture salle virtuelle", titleEn: "Virtual Room Opening" },
+            { day: 4, start: 8.0, duration: 120, type: 'synchrone', titleFr: "15. Facilitation & apprentissage actif", titleEn: "15. Facilitation & Active Learning" },
+            { day: 4, start: 10.0, duration: 30, type: 'break', titleFr: "Pause", titleEn: "Break" },
+            { day: 4, start: 10.5, duration: 60, type: 'blended', titleFr: "16. Dynamiques de groupe", titleEn: "16. Group Dynamics" },
+            { day: 4, start: 11.5, duration: 60, type: 'elearning', titleFr: "17. Évaluation formative", titleEn: "17. Formative Assessment" },
+            { day: 4, start: 12.5, duration: 60, type: 'opening', titleFr: "Reflection / Pause", titleEn: "Reflection / Break" },
+            { day: 4, start: 13.5, duration: 240, type: 'blended', titleFr: "15 bis. Facilitation ACTION !!!", titleEn: "15 bis. Facilitation ACTION !!!" },
+            { day: 4, start: 17.5, duration: 180, type: 'social', titleFr: "Social Club", titleEn: "Social Club" },
+
+            // --- JOUR 6 ---
+            { day: 5, start: 7.5, duration: 30, type: 'opening', titleFr: "Ouverture salle virtuelle", titleEn: "Virtual Room Opening" },
+            { day: 5, start: 8.0, duration: 120, type: 'elearning', titleFr: "18. Evaluation & capitalisation", titleEn: "18. Evaluation & Capitalization" },
+            { day: 5, start: 10.0, duration: 30, type: 'break', titleFr: "Pause", titleEn: "Break" },
+            { day: 5, start: 10.5, duration: 120, type: 'blended', titleFr: "19. Reconnaissance & Youthpass", titleEn: "19. Recognition & Youthpass" },
+            { day: 5, start: 12.5, duration: 60, type: 'break', titleFr: "Pause", titleEn: "Break" },
+            { day: 5, start: 13.5, duration: 90, type: 'blended', titleFr: "20. Promouvoir les initiatives", titleEn: "20. Promoting Initiatives" },
+            { day: 5, start: 15.0, duration: 30, type: 'break', titleFr: "Pause", titleEn: "Break" },
+            { day: 5, start: 15.5, duration: 120, type: 'synchrone', titleFr: "21. Plan dév. pro & clôture", titleEn: "21. PDP & Closing" },
+        ];
+
+        // --- CONSTANTES DE GRILLE ---
+        const START_HOUR = 7;
+        const END_HOUR = 21; // Jusqu'à 21h pour inclure le Social Club (20h30)
+        const PIXELS_PER_HOUR = 80; // Hauteur d'une heure en pixels
+        const GRID_HEIGHT = (END_HOUR - START_HOUR) * PIXELS_PER_HOUR;
+
+        // --- ÉTAT GLOBAL ---
+        let currentState = {
+            lang: 'fr',
+            timezoneId: 'fr',
+            view: 'week', 
+            selectedDay: 0,
+            isFullscreen: false
+        };
+
+        // --- ICONES SVG ---
+        const icons = {
+            calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-red-600"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>`,
+            clock: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-slate-400"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+            chevronDown: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-slate-400 pointer-events-none"><path d="m6 9 6 6 6-6"/></svg>`,
+            coffeeLarge: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-fuchsia-600"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 0 1 4 4v1a4 4 0 0 1-4 4h-1"/><line x1="6" x2="6" y1="2" y2="4"/></svg>`,
+            grid: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>`,
+            list: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>`,
+            arrowLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
+            arrowRight: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
+            maximize: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`,
+            minimize: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>`
+        };
+
+        // --- FONCTIONS UTILITAIRES ---
+
+        function getVirtualTime() {
+            const now = new Date();
+            const utc = now.getUTCHours() + now.getUTCMinutes() / 60;
+            const currentTz = timezones.find(tz => tz.id === currentState.timezoneId) || timezones[0];
+            let virtual = (utc + currentTz.offset);
+            if (virtual < 0) virtual += 24;
+            if (virtual >= 24) virtual -= 24;
+            return virtual;
+        }
+
+        function formatDecimalTime(decimalTime) {
+            let hour = Math.floor(decimalTime);
+            let minutes = Math.round((decimalTime - hour) * 60);
+            return `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        function formatTime(baseHour) {
+            const currentTz = timezones.find(tz => tz.id === currentState.timezoneId) || timezones[0];
+            let hour = Math.floor(baseHour);
+            let minutes = Math.round((baseHour - hour) * 60);
+            hour = (hour + currentTz.offset) % 24;
+            const hStr = hour.toString().padStart(2, '0');
+            const mStr = minutes.toString().padStart(2, '0');
+            return `${hStr}:${mStr}`;
+        }
+
+        function getEventStyle(type) {
+            switch (type) {
+                case 'synchrone': return 'bg-red-50 border-l-4 border-red-500 text-red-900 hover:bg-red-100 z-10';
+                case 'elearning': return 'bg-emerald-50 border-l-4 border-emerald-500 text-emerald-900 hover:bg-emerald-100 z-10';
+                case 'blended': return 'bg-blue-50 border-l-4 border-blue-500 text-blue-900 hover:bg-blue-100 z-10';
+                case 'opening': return 'bg-amber-50 border-l-4 border-amber-400 text-amber-900 hover:bg-amber-100 italic z-10';
+                case 'break': return 'bg-slate-50 border-l border-slate-300 text-slate-400 text-xs flex items-center justify-center opacity-70 z-0'; // Breaks moins proéminents
+                case 'social': return 'bg-fuchsia-50 border-l-4 border-fuchsia-500 text-fuchsia-900 hover:bg-fuchsia-100 shadow-md z-20'; // Social Club au dessus
+                default: return 'bg-gray-100 z-10';
+            }
+        }
+
+        function getParallelSocialClub(dayIndex) {
+            // Jours 1, 2, 3 (Indices 0, 1, 2) : 13h30 - 17h30 (4h)
+            if (dayIndex >= 0 && dayIndex <= 2) {
+                return { start: 13.5, duration: 240 }; 
+            }
+            // Jour 4 (Index 3) : 11h30 - 17h30 (6h)
+            if (dayIndex === 3) {
+                return { start: 11.5, duration: 360 };
+            }
+            return null;
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                currentState.isFullscreen = true;
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    currentState.isFullscreen = false;
+                }
+            }
+            render();
+        }
+
+        // --- MOTEUR DE RENDU : VUE SEMAINE (ALIGNEE) ---
+        function renderWeekView(t) {
+            const nowTime = getVirtualTime();
+            // Calcul position ligne rouge (Top en pixels)
+            // On limite la ligne rouge à la plage horaire affichée
+            let lineTop = -1;
+            if(nowTime >= START_HOUR && nowTime <= END_HOUR) {
+                lineTop = (nowTime - START_HOUR) * PIXELS_PER_HOUR;
+            }
+
+            let html = `
+                <div class="flex-grow overflow-auto relative fade-in border-t border-slate-200 bg-white">
+                    <div class="flex min-w-[1200px]" style="height: ${GRID_HEIGHT + 60}px;">
+                        
+                        <!-- Colonne Heures (Axe Y) -->
+                        <div class="w-16 flex-shrink-0 bg-white border-r border-slate-200 sticky left-0 z-30">
+                            <div class="h-[60px] border-b border-slate-200 bg-slate-50"></div> <!-- Spacer Header -->
+                            <div class="relative" style="height: ${GRID_HEIGHT}px;">
+                                ${Array.from({length: END_HOUR - START_HOUR + 1}, (_, i) => START_HOUR + i).map(h => `
+                                    <div class="absolute w-full text-right pr-2 text-xs text-slate-400 -mt-2 font-mono" style="top: ${(h - START_HOUR) * PIXELS_PER_HOUR}px">
+                                        ${formatTime(h)}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Grille Jours -->
+                        <div class="flex-grow relative">
+                            <!-- Ligne Rouge "Maintenant" (Traverse tout) -->
+                            ${lineTop >= 0 ? `
+                                <div class="now-indicator-line" style="top: ${lineTop + 60}px; width: 100%;">
+                                    <div class="now-badge">${t.now_badge}</div>
+                                </div>
+                            ` : ''}
+
+                            <div class="flex h-full">
+            `;
+
+            for (let dayIdx = 0; dayIdx < 6; dayIdx++) {
+                const dayEvents = scheduleData.filter(e => e.day === dayIdx);
+                const parallelSocial = getParallelSocialClub(dayIdx);
+
+                html += `
+                    <div class="flex-1 border-r border-slate-200 flex flex-col relative group">
+                        <!-- Header Jour -->
+                        <div class="h-[60px] bg-slate-800 text-white p-2 text-center flex flex-col justify-center sticky top-0 z-40 shadow-sm cursor-pointer hover:bg-slate-700 transition-colors" onclick="setDay(${dayIdx}); setView('day')">
+                            <span class="font-bold text-sm uppercase tracking-wide text-red-300 block">${t.days[dayIdx]}</span>
+                            <span class="text-[10px] opacity-80 truncate block px-2" title="${t.day_themes_full[dayIdx]}">${t.day_themes[dayIdx]}</span>
+                        </div>
+
+                        <!-- Zone Événements (Absolu) -->
+                        <div class="relative flex-grow grid-background" style="height: ${GRID_HEIGHT}px;">
+                `;
+
+                // --- RENDU ÉVÉNEMENTS ---
+                // Social Club (Background/Parallèle)
+                if (parallelSocial) {
+                    const top = (parallelSocial.start - START_HOUR) * PIXELS_PER_HOUR;
+                    const height = (parallelSocial.duration / 60) * PIXELS_PER_HOUR;
+                    // FIX: Bande étroite (12%) par défaut, s'élargit à 90% au survol
+                    html += `
+                        <div class="absolute right-1 w-[12%] min-w-[24px] rounded border-2 border-fuchsia-200 bg-fuchsia-50/95 text-fuchsia-900 z-20 flex flex-col justify-center items-center text-center shadow-sm hover:w-[90%] hover:z-50 transition-all duration-300 cursor-help overflow-hidden group/social"
+                             style="top: ${top}px; height: ${height}px;">
+                             <div class="w-full flex flex-col items-center justify-center p-1">
+                                <div class="mb-1 transform group-hover/social:scale-110 transition-transform">${icons.coffeeLarge}</div>
+                                <div class="font-bold text-[9px] uppercase leading-tight opacity-0 group-hover/social:opacity-100 transition-opacity duration-200 whitespace-nowrap">${t.social_club_short}</div>
+                                <div class="text-[9px] opacity-80 leading-tight hidden group-hover/social:block mt-1 whitespace-nowrap">${t.social_club_parallel}</div>
+                             </div>
+                        </div>
+                    `;
+                }
+
+                dayEvents.forEach(evt => {
+                    // Calcul position
+                    const top = (evt.start - START_HOUR) * PIXELS_PER_HOUR;
+                    const height = (evt.duration / 60) * PIXELS_PER_HOUR;
+                    const title = currentState.lang === 'fr' ? evt.titleFr : evt.titleEn;
+                    const styleClass = getEventStyle(evt.type);
+                    
+                    // Gestion Largeur pour éviter chevauchement avec Social Club
+                    let widthStyle = "left: 2px; right: 2px;"; // Défaut
+                    let isSocialOverlap = parallelSocial && evt.start >= parallelSocial.start && evt.start < (parallelSocial.start + parallelSocial.duration/60);
+                    
+                    if (isSocialOverlap) {
+                        widthStyle = "left: 2px; width: 86%;"; // On laisse ~14% à droite pour le social club
+                    }
+
+                    // Contenu minimaliste pour la grille
+                    const isSmall = height < 40; // Si l'event est très court
+
+                    html += `
+                        <div class="absolute rounded p-1.5 overflow-hidden transition-all hover:z-50 hover:shadow-lg cursor-pointer ${styleClass}"
+                             style="top: ${top}px; height: ${height}px; ${widthStyle}">
+                            <div class="flex justify-between items-start leading-none mb-0.5">
+                                <span class="font-mono font-bold text-[9px] opacity-70">${formatTime(evt.start)}</span>
+                                ${evt.type !== 'break' && !isSmall ? '<span class="text-[10px] opacity-50">ℹ️</span>' : ''}
+                            </div>
+                            ${evt.type !== 'break' ? `
+                                <div class="font-semibold text-[10px] leading-tight line-clamp-2 md:line-clamp-3" title="${title}">
+                                    ${title}
+                                </div>
+                            ` : `<div class="text-[9px] font-bold text-center uppercase tracking-widest mt-1">${t.break_label}</div>`}
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `</div></div></div>`;
+            return html;
+        }
+
+        // --- RENDU VUE JOURNÉE (TIMELINE) - Inchangé ou presque ---
+        function renderDayView(t) {
+            const dayIdx = currentState.selectedDay;
+            const dayEvents = scheduleData.filter(e => e.day === dayIdx).sort((a, b) => a.start - b.start);
+            const parallelSocial = getParallelSocialClub(dayIdx);
+            const nowTime = getVirtualTime();
+
+            let html = `
+                <div class="max-w-4xl mx-auto fade-in p-4">
+                    <!-- Nav -->
+                    <div class="flex items-center justify-between mb-8 bg-slate-800 text-white p-4 rounded-xl shadow-lg">
+                        <button ${dayIdx === 0 ? 'disabled class="opacity-30"' : `onclick="setDay(${dayIdx - 1})"`} class="p-2 hover:bg-slate-600 rounded-full transition-colors flex items-center gap-2">
+                            ${icons.arrowLeft} <span class="hidden sm:inline font-semibold">${t.prev_day}</span>
+                        </button>
+                        <div class="text-center">
+                            <h2 class="text-3xl font-bold text-red-300 mb-1">${t.days[dayIdx]}</h2>
+                            <p class="text-sm opacity-90 max-w-lg mx-auto">${t.day_themes_full[dayIdx]}</p>
+                        </div>
+                        <button ${dayIdx === 5 ? 'disabled class="opacity-30"' : `onclick="setDay(${dayIdx + 1})"`} class="p-2 hover:bg-slate-600 rounded-full transition-colors flex items-center gap-2">
+                            <span class="hidden sm:inline font-semibold">${t.next_day}</span> ${icons.arrowRight}
+                        </button>
+                    </div>
+                    
+                    <div class="flex flex-col gap-6 relative pl-4 md:pl-0">
+                        <!-- Ligne verticale timeline -->
+                        <div class="absolute left-0 md:left-[107px] top-0 bottom-0 w-0.5 bg-slate-200 hidden md:block"></div>
+            `;
+
+            dayEvents.forEach(evt => {
+                const title = currentState.lang === 'fr' ? evt.titleFr : evt.titleEn;
+                // Calcul heures display
+                const currentTz = timezones.find(tz => tz.id === currentState.timezoneId) || timezones[0];
+                let displayStart = evt.start + currentTz.offset;
+                let displayEnd = evt.start + evt.duration/60 + currentTz.offset;
+                const modStart = displayStart % 24;
+                const modEnd = displayEnd % 24;
+                
+                // Active ?
+                const isCurrent = (nowTime >= modStart && nowTime < modEnd);
+                let progressPercent = 0;
+                if(isCurrent) {
+                    progressPercent = ((nowTime - modStart) / (modEnd - modStart)) * 100;
+                }
+
+                const timeStartStr = formatDecimalTime(modStart);
+                const timeEndStr = formatDecimalTime(modEnd);
+                const isAfternoonOverlap = parallelSocial && evt.start >= parallelSocial.start && evt.start < (parallelSocial.start + parallelSocial.duration/60);
+
+                if (isAfternoonOverlap) {
+                    // SPLIT VIEW
+                    html += `
+                        <div class="grid grid-cols-1 md:grid-cols-[100px_1fr_1fr] gap-6 items-stretch group relative">
+                            <div class="text-right md:pr-6 pt-4 relative hidden md:block">
+                                <span class="font-mono text-xl font-bold ${isCurrent ? 'text-red-600' : 'text-slate-700'} block">${timeStartStr}</span>
+                                <span class="font-mono text-sm text-slate-400 block mt-1">${timeEndStr}</span>
+                                <div class="absolute top-6 -right-[5px] w-3 h-3 rounded-full border-2 border-white ${isCurrent ? 'bg-red-500 ring-2 ring-red-200' : 'bg-slate-300'} z-10"></div>
+                            </div>
+                            
+                            <!-- Main -->
+                            <div class="rounded-xl p-5 shadow-sm border border-slate-100 ${getEventStyle(evt.type)} relative overflow-hidden transition-all hover:shadow-md ${isCurrent ? 'ring-2 ring-red-400' : ''}">
+                                ${isCurrent ? `<div class="now-indicator-line" style="top: ${progressPercent}%;"></div>` : ''}
+                                <div class="flex items-center gap-2 mb-2 opacity-80">
+                                    <span class="text-xs font-bold uppercase tracking-wider border border-current px-1.5 py-0.5 rounded">${evt.type}</span>
+                                </div>
+                                <h3 class="font-bold text-lg leading-snug">${title}</h3>
+                            </div>
+
+                            <!-- Social -->
+                            <div class="rounded-xl p-5 shadow-sm bg-fuchsia-50 border-2 border-fuchsia-200 border-dashed text-fuchsia-900 flex flex-col justify-center relative opacity-80 hover:opacity-100 transition-opacity">
+                                <div class="flex items-center gap-2 mb-2">
+                                    ${icons.coffeeLarge}
+                                    <span class="text-xs font-bold uppercase tracking-wider">${t.social_club_title}</span>
+                                </div>
+                                <p class="text-sm font-medium">${t.social_club_parallel}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const isBreak = evt.type === 'break';
+                    html += `
+                        <div class="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-6 items-stretch group relative">
+                            <div class="text-right md:pr-6 pt-3 relative hidden md:block">
+                                <span class="font-mono text-xl font-bold ${isCurrent ? 'text-red-600' : 'text-slate-700'} block">${timeStartStr}</span>
+                                ${!isBreak ? `<span class="font-mono text-sm text-slate-400 block mt-1">${timeEndStr}</span>` : ''}
+                                <div class="absolute top-5 -right-[5px] w-3 h-3 rounded-full border-2 border-white ${isCurrent ? 'bg-red-500 ring-2 ring-red-200' : (isBreak ? 'bg-slate-200' : 'bg-slate-300')} z-10"></div>
+                            </div>
+                            <div class="rounded-xl p-5 ${isBreak ? 'bg-slate-50 border-2 border-slate-200 border-dashed text-center py-3' : `shadow-sm border border-slate-100 ${getEventStyle(evt.type)}`} relative overflow-hidden transition-all hover:shadow-md ${isCurrent ? 'ring-2 ring-red-400' : ''}">
+                                ${isCurrent && !isBreak ? `<div class="now-indicator-line" style="top: ${progressPercent}%;"></div>` : ''}
+                                ${!isBreak ? `
+                                    <div class="flex items-center gap-2 mb-2 opacity-80">
+                                        <span class="text-xs font-bold uppercase tracking-wider border border-current px-1.5 py-0.5 rounded">${evt.type}</span>
+                                    </div>
+                                ` : ''}
+                                <h3 class="${isBreak ? 'text-slate-400 font-bold uppercase tracking-widest text-sm' : 'font-bold text-lg leading-snug'}">${title}</h3>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `</div></div>`;
+            return html;
+        }
+
+        // --- RENDU PRINCIPAL ---
+        function render() {
+            const t = translations[currentState.lang];
+            const app = document.getElementById('app');
+            const nowTime = getVirtualTime();
+            
+            let html = `
+                <!-- HEADER (Sticky) -->
+                <header class="bg-white shadow-sm border-b border-slate-200 p-4 sticky top-0 z-50">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 max-w-[1600px] mx-auto">
+                        <div class="flex items-center gap-4 w-full lg:w-auto">
+                            <div class="p-2 bg-red-50 rounded-lg border border-red-100">
+                                ${icons.calendar}
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-bold text-slate-800 leading-none mb-1">${t.title}</h1>
+                                <p class="text-slate-500 text-xs font-medium">${t.subtitle}</p>
+                            </div>
+                        </div>
+
+                        <!-- Current Time Indicator -->
+                         <div class="hidden md:flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-full border border-slate-200 text-sm">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-slate-500 font-medium">${t.current_time}</span>
+                            <span class="font-mono font-bold text-slate-800">${formatDecimalTime(nowTime)}</span>
+                        </div>
+
+                        <div class="flex gap-2 w-full lg:w-auto justify-center">
+                            
+                            <!-- Fullscreen Button -->
+                            <button onclick="toggleFullScreen()" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors" title="${t.fullscreen}">
+                                ${currentState.isFullscreen ? icons.minimize : icons.maximize}
+                            </button>
+
+                            <!-- View Toggle -->
+                            <div class="bg-slate-100 p-1 rounded-lg flex border border-slate-200">
+                                <button onclick="setView('week')" class="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${currentState.view === 'week' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:bg-slate-200'}">
+                                    ${icons.grid} <span class="hidden sm:inline">${t.view_week}</span>
+                                </button>
+                                <button onclick="setView('day')" class="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${currentState.view === 'day' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:bg-slate-200'}">
+                                    ${icons.list} <span class="hidden sm:inline">${t.view_day}</span>
+                                </button>
+                            </div>
+
+                            <!-- Timezone -->
+                            <select id="timezone-select" class="pl-2 pr-6 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer hover:border-slate-300">
+                                ${timezones.map(tz => `<option value="${tz.id}" ${currentState.timezoneId === tz.id ? 'selected' : ''}>${tz.flag} ${tz.name}</option>`).join('')}
+                            </select>
+
+                            <!-- Lang -->
+                            <div class="flex bg-slate-100 rounded-lg p-1 border border-slate-200">
+                                <button onclick="setLang('fr')" class="px-2 py-1 text-xs font-bold rounded transition-colors ${currentState.lang === 'fr' ? 'bg-white shadow text-red-600' : 'text-slate-500 hover:text-slate-700'}">FR</button>
+                                <button onclick="setLang('en')" class="px-2 py-1 text-xs font-bold rounded transition-colors ${currentState.lang === 'en' ? 'bg-white shadow text-red-600' : 'text-slate-500 hover:text-slate-700'}">EN</button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- LEGEND -->
+                ${currentState.view === 'week' ? `
+                <div class="bg-slate-50 border-b border-slate-200 p-2 text-center">
+                    <div class="flex flex-wrap justify-center gap-3 text-[10px] uppercase font-bold tracking-wide text-slate-500">
+                        <div class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-red-100 border border-red-500"></span> ${t.legend_synchrone}</div>
+                        <div class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-100 border border-emerald-500"></span> ${t.legend_elearning}</div>
+                        <div class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-blue-100 border border-blue-500"></span> ${t.legend_blended}</div>
+                        <div class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-amber-100 border border-amber-400"></span> ${t.legend_opening}</div>
+                        <div class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-fuchsia-100 border border-fuchsia-500"></span> ${t.legend_social}</div>
+                    </div>
+                </div>` : ''}
+
+                <!-- VIEW CONTENT -->
+                ${currentState.view === 'week' ? renderWeekView(t) : renderDayView(t)}
+            `;
+
+            app.innerHTML = html;
+            
+            document.getElementById('timezone-select').addEventListener('change', (e) => {
+                currentState.timezoneId = e.target.value;
+                render();
+            });
+        }
+
+        function setLang(lang) { currentState.lang = lang; render(); }
+        function setView(view) { currentState.view = view; render(); }
+        function setDay(dayIdx) { currentState.selectedDay = dayIdx; render(); }
+
+        setInterval(render, 60000); // Update every minute
+        render();
+    </script>
+</body>
+</html>
