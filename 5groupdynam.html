@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamique de Groupe - Module Interactif</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap');
+
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; overflow: hidden; }
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+
+        /* Scrollbar propre */
+        .scroller {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .scroller::-webkit-scrollbar { width: 6px; }
+        .scroller::-webkit-scrollbar-track { background: transparent; }
+        .scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .scroller::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .chart-path {
+            fill: none;
+            stroke: #4f46e5;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 4px 3px rgba(79, 70, 229, 0.4));
+        }
+        
+        .nav-item.active {
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        /* Animation d'apparition du modal */
+        @keyframes modal-pop {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-modal {
+            animation: modal-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const content = {
+            fr: {
+                nav: ["Accueil", "Tuckman", "Relations", "Gestion de Conflits"],
+                intro: {
+                    title: "Dynamique de Groupe",
+                    subtitle: "Les mécanismes invisibles de la facilitation",
+                    desc: "Bienvenue. Ce module a pour but de vous équiper avec les grilles de lecture essentielles pour naviguer la complexité humaine.",
+                    importance_title: "Pourquoi est-ce crucial ?",
+                    importance_text: "Un groupe n'est pas une simple addition d'individus. C'est un organisme vivant, régi par des forces invisibles : rôles implicites, luttes de pouvoir, normes non-dites. Sans cette lecture, l'animateur navigue à l'aveugle, réagissant aux symptômes (conflits, silence) sans traiter les causes. Comprendre ces mécaniques, c'est passer du rôle de 'gardien de l'ordre' à celui d'architecte qui crée les conditions fertiles pour l'intelligence collective.",
+                    points: [
+                        { title: "Le Modèle de Tuckman (1965)", text: "Comprendre les étapes de maturité d'une équipe." },
+                        { title: "L'Approche Systémique (Palo Alto)", text: "Distinguer le problème individuel du problème collectif." },
+                        { title: "Le TKI de Thomas & Kilmann (1974)", text: "Choisir sa stratégie de gestion de conflit." }
+                    ],
+                    btn: "Commencer l'exploration"
+                },
+                tuckman: {
+                    title: "Modèle de Tuckman",
+                    subtitle: "Les 5 stades de développement",
+                    source: "Source : Bruce Tuckman (1965), Jensen (1977)",
+                    desc: "Cliquez sur les points de la courbe pour découvrir les étapes. Un groupe ne naît pas performant, il le devient en traversant ces phases obligatoires.",
+                    stages: [
+                        {
+                            label: "Forming",
+                            title: "1. Formation (Forming)",
+                            emotion: "Climat : Politesse, Prudence, Observation",
+                            role: "Posture : DIRECTIF (Cadreur)",
+                            desc: "Phase de découverte. Les membres sont polis mais anxieux. Ils cherchent à comprendre les règles et à se faire accepter. Il n'y a pas encore d'identité de groupe. La communication est superficielle.",
+                            signals: "Questions logistiques ('On finit à quelle heure ?'), silences polis, regards tournés vers l'animateur, pas de prise de risque.",
+                            action: "SÉCURISER. Posez un cadre très clair (horaires, objectifs). Organisez des brise-glace. Soyez présent et rassurant."
+                        },
+                        {
+                            label: "Storming",
+                            title: "2. Tension (Storming)",
+                            emotion: "Climat : Confrontation, Frustration, Test",
+                            role: "Posture : MÉDIATEUR (Régulateur)",
+                            desc: "La phase critique. Les masques tombent. On se sent assez en sécurité pour exprimer des désaccords. Luttes de pouvoir pour le leadership ou la méthode. La performance chute : l'énergie part dans les conflits.",
+                            signals: "Critiques ouvertes ('C'est nul'), clans, remise en cause de l'animateur, agressivité ou retrait.",
+                            action: "NE PAS FUIR. Accueillez le conflit. Reformulez les attaques en besoins. Rappelez la vision commune. Faites réguler le groupe."
+                        },
+                        {
+                            label: "Norming",
+                            title: "3. Normalisation (Norming)",
+                            emotion: "Climat : Cohésion, Soulagement, 'Nous'",
+                            role: "Posture : FACILITATEUR (Soutien)",
+                            desc: "Le calme revient après la tempête. Des règles sont nées de la résolution des conflits. On accepte les différences. Le sentiment d'appartenance se développe.",
+                            signals: "Utilisation du 'Nous', blagues privées, entraide spontanée, feedback constructif accepté.",
+                            action: "LÂCHER DU LEST. Encouragez l'autonomie. Validez les bonnes pratiques. Aidez le groupe à formaliser ses outils."
+                        },
+                        {
+                            label: "Performing",
+                            title: "4. Performance (Performing)",
+                            emotion: "Climat : Fluidité, Confiance, Efficacité",
+                            role: "Posture : DÉLÉGATEUR (Ressource)",
+                            desc: "Le stade optimal. L'énergie est 100% sur la tâche. Le groupe est autonome. Les rôles sont fluides. Le groupe gère ses propres conflits.",
+                            signals: "Communication intuitive, anticipation des besoins, créativité, résolution de problèmes en temps réel.",
+                            action: "CELEBRER. Mettez-vous en retrait. Lancez de nouveaux défis pour éviter l'ennui. Ne micro-managez surtout pas."
+                        },
+                        {
+                            label: "Adjourning",
+                            title: "5. Dissolution (Adjourning)",
+                            emotion: "Climat : Nostalgie, Fierté ou Anxiété",
+                            role: "Posture : ACCOMPAGNATEUR (Clôture)",
+                            desc: "La fin du projet. Phase de désengagement. Peut être vécue comme un deuil ou un soulagement. Si bâclée, laisse un sentiment d'inachevé.",
+                            signals: "Démotivation, discussions sur 'l'après', promesses de se revoir, baisse d'attention.",
+                            action: "SOIGNER LA SORTIE. Bilan (rétrospective). Célébration du chemin. Espace pour exprimer les émotions."
+                        }
+                    ]
+                },
+                relation: {
+                    title: "Gestion des Relations",
+                    subtitle: "Systémique : Micro vs Macro",
+                    source: "Source : Inspiré de l'école de Palo Alto & Kurt Lewin",
+                    context: "En facilitation, un comportement gênant est rarement juste le fait d'une 'personne difficile'. C'est souvent un symptôme du groupe. L'animateur doit choisir son niveau d'intervention : je traite la personne (Micro) ou le système (Macro) ?",
+                    micro: {
+                        title: "Niveau INDIVIDUEL (Micro)",
+                        desc: "Intervenez ici quand le comportement est spécifique à une personne, isolé, et ne résonne pas avec le reste du groupe.",
+                        signals: "Un participant s'isole. Une personne monopolise la parole alors que les autres veulent participer. Attaque personnelle. Décrochage émotionnel.",
+                        actions: [
+                            "Reformulation : 'Je vois que c'est important pour toi...'",
+                            "Sécurisation : 'Tu as ta place ici.'",
+                            "Responsabilisation : Donner un rôle (gardien du temps).",
+                            "Micro-aparté : Discuter discrètement à la pause."
+                        ]
+                    },
+                    macro: {
+                        title: "Niveau COLLECTIF (Macro)",
+                        desc: "Le niveau souvent oublié. Intervenez ici quand le problème concerne l'ambiance, l'énergie ou le cadre global. Traiter un individu ne servirait à rien.",
+                        signals: "Brouhaha général. Personne n'écoute les consignes. Clans et moqueries. Apathie totale. Le débat tourne en rond. Règles violées par la majorité.",
+                        actions: [
+                            "Recadrage : Rappel ferme de l'objectif/règles.",
+                            "Pause Méta : 'Stop. Qu'est-ce qui se passe là ?'",
+                            "Reconfiguration : Changer la méthode (ex: passer en sous-groupes)."
+                        ]
+                    },
+                    case: {
+                        title: "Cas Pratique : Le Débat Chaotique",
+                        text: "Situation : Grand groupe (20 pers). 3 personnes coupent la parole sans cesse. Les 17 autres se taisent et regardent leurs téléphones.",
+                        bad: "❌ Erreur Micro (Réflexe) : S'énerver contre les 3 parleurs ('Taisez-vous !'). Ils se braquent, les autres restent passifs. Ambiance scolaire.",
+                        good: "✅ Solution Macro (Systémique) : Le format 'Débat libre' ne marche pas. Intervention : 'On arrête. La parole circule mal. Passez en binômes 5 min'. Le cadre change, le comportement change."
+                    }
+                },
+                conflict: {
+                    title: "Gestion de Conflits",
+                    subtitle: "Instrument Thomas-Kilmann (TKI)",
+                    source: "Source : Kenneth W. Thomas & Ralph H. Kilmann (1974)",
+                    intro: "Le conflit n'est pas un échec, c'est une information. Le modèle TKI croise deux dimensions : l'Assertivité (satisfaire mes besoins) et la Coopération (satisfaire les besoins de l'autre). Il n'y a pas de 'bon' mode, tout dépend de l'enjeu et du temps.",
+                    axes: { y: "Assertivité (Mes besoins)", x: "Coopération (Besoins de l'autre)" },
+                    modes: [
+                        { name: "Compétition", alias: "Le Requin", desc: "Je gagne, tu perds", context: "Forte Assertivité / Faible Coopération", detail: "On impose sa solution par le pouvoir ou l'argumentaire.", pros: "Rapide, vital pour la sécurité ou les décisions impopulaires.", cons: "Détruit la relation, crée de la rancœur, tue la motivation.", color: "bg-red-50 text-red-900 border-red-200" },
+                        { name: "Collaboration", alias: "La Chouette", desc: "Gagnant - Gagnant", context: "Forte Assertivité / Forte Coopération", detail: "On creuse pour trouver une solution créative satisfaisant tout le monde.", pros: "Renforce la relation, solution durable, apprentissage.", cons: "Prend beaucoup de temps. Impossible en urgence.", color: "bg-emerald-50 text-emerald-900 border-emerald-200" },
+                        { name: "Compromis", alias: "Le Renard", desc: "Partage équitable", context: "Moyenne Assertivité / Moyenne Coopération", detail: "Chacun cède un peu. On coupe la poire en deux.", pros: "Utile pour débloquer une situation complexe temporairement.", cons: "Personne n'est ravi. Solution souvent 'molle'.", color: "bg-amber-50 text-amber-900 border-amber-200" },
+                        { name: "Évitement", alias: "La Tortue", desc: "Je perds, tu perds", context: "Faible Assertivité / Faible Coopération", detail: "On ne traite pas le conflit. On reporte ou on se retire.", pros: "Baisse la tension immédiate, utile si enjeu trivial.", cons: "Le problème pourrit. Perte de crédibilité.", color: "bg-slate-50 text-slate-800 border-slate-200" },
+                        { name: "Accommodation", alias: "L'Ours", desc: "Tu gagnes, je perds", context: "Faible Assertivité / Forte Coopération", detail: "On cède à l'autre pour préserver l'harmonie.", pros: "Préserve la relation, utile si on a tort.", cons: "Frustration accumulée, risque d'être exploité.", color: "bg-blue-50 text-blue-900 border-blue-200" }
+                    ]
+                }
+            },
+            en: {
+                // (English content omitted for brevity as requested focus is French, but structure maintained)
+                nav: ["Home", "Tuckman", "Relations", "Conflicts"],
+                intro: {
+                    title: "Group Dynamics",
+                    subtitle: "Invisible mechanisms of facilitation",
+                    desc: "Welcome. This module aims to equip you with essential frameworks to navigate human complexity.",
+                    importance_title: "Why is it crucial?",
+                    importance_text: "A group is not just a sum of individuals. It is a living organism governed by invisible forces.",
+                    points: [
+                        { title: "Tuckman's Model (1965)", text: "Understanding team maturity stages." },
+                        { title: "Systemic Approach", text: "Individual vs collective." },
+                        { title: "Thomas & Kilmann TKI", text: "Conflict strategies." }
+                    ],
+                    btn: "Start Exploration"
+                },
+                tuckman: {
+                    title: "Tuckman's Model",
+                    subtitle: "5 Stages of Development",
+                    source: "Source: Bruce Tuckman (1965)",
+                    desc: "Click on the curve points to discover the stages.",
+                    stages: [
+                        { label: "Forming", title: "1. Forming", emotion: "Politeness", role: "Directive", desc: "Discovery phase.", signals: "Polite silence.", action: "Secure the frame." },
+                        { label: "Storming", title: "2. Storming", emotion: "Conflict", role: "Mediator", desc: "Critical phase.", signals: "Criticism.", action: "Don't flee conflict." },
+                        { label: "Norming", title: "3. Norming", emotion: "Cohesion", role: "Facilitator", desc: "Calm returns.", signals: "'We' language.", action: "Let go." },
+                        { label: "Performing", title: "4. Performing", emotion: "Performance", role: "Delegator", desc: "Optimal stage.", signals: "Fluidity.", action: "Celebrate." },
+                        { label: "Adjourning", title: "5. Adjourning", emotion: "Separation", role: "Supporter", desc: "Closure.", signals: "Nostalgia.", action: "Care for exit." }
+                    ]
+                },
+                relation: {
+                    title: "Relationship Management",
+                    subtitle: "Micro vs Macro",
+                    source: "Source: Systemic Approach",
+                    context: "Micro (Individual) vs Macro (System).",
+                    micro: { title: "Individual", desc: "Specific person.", signals: "Isolation.", actions: ["Rephrase", "Secure"] },
+                    macro: { title: "Collective", desc: "Group problem.", signals: "Noise.", actions: ["Reframe", "Meta Pause"] },
+                    case: { title: "Case Study", text: "Chaos.", bad: "Bad.", good: "Good." }
+                },
+                conflict: {
+                    title: "Conflict Management",
+                    subtitle: "TKI Model",
+                    source: "Source: Thomas & Kilmann",
+                    intro: "Assertiveness vs Cooperation.",
+                    axes: { y: "Assertiveness", x: "Cooperation" },
+                    modes: [
+                        { name: "Competition", alias: "Shark", desc: "Win/Lose", context: "Urgency", detail: "Impose.", pros: "Fast", cons: "Resentment", color: "bg-red-50" },
+                        { name: "Collaboration", alias: "Owl", desc: "Win/Win", context: "Learning", detail: "Dig deep.", pros: "Durable", cons: "Slow", color: "bg-emerald-50" },
+                        { name: "Compromis", alias: "Fox", desc: "Share", context: "Moderate", detail: "Split.", pros: "Useful", cons: "Mediocre", color: "bg-amber-50" },
+                        { name: "Avoidance", alias: "Turtle", desc: "Lose/Lose", context: "Trivial", detail: "Leave.", pros: "Calm", cons: "Fester", color: "bg-slate-50" },
+                        { name: "Accommodation", alias: "Bear", desc: "Lose/Win", context: "Harmony", detail: "Yield.", pros: "Harmony", cons: "Frustration", color: "bg-blue-50" }
+                    ]
+                }
+            }
+        };
+
+        // --- COMPONENTS ---
+
+        const Intro = ({ t, go }) => (
+            <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                <div className="max-w-3xl bg-white p-10 rounded-3xl shadow-xl border border-slate-100 max-h-full overflow-y-auto scroller">
+                    <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 flex-shrink-0">
+                        <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    </div>
+                    <h1 className="text-4xl font-bold text-slate-900 mb-2">{t.intro.title}</h1>
+                    <h2 className="text-xl text-indigo-600 font-medium mb-6">{t.intro.subtitle}</h2>
+                    <p className="text-slate-600 mb-6 leading-relaxed text-lg">{t.intro.desc}</p>
+                    
+                    <div className="bg-indigo-50/50 p-6 rounded-2xl mb-8 text-left border border-indigo-100">
+                        <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                            <span className="text-xl">🌱</span> {t.intro.importance_title}
+                        </h3>
+                        <p className="text-slate-700 text-sm md:text-base leading-relaxed">
+                            {t.intro.importance_text}
+                        </p>
+                    </div>
+
+                    <ul className="text-left bg-slate-50 p-6 rounded-xl mb-8 space-y-3">
+                        {t.intro.points.map((p, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                                <span className="text-indigo-500 font-bold">•</span>
+                                <span className="text-slate-700"><strong>{p.title}</strong> : {p.text}</span>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <button onClick={go} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg">
+                        {t.intro.btn}
+                    </button>
+                </div>
+            </div>
+        );
+
+        const Tuckman = ({ t }) => {
+            const [selectedStep, setSelectedStep] = useState(null);
+
+            // Curve points
+            const points = [
+                {x: 10, y: 60}, {x: 30, y: 85}, {x: 50, y: 50}, {x: 75, y: 15}, {x: 95, y: 40}
+            ];
+
+            return (
+                <div className="p-4 md:p-8 max-w-6xl mx-auto w-full h-full flex flex-col relative">
+                    <div className="mb-6 text-center">
+                        <h2 className="text-3xl font-bold text-slate-800 mb-1">{t.tuckman.title}</h2>
+                        <p className="text-xs text-indigo-600 font-bold mb-2 uppercase tracking-wide">{t.tuckman.source}</p>
+                        <p className="text-slate-600 max-w-2xl mx-auto">{t.tuckman.desc}</p>
+                    </div>
+
+                    {/* Large Central Graph */}
+                    <div className="flex-1 relative bg-white rounded-3xl shadow-xl border border-slate-200 p-8 flex flex-col justify-center overflow-hidden">
+                        <div className="w-full h-full relative max-h-[500px]">
+                            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <path d="M0,60 C 15,60, 20,85, 30,85 S 40,50, 50,50 S 65,15, 75,15 S 100,40, 100,40" className="chart-path" />
+                                {points.map((p, i) => (
+                                    <g key={i} onClick={() => setSelectedStep(i)} className="cursor-pointer group">
+                                        <circle 
+                                            cx={p.x} cy={p.y} r="3" 
+                                            className="fill-white stroke-4 stroke-indigo-500 transition-all duration-300 group-hover:scale-150 group-hover:fill-indigo-100"
+                                        />
+                                        <text 
+                                            x={p.x} y={p.y + 8} 
+                                            textAnchor="middle" 
+                                            className="text-[3px] font-bold fill-slate-500 uppercase tracking-widest group-hover:fill-indigo-600 transition-colors"
+                                        >
+                                            {t.tuckman.stages[i].label}
+                                        </text>
+                                    </g>
+                                ))}
+                            </svg>
+                            <div className="absolute top-0 left-0 text-xs font-bold text-slate-400 bg-white/50 px-2 py-1 rounded">PERFORMANCE</div>
+                            <div className="absolute bottom-0 right-0 text-xs font-bold text-slate-400 bg-white/50 px-2 py-1 rounded">TEMPS</div>
+                        </div>
+                    </div>
+
+                    {/* Pop-up Modal for Details */}
+                    {selectedStep !== null && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all" onClick={() => setSelectedStep(null)}>
+                            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full animate-modal border-l-8 border-indigo-500 overflow-y-auto max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold mb-2 uppercase">{t.tuckman.stages[selectedStep].emotion}</span>
+                                        <h3 className="text-3xl font-bold text-slate-800">{t.tuckman.stages[selectedStep].title}</h3>
+                                        <p className="text-lg text-slate-500 font-serif italic mt-1">{t.tuckman.stages[selectedStep].role}</p>
+                                    </div>
+                                    <button onClick={() => setSelectedStep(null)} className="text-slate-400 hover:text-slate-600">
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-6 text-slate-700 leading-relaxed">
+                                    <p className="text-lg">{t.tuckman.stages[selectedStep].desc}</p>
+                                    
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                                            <strong className="text-orange-900 block mb-2 text-xs uppercase tracking-wider flex items-center gap-2"><span className="text-lg">👀</span> Signaux</strong>
+                                            <p className="text-sm">{t.tuckman.stages[selectedStep].signals}</p>
+                                        </div>
+                                        <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                                            <strong className="text-indigo-900 block mb-2 text-xs uppercase tracking-wider flex items-center gap-2"><span className="text-lg">⚡</span> Action</strong>
+                                            <p className="text-sm">{t.tuckman.stages[selectedStep].action}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const Relation = ({ t }) => {
+            const [mode, setMode] = useState('micro');
+
+            return (
+                <div className="p-4 md:p-8 max-w-6xl mx-auto w-full h-full flex flex-col overflow-hidden">
+                    <div className="text-center mb-6 flex-shrink-0">
+                        <h2 className="text-3xl font-bold text-slate-800 mb-1">{t.relation.title}</h2>
+                        <p className="text-xs text-indigo-600 font-bold mb-2 uppercase tracking-wide">{t.relation.source}</p>
+                        <p className="text-slate-600 max-w-3xl mx-auto text-sm md:text-base">{t.relation.context}</p>
+                    </div>
+
+                    <div className="flex justify-center mb-6 flex-shrink-0">
+                        <div className="bg-white p-1 rounded-full shadow border inline-flex">
+                            <button onClick={() => setMode('micro')} className={`px-6 py-2 rounded-full text-sm font-bold transition-colors ${mode === 'micro' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+                                {t.relation.micro.title}
+                            </button>
+                            <button onClick={() => setMode('macro')} className={`px-6 py-2 rounded-full text-sm font-bold transition-colors ${mode === 'macro' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+                                {t.relation.macro.title}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6 flex-1 min-h-0 overflow-y-auto scroller pb-4">
+                        {/* Main Card */}
+                        <div className={`rounded-3xl p-8 text-white shadow-xl transition-colors duration-500 h-fit ${mode === 'micro' ? 'bg-indigo-600' : 'bg-teal-600'}`}>
+                            <h3 className="text-2xl font-bold mb-4">{mode === 'micro' ? t.relation.micro.title : t.relation.macro.title}</h3>
+                            <p className="mb-6 opacity-90 text-lg leading-relaxed">{mode === 'micro' ? t.relation.micro.desc : t.relation.macro.desc}</p>
+                            
+                            <div className="bg-white/10 p-5 rounded-xl backdrop-blur-sm mb-6 border border-white/20">
+                                <h4 className="font-bold text-xs uppercase tracking-wider opacity-80 mb-2">🔎 Signaux types</h4>
+                                <p className="leading-relaxed">{mode === 'micro' ? t.relation.micro.signals : t.relation.macro.signals}</p>
+                            </div>
+
+                            <div className="bg-white/20 p-5 rounded-xl backdrop-blur-sm border border-white/20">
+                                <h4 className="font-bold text-xs uppercase tracking-wider opacity-80 mb-2">🛠️ Leviers d'action</h4>
+                                <ul className="list-disc pl-4 space-y-2">
+                                    {(mode === 'micro' ? t.relation.micro.actions : t.relation.macro.actions).map((a, i) => (
+                                        <li key={i}>{a}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Context Card */}
+                        <div className="bg-white rounded-3xl p-8 shadow-lg border border-slate-100 h-fit">
+                            <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-2">
+                                <span className="text-2xl">🎓</span> {t.relation.case.title}
+                            </h4>
+                            <p className="text-slate-700 mb-6 italic pl-4 border-l-4 border-slate-200 text-sm leading-relaxed">{t.relation.case.text}</p>
+                            
+                            <div className="space-y-4">
+                                <div className={`p-5 rounded-xl border-l-4 text-sm transition-all ${mode === 'micro' ? 'bg-red-50 border-red-400 text-red-900 shadow-sm' : 'opacity-40 grayscale'}`}>
+                                    {t.relation.case.bad}
+                                </div>
+                                <div className={`p-5 rounded-xl border-l-4 text-sm transition-all ${mode === 'macro' ? 'bg-green-50 border-green-400 text-green-900 shadow-sm' : 'opacity-40 grayscale'}`}>
+                                    {t.relation.case.good}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Conflict = ({ t }) => {
+            const [selected, setSelected] = useState(null);
+
+            return (
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full h-full flex flex-col">
+                    <div className="flex flex-col md:flex-row justify-between items-start mb-6 flex-shrink-0 gap-4">
+                        <div className="max-w-4xl">
+                            <h2 className="text-3xl font-bold text-slate-800">{t.conflict.title}</h2>
+                            <p className="text-xs text-indigo-600 font-bold mb-2 uppercase tracking-wide">{t.conflict.source}</p>
+                            <p className="text-slate-600 mt-1 leading-relaxed text-sm md:text-base">{t.conflict.intro}</p>
+                        </div>
+                        {selected !== null && (
+                            <button onClick={() => setSelected(null)} className="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-300 transition whitespace-nowrap">
+                                Reset Vue
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex-1 flex flex-col min-h-0">
+                        
+                        {/* CHART AREA - NEW FLEX LAYOUT FOR AXES */}
+                        <div className="flex-1 flex flex-row">
+                            {/* Y Axis Label Container (Outside Grid) */}
+                            <div className="w-10 flex items-center justify-center mr-2">
+                                <div className="-rotate-90 whitespace-nowrap text-xs md:text-sm font-bold text-slate-600 tracking-widest uppercase bg-slate-200/50 px-3 py-1 rounded">
+                                    {t.conflict.axes.y}
+                                </div>
+                            </div>
+
+                            <div className="flex-1 flex flex-col">
+                                {/* The Grid itself */}
+                                <div className="flex-1 relative bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mb-2">
+                                    <div className="absolute inset-0 p-4">
+                                        <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-4">
+                                            {t.conflict.modes.map((m, i) => {
+                                                if (i === 2) return null; // Skip Compromis
+                                                const isTop = i < 2;
+                                                const isLeft = (i === 0 || i === 3);
+                                                return (
+                                                    <div 
+                                                        key={i} 
+                                                        onClick={() => setSelected(i)}
+                                                        className={`p-4 md:p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between ${m.color} ${selected === i ? 'ring-4 ring-offset-2 ring-indigo-300 scale-[1.01] shadow-xl z-20' : 'hover:shadow-md'} ${selected !== null && selected !== i ? 'opacity-20 grayscale' : ''}`}
+                                                        style={{
+                                                            alignItems: isLeft ? 'flex-start' : 'flex-end',
+                                                            textAlign: isLeft ? 'left' : 'right'
+                                                        }}
+                                                    >
+                                                        <div className="font-bold text-sm md:text-lg uppercase tracking-wide opacity-80 mb-1">{m.alias}</div>
+                                                        <div>
+                                                            <h3 className="text-xl md:text-2xl font-bold mb-1">{m.name}</h3>
+                                                            <p className="text-xs md:text-sm font-medium opacity-90 hidden md:block">{m.desc}</p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        
+                                        {/* Compromise Center */}
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div 
+                                                onClick={() => setSelected(2)}
+                                                className={`pointer-events-auto w-32 h-32 md:w-40 md:h-40 rounded-full border-4 shadow-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 z-30 ${t.conflict.modes[2].color} ${selected === 2 ? 'ring-4 ring-offset-2 ring-indigo-300 scale-110' : 'hover:scale-105'} ${selected !== null && selected !== 2 ? 'opacity-20 grayscale' : ''}`}
+                                            >
+                                                <div className="font-bold text-[10px] uppercase tracking-wide opacity-80 mb-1">{t.conflict.modes[2].alias}</div>
+                                                <h3 className="text-sm md:text-lg font-bold text-center leading-tight">{t.conflict.modes[2].name}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* X Axis Label Container (Outside Grid) */}
+                                <div className="h-8 flex items-center justify-center">
+                                    <span className="text-xs md:text-sm font-bold text-slate-600 tracking-widest uppercase bg-slate-200/50 px-3 py-1 rounded">
+                                        {t.conflict.axes.x}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* INFO PANEL (Appears below on mobile, side on huge screens if needed, but keeping simple layout here) */}
+                        {selected !== null && (
+                            <div className="w-full bg-white p-6 rounded-3xl shadow-xl border-l-4 border-indigo-500 mt-4 overflow-y-auto scroller h-64 md:h-auto animate-modal">
+                                <div className="mb-4">
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <h3 className="text-2xl font-bold text-slate-900">{t.conflict.modes[selected].name}</h3>
+                                        <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 uppercase">{t.conflict.modes[selected].alias}</span>
+                                    </div>
+                                    <p className="text-lg text-indigo-600 font-serif italic">"{t.conflict.modes[selected].desc}"</p>
+                                </div>
+                                
+                                <div className="grid md:grid-cols-3 gap-4">
+                                    <div className="md:col-span-1">
+                                        <p className="text-sm text-slate-500 font-bold uppercase mb-1">Analyse</p>
+                                        <p className="text-slate-700 text-sm leading-relaxed">{t.conflict.modes[selected].detail}</p>
+                                    </div>
+                                    
+                                    <div className="md:col-span-1">
+                                        <p className="text-sm text-green-600 font-bold uppercase mb-1">👍 Bénéfices</p>
+                                        <p className="text-sm text-slate-600 bg-green-50 p-2 rounded border border-green-100">{t.conflict.modes[selected].pros}</p>
+                                    </div>
+
+                                    <div className="md:col-span-1">
+                                        <p className="text-sm text-red-600 font-bold uppercase mb-1">⚠️ Risques</p>
+                                        <p className="text-sm text-slate-600 bg-red-50 p-2 rounded border border-red-100">{t.conflict.modes[selected].cons}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState('fr');
+            const [tab, setTab] = useState(0);
+            const t = content[lang];
+
+            return (
+                <div className="h-screen w-screen flex flex-col bg-slate-50">
+                    {/* Header Fixed */}
+                    <div className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-50 flex-shrink-0 shadow-sm">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setTab(0)}>
+                            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-indigo-200 shadow-md">D</div>
+                            <span className="font-bold text-slate-800 hidden md:block">Dynamics<span className="text-indigo-600">Module</span></span>
+                        </div>
+                        <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="px-3 py-1 rounded border border-slate-200 text-xs font-bold uppercase text-slate-600 hover:bg-slate-50 transition">
+                            {lang === 'fr' ? 'EN' : 'FR'}
+                        </button>
+                    </div>
+
+                    {/* Scrollable Main Area */}
+                    <main className="flex-1 relative overflow-hidden">
+                        <div className="absolute inset-0 scroller pb-24">
+                            {tab === 0 && <Intro t={t} go={() => setTab(1)} />}
+                            {tab === 1 && <Tuckman t={t} />}
+                            {tab === 2 && <Relation t={t} />}
+                            {tab === 3 && <Conflict t={t} />}
+                        </div>
+                    </main>
+
+                    {/* Bottom Nav Fixed */}
+                    <nav className="h-20 bg-white border-t border-slate-200 flex items-center justify-center z-50 flex-shrink-0 absolute bottom-0 w-full shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                        <div className="flex space-x-2 md:space-x-6 overflow-x-auto px-4 w-full justify-center max-w-4xl">
+                            {t.nav.map((item, i) => (
+                                <button 
+                                    key={i} 
+                                    onClick={() => setTab(i)}
+                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex flex-col items-center gap-1 ${tab === i ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                                >
+                                    <span className="text-xs uppercase tracking-wide">{item}</span>
+                                    {tab === i && <div className="w-1 h-1 bg-indigo-600 rounded-full"></div>}
+                                </button>
+                            ))}
+                        </div>
+                    </nav>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
