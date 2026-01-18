@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamique de Groupe - Module Interactif</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap');
+
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; overflow: hidden; }
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+
+        /* Scrollbar propre pour la zone de contenu */
+        .scroller {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .scroller::-webkit-scrollbar { width: 6px; }
+        .scroller::-webkit-scrollbar-track { background: transparent; }
+        .scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .scroller::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .chart-path {
+            fill: none;
+            stroke: #4f46e5;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 4px 3px rgba(79, 70, 229, 0.4));
+        }
+        
+        .nav-item.active {
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const content = {
+            fr: {
+                nav: ["Accueil", "Tuckman", "Relations", "Gestion de Conflits"],
+                intro: {
+                    title: "Dynamique de Groupe",
+                    subtitle: "Les mécanismes invisibles de la facilitation",
+                    desc: "Bienvenue dans ce module interactif. Nous allons explorer trois modèles fondamentaux pour comprendre ce qui se joue réellement dans un groupe, au-delà des apparences.",
+                    btn: "Commencer l'exploration"
+                },
+                tuckman: {
+                    title: "Modèle de Tuckman",
+                    subtitle: "Les 5 stades de développement d'un groupe",
+                    desc: "Un groupe ne devient pas performant par magie. Il traverse une série d'étapes prévisibles, dont une phase de conflit nécessaire (Storming).",
+                    stages: [
+                        {
+                            label: "Forming",
+                            title: "1. Formation (Forming)",
+                            emotion: "Politesse & Observation",
+                            role: "DIRECTIF (Cadreur)",
+                            desc: "Le groupe se découvre. L'ambiance est polie mais superficielle. Chacun cherche sa place et attend les consignes. La dépendance au leader est forte.",
+                            signals: "Questions sur l'organisation, silences polis, pas de prise de risque, regards tournés vers l'animateur.",
+                            action: "Poser le cadre, rassurer, briser la glace, donner des objectifs clairs."
+                        },
+                        {
+                            label: "Storming",
+                            title: "2. Tension (Storming)",
+                            emotion: "Conflit & Test",
+                            role: "MÉDIATEUR (Régulateur)",
+                            desc: "La lune de miel est finie. Les personnalités se frottent, le cadre est testé. La performance chute car l'énergie part dans les conflits.",
+                            signals: "Critiques, clans, 'c'est nul', remises en cause, lutte de pouvoir.",
+                            action: "Ne pas fuir le conflit. Écouter, reformuler, rappeler la vision commune, transformer les attaques en besoins."
+                        },
+                        {
+                            label: "Norming",
+                            title: "3. Normalisation (Norming)",
+                            emotion: "Cohésion & Accord",
+                            role: "FACILITATEUR (Soutien)",
+                            desc: "Le calme revient. Le groupe a créé ses propres règles. Le sentiment d'appartenance ('Nous') apparaît. On ose se dire les choses.",
+                            signals: "Langage 'Nous', entraide spontanée, blagues privées (private jokes), autorégulation.",
+                            action: "Encourager l'autonomie, valider les bonnes pratiques, se mettre un peu en retrait."
+                        },
+                        {
+                            label: "Performing",
+                            title: "4. Performance (Performing)",
+                            emotion: "Fluidité & Efficacité",
+                            role: "DÉLÉGATEUR (Ressource)",
+                            desc: "Le stade optimal. L'énergie est 100% sur la tâche. Le groupe est autonome et solidaire. Le leader devient une ressource à la demande.",
+                            signals: "Communication fluide, anticipation des besoins, créativité, résultats élevés.",
+                            action: "Célébrer les succès, lancer de nouveaux défis, ne surtout pas micro-manager."
+                        },
+                        {
+                            label: "Adjourning",
+                            title: "5. Dissolution (Adjourning)",
+                            emotion: "Deuil & Séparation",
+                            role: "ACCOMPAGNATEUR",
+                            desc: "La fin du projet. Moment émotionnel : fierté du travail accompli ou tristesse de se quitter. Risque de démobilisation.",
+                            signals: "Nostalgie, promesses de se revoir, 'et après ?', baisse d'énergie.",
+                            action: "Faire un bilan propre, célébrer le chemin parcouru, soigner la clôture."
+                        }
+                    ]
+                },
+                relation: {
+                    title: "Gestion des Relations",
+                    subtitle: "Micro vs Macro : Où intervenir ?",
+                    context: "Quand ça bloque, posez-vous toujours la question : 'Est-ce une personne (Micro) ou le système (Macro) qui pose problème ?'",
+                    micro: {
+                        title: "Niveau INDIVIDUEL (Micro)",
+                        desc: "Le problème semble venir d'une personne spécifique.",
+                        signals: "Une personne s'isole, monopolise la parole, agresse quelqu'un ou boude.",
+                        actions: [
+                            "Reformuler ('Je t'entends...')",
+                            "Sécuriser ('Tu as ta place...')",
+                            "Responsabiliser (Donner un rôle précis)",
+                            "Micro-aparté (Réguler discrètement)"
+                        ]
+                    },
+                    macro: {
+                        title: "Niveau COLLECTIF (Macro)",
+                        desc: "Le problème est systémique, tout le groupe est affecté.",
+                        signals: "Brouhaha général, personne n'écoute, clans marqués, apathie, consignes non respectées.",
+                        actions: [
+                            "Recadrer (Rappel objectif/règles)",
+                            "Pause Méta ('Stop, qu'est-ce qui se passe ?')",
+                            "Reconfigurer (Changer la méthode : passer en sous-groupes)"
+                        ]
+                    },
+                    case: {
+                        title: "Cas Pratique : Le Débat Chaotique",
+                        text: "Situation : En grand groupe, 3 personnes coupent la parole sans cesse. Les autres se taisent.",
+                        bad: "❌ Réaction Micro : S'énerver contre les 3 parleurs. Risque : braquage et passivité des autres.",
+                        good: "✅ Réaction Macro : Changer le système. 'On arrête le débat plénier. Passez en binômes 5 min'. Le cadre change, le problème disparaît."
+                    }
+                },
+                conflict: {
+                    title: "Gestion de Conflits (TKI)",
+                    subtitle: "5 stratégies pour 5 contextes",
+                    intro: "Le conflit se gère selon deux axes : l'Assertivité (satisfaire mes besoins) et la Coopération (satisfaire les besoins de l'autre). Aucune méthode n'est meilleure, tout dépend de la situation.",
+                    axes: { y: "Assertivité", x: "Coopération" },
+                    modes: [
+                        { name: "Compétition", alias: "Le Requin", desc: "Je gagne, tu perds", context: "Urgence vitale, sécurité, décision impopulaire rapide.", color: "bg-red-100 text-red-900 border-red-200" },
+                        { name: "Collaboration", alias: "La Chouette", desc: "Gagnant - Gagnant", context: "Apprentissage, enjeux complexes, besoin d'adhésion totale. (Prend du temps).", color: "bg-emerald-100 text-emerald-900 border-emerald-200" },
+                        { name: "Compromis", alias: "Le Renard", desc: "Partage équitable", context: "Solution temporaire, enjeux modérés, sortie d'impasse.", color: "bg-orange-100 text-orange-900 border-orange-200" },
+                        { name: "Évitement", alias: "La Tortue", desc: "Je perds, tu perds", context: "Tension trop forte, enjeu trivial, aucun pouvoir sur la situation.", color: "bg-gray-100 text-gray-800 border-gray-200" },
+                        { name: "Accommodation", alias: "L'Ours", desc: "Tu gagnes, je perds", context: "J'ai tort, l'harmonie est plus importante que l'enjeu.", color: "bg-blue-100 text-blue-900 border-blue-200" }
+                    ]
+                }
+            },
+            en: {
+                nav: ["Home", "Tuckman", "Relations", "Conflicts"],
+                intro: {
+                    title: "Group Dynamics",
+                    subtitle: "Invisible mechanisms of facilitation",
+                    desc: "Welcome. We will explore three fundamental models to understand what really happens in a group, beyond appearances.",
+                    btn: "Start Exploration"
+                },
+                tuckman: {
+                    title: "Tuckman's Model",
+                    subtitle: "The 5 stages of group development",
+                    desc: "A group doesn't perform by magic. It goes through predictable stages, including a necessary conflict phase (Storming).",
+                    stages: [
+                        {
+                            label: "Forming",
+                            title: "1. Forming",
+                            emotion: "Politeness & Observation",
+                            role: "DIRECTIVE",
+                            desc: "Discovery phase. Polite but superficial. Everyone seeks their place and waits for instructions. High dependence on the leader.",
+                            signals: "Questions about logistics, polite silences, no risk-taking, eyes on the facilitator.",
+                            action: "Set the frame, reassure, break the ice, give clear goals."
+                        },
+                        {
+                            label: "Storming",
+                            title: "2. Storming",
+                            emotion: "Conflict & Testing",
+                            role: "MEDIATOR",
+                            desc: "Honeymoon is over. Personalities clash, the frame is tested. Performance drops as energy goes into conflicts.",
+                            signals: "Criticism, cliques, 'this sucks', challenging authority, power struggles.",
+                            action: "Don't flee conflict. Listen, rephrase, remind common vision, transform attacks into needs."
+                        },
+                        {
+                            label: "Norming",
+                            title: "3. Norming",
+                            emotion: "Cohesion & Agreement",
+                            role: "FACILITATOR",
+                            desc: "Calm returns. The group creates its own rules. A sense of 'We' appears. Constructive feedback becomes possible.",
+                            signals: "'We' language, spontaneous help, inside jokes, self-regulation.",
+                            action: "Encourage autonomy, validate good practices, step back slightly."
+                        },
+                        {
+                            label: "Performing",
+                            title: "4. Performing",
+                            emotion: "Flow & Efficacy",
+                            role: "DELEGATOR",
+                            desc: "Optimal stage. Energy is 100% on the task. The group is autonomous. The leader becomes a resource.",
+                            signals: "Fluid communication, anticipating needs, creativity, high results.",
+                            action: "Celebrate successes, set new challenges, do NOT micro-manage."
+                        },
+                        {
+                            label: "Adjourning",
+                            title: "5. Adjourning",
+                            emotion: "Mourning & Separation",
+                            role: "SUPPORTER",
+                            desc: "Project end. Emotional moment: pride or sadness. Risk of disengagement.",
+                            signals: "Nostalgia, promises to meet again, 'what's next?', low energy.",
+                            action: "Proper debrief, celebrate the journey, handle closure with care."
+                        }
+                    ]
+                },
+                relation: {
+                    title: "Relationship Management",
+                    subtitle: "Micro vs Macro: Where to intervene?",
+                    context: "When stuck, ask: 'Is it a person (Micro) or the system (Macro) causing the issue?'",
+                    micro: {
+                        title: "INDIVIDUAL Level (Micro)",
+                        desc: "The problem seems to come from a specific person.",
+                        signals: "Isolation, monopolizing speech, aggression, sulking.",
+                        actions: [
+                            "Rephrase ('I hear you...')",
+                            "Secure ('You belong here...')",
+                            "Empower (Give a specific role)",
+                            "Private chat (Regulate discreetly)"
+                        ]
+                    },
+                    macro: {
+                        title: "COLLECTIVE Level (Macro)",
+                        desc: "The problem is systemic, the whole group is affected.",
+                        signals: "General noise, no one listens, clans, apathy, rules ignored.",
+                        actions: [
+                            "Reframe (Remind goals/rules)",
+                            "Meta Pause ('Stop, what is happening?')",
+                            "Reconfigure (Change method: split into sub-groups)"
+                        ]
+                    },
+                    case: {
+                        title: "Case Study: The Chaotic Debate",
+                        text: "Situation: Large group, 3 people interrupt constantly. Others are silent.",
+                        bad: "❌ Micro Reaction: Getting mad at the 3 talkers. Risk: defensiveness and passivity.",
+                        good: "✅ Macro Reaction: Change the system. 'Stop plenary debate. Switch to pairs for 5 min'. The frame changes, problem solved."
+                    }
+                },
+                conflict: {
+                    title: "Conflict Management (TKI)",
+                    subtitle: "5 strategies for 5 contexts",
+                    intro: "Conflict is managed via two axes: Assertiveness (my needs) and Cooperation (others' needs). No method is best, it depends on context.",
+                    axes: { y: "Assertiveness", x: "Cooperation" },
+                    modes: [
+                        { name: "Competition", alias: "The Shark", desc: "I win, you lose", context: "Vital urgency, safety, quick unpopular decision.", color: "bg-red-100 text-red-900 border-red-200" },
+                        { name: "Collaboration", alias: "The Owl", desc: "Win - Win", context: "Learning, complex issues, need full buy-in. (Takes time).", color: "bg-emerald-100 text-emerald-900 border-emerald-200" },
+                        { name: "Compromis", alias: "The Fox", desc: "Fair share", context: "Temporary solution, moderate stakes, breaking deadlocks.", color: "bg-orange-100 text-orange-900 border-orange-200" },
+                        { name: "Avoidance", alias: "The Turtle", desc: "I lose, you lose", context: "High tension, trivial issue, no power over situation.", color: "bg-gray-100 text-gray-800 border-gray-200" },
+                        { name: "Accommodation", alias: "The Bear", desc: "You win, I lose", context: "I am wrong, harmony is more important than the issue.", color: "bg-blue-100 text-blue-900 border-blue-200" }
+                    ]
+                }
+            }
+        };
+
+        // --- COMPONENTS ---
+
+        const Intro = ({ t, go }) => (
+            <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                <div className="max-w-2xl bg-white p-10 rounded-3xl shadow-xl border border-slate-100">
+                    <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    </div>
+                    <h1 className="text-4xl font-bold text-slate-900 mb-4">{t.intro.title}</h1>
+                    <h2 className="text-xl text-indigo-600 font-medium mb-6">{t.intro.subtitle}</h2>
+                    <p className="text-slate-600 mb-8 leading-relaxed text-lg">{t.intro.desc}</p>
+                    <button onClick={go} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg">
+                        {t.intro.btn}
+                    </button>
+                </div>
+            </div>
+        );
+
+        const Tuckman = ({ t }) => {
+            const [step, setStep] = useState(0);
+            const current = t.tuckman.stages[step];
+
+            // Curve points for visual graph
+            const points = [
+                {x: 10, y: 60}, {x: 30, y: 85}, {x: 50, y: 50}, {x: 75, y: 15}, {x: 95, y: 40}
+            ];
+
+            return (
+                <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold text-slate-800 mb-2">{t.tuckman.title}</h2>
+                        <p className="text-slate-600">{t.tuckman.desc}</p>
+                    </div>
+
+                    <div className="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden flex flex-col md:flex-row">
+                        {/* Left: Graphic */}
+                        <div className="w-full md:w-1/2 bg-slate-50 p-6 flex flex-col relative border-b md:border-b-0 md:border-r border-slate-200">
+                            <div className="h-48 md:h-64 relative mb-6">
+                                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <path d="M0,60 C 15,60, 20,85, 30,85 S 40,50, 50,50 S 65,15, 75,15 S 100,40, 100,40" className="chart-path" />
+                                    {points.map((p, i) => (
+                                        <circle 
+                                            key={i} cx={p.x} cy={p.y} r={step === i ? 4 : 2} 
+                                            className={`transition-all duration-300 cursor-pointer ${step === i ? 'fill-indigo-600 stroke-4 stroke-indigo-200' : 'fill-slate-400 hover:fill-indigo-400'}`}
+                                            onClick={() => setStep(i)}
+                                        />
+                                    ))}
+                                </svg>
+                                <div className="absolute top-2 left-2 text-xs font-bold text-slate-400">PERFORMANCE</div>
+                                <div className="absolute bottom-2 right-2 text-xs font-bold text-slate-400">TEMPS</div>
+                            </div>
+                            
+                            {/* Slider */}
+                            <div className="mt-auto">
+                                <input type="range" min="0" max="4" value={step} onChange={(e) => setStep(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"/>
+                                <div className="flex justify-between mt-2">
+                                    {t.tuckman.stages.map((s, i) => (
+                                        <div key={i} onClick={() => setStep(i)} className={`text-[10px] uppercase font-bold cursor-pointer transition-colors ${step===i ? 'text-indigo-600' : 'text-slate-400'}`}>{s.label}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right: Content */}
+                        <div className="w-full md:w-1/2 p-8 flex flex-col">
+                            <div className="mb-6">
+                                <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold mb-2 uppercase">{current.emotion}</span>
+                                <h3 className="text-2xl font-bold text-slate-800 mb-1">{current.title}</h3>
+                                <p className="text-lg text-slate-500 font-serif italic">Rôle : {current.role}</p>
+                            </div>
+                            
+                            <div className="space-y-4 text-sm text-slate-700 leading-relaxed flex-1">
+                                <p>{current.desc}</p>
+                                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                                    <strong className="text-orange-800 block mb-1">👀 Signaux :</strong>
+                                    {current.signals}
+                                </div>
+                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                                    <strong className="text-indigo-800 block mb-1">⚡ Action :</strong>
+                                    {current.action}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Relation = ({ t }) => {
+            const [mode, setMode] = useState('micro');
+
+            return (
+                <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-bold text-slate-800 mb-2">{t.relation.title}</h2>
+                        <p className="text-slate-600 max-w-2xl mx-auto">{t.relation.context}</p>
+                    </div>
+
+                    <div className="flex justify-center mb-8">
+                        <div className="bg-white p-1 rounded-full shadow border inline-flex">
+                            <button onClick={() => setMode('micro')} className={`px-6 py-2 rounded-full text-sm font-bold transition-colors ${mode === 'micro' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+                                {t.relation.micro.title}
+                            </button>
+                            <button onClick={() => setMode('macro')} className={`px-6 py-2 rounded-full text-sm font-bold transition-colors ${mode === 'macro' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+                                {t.relation.macro.title}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* Main Card */}
+                        <div className={`rounded-3xl p-8 text-white shadow-xl transition-colors duration-500 ${mode === 'micro' ? 'bg-indigo-600' : 'bg-teal-600'}`}>
+                            <h3 className="text-2xl font-bold mb-4">{mode === 'micro' ? t.relation.micro.title : t.relation.macro.title}</h3>
+                            <p className="mb-6 opacity-90 text-lg">{mode === 'micro' ? t.relation.micro.desc : t.relation.macro.desc}</p>
+                            
+                            <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm mb-4">
+                                <h4 className="font-bold text-xs uppercase tracking-wider opacity-75 mb-2">Signaux</h4>
+                                <p>{mode === 'micro' ? t.relation.micro.signals : t.relation.macro.signals}</p>
+                            </div>
+
+                            <div className="bg-white/20 p-4 rounded-xl backdrop-blur-sm">
+                                <h4 className="font-bold text-xs uppercase tracking-wider opacity-75 mb-2">Leviers d'action</h4>
+                                <ul className="list-disc pl-4 space-y-1">
+                                    {(mode === 'micro' ? t.relation.micro.actions : t.relation.macro.actions).map((a, i) => (
+                                        <li key={i}>{a}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Context Card */}
+                        <div className="bg-white rounded-3xl p-8 shadow-lg border border-slate-100 flex flex-col justify-center">
+                            <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <span className="text-2xl">🎓</span> {t.relation.case.title}
+                            </h4>
+                            <p className="text-slate-600 mb-6 italic pl-4 border-l-4 border-slate-200">{t.relation.case.text}</p>
+                            
+                            <div className="space-y-4">
+                                <div className={`p-4 rounded-xl border-l-4 text-sm ${mode === 'micro' ? 'bg-red-50 border-red-400 text-red-900' : 'opacity-50 grayscale'}`}>
+                                    {t.relation.case.bad}
+                                </div>
+                                <div className={`p-4 rounded-xl border-l-4 text-sm ${mode === 'macro' ? 'bg-green-50 border-green-400 text-green-900' : 'opacity-50 grayscale'}`}>
+                                    {t.relation.case.good}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Conflict = ({ t }) => {
+            const [selected, setSelected] = useState(null);
+
+            return (
+                <div className="p-4 md:p-8 max-w-6xl mx-auto w-full h-full flex flex-col">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 className="text-3xl font-bold text-slate-800">{t.conflict.title}</h2>
+                            <p className="text-slate-500 mt-1">{t.conflict.intro}</p>
+                        </div>
+                        {selected !== null && (
+                            <button onClick={() => setSelected(null)} className="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-300 transition">
+                                Reset
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex-1 relative bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden min-h-[500px]">
+                        {/* Axes Labels - INCREASED PADDING AND Z-INDEX */}
+                        <div className="absolute left-6 top-1/2 -translate-y-1/2 -rotate-90 font-bold text-xs tracking-widest text-slate-500 origin-center pointer-events-none z-20">
+                            {t.conflict.axes.y}
+                        </div>
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 font-bold text-xs tracking-widest text-slate-500 pointer-events-none z-20">
+                            {t.conflict.axes.x}
+                        </div>
+
+                        {/* Grid Area - INCREASED PADDING */}
+                        <div className="absolute inset-0 pl-16 pb-16 pt-4 pr-4 z-10">
+                            <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-4 relative">
+                                {t.conflict.modes.map((m, i) => {
+                                    if (i === 2) return null; // Skip center (Compromis)
+                                    // Row 0 (Top): i < 2. Row 1 (Bottom): i > 2.
+                                    const isTop = i < 2;
+                                    // Col 0 (Left): i == 0 or 3. Col 1 (Right): i == 1 or 4.
+                                    const isLeft = (i === 0 || i === 3);
+
+                                    return (
+                                        <div 
+                                            key={i} 
+                                            onClick={() => setSelected(i)}
+                                            className={`p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between ${m.color} ${selected === i ? 'ring-4 ring-offset-2 ring-indigo-300 scale-[1.02] shadow-xl z-20' : 'hover:shadow-md hover:scale-[1.01]'} ${selected !== null && selected !== i ? 'opacity-20 grayscale' : ''}`}
+                                            style={{
+                                                justifyContent: isTop ? 'flex-start' : 'flex-end', // Push text to top or bottom
+                                                alignItems: isLeft ? 'flex-start' : 'flex-end', // Push text to left or right
+                                                textAlign: isLeft ? 'left' : 'right'
+                                            }}
+                                        >
+                                            <div className="font-bold text-lg uppercase tracking-wide opacity-80 mb-2">{m.alias}</div>
+                                            <div>
+                                                <h3 className="text-2xl font-bold mb-1">{m.name}</h3>
+                                                <p className="text-sm font-medium opacity-90">{m.desc}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                
+                                {/* Compromise (Center) */}
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div 
+                                        onClick={() => setSelected(2)}
+                                        className={`pointer-events-auto w-40 h-40 md:w-48 md:h-48 rounded-full border-4 shadow-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 z-30 ${t.conflict.modes[2].color} ${selected === 2 ? 'ring-4 ring-offset-2 ring-indigo-300 scale-110' : 'hover:scale-105'} ${selected !== null && selected !== 2 ? 'opacity-20 grayscale' : ''}`}
+                                    >
+                                        <div className="font-bold text-xs uppercase tracking-wide opacity-80 mb-1">{t.conflict.modes[2].alias}</div>
+                                        <h3 className="text-lg font-bold text-center leading-tight">{t.conflict.modes[2].name}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Detail Modal (Overlay) */}
+                        {selected !== null && (
+                            <div className="absolute inset-x-0 bottom-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 p-8 z-40 transition-transform duration-500 shadow-2xl">
+                                <div className="flex flex-col md:flex-row gap-8">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <h3 className="text-3xl font-bold text-slate-900">{t.conflict.modes[selected].name}</h3>
+                                            <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 uppercase">{t.conflict.modes[selected].alias}</span>
+                                        </div>
+                                        <p className="text-xl text-indigo-600 font-serif italic mb-6">"{t.conflict.modes[selected].desc}"</p>
+                                        
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Analyse</span>
+                                                <p className="text-slate-700 text-sm">{t.conflict.modes[selected].detail}</p>
+                                            </div>
+                                            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                                                <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest block mb-2">Quand l'utiliser ?</span>
+                                                <p className="text-indigo-900 text-sm font-medium">{t.conflict.modes[selected].context}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState('fr');
+            const [tab, setTab] = useState(0);
+            const t = content[lang];
+
+            return (
+                <div className="h-screen w-screen flex flex-col">
+                    {/* Header Fixed */}
+                    <div className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-50 flex-shrink-0">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setTab(0)}>
+                            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">D</div>
+                            <span className="font-bold text-slate-800 hidden md:block">Dynamics</span>
+                        </div>
+                        <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="px-3 py-1 rounded border border-slate-200 text-xs font-bold uppercase text-slate-600 hover:bg-slate-50">
+                            {lang === 'fr' ? 'EN' : 'FR'}
+                        </button>
+                    </div>
+
+                    {/* Scrollable Main Area */}
+                    <main className="flex-1 relative overflow-hidden bg-slate-50">
+                        <div className="absolute inset-0 scroller pb-20">
+                            {tab === 0 && <Intro t={t} go={() => setTab(1)} />}
+                            {tab === 1 && <Tuckman t={t} />}
+                            {tab === 2 && <Relation t={t} />}
+                            {tab === 3 && <Conflict t={t} />}
+                        </div>
+                    </main>
+
+                    {/* Bottom Nav Fixed */}
+                    <nav className="h-16 bg-white border-t border-slate-200 flex items-center justify-center z-50 flex-shrink-0 absolute bottom-0 w-full">
+                        <div className="flex space-x-1 md:space-x-6 overflow-x-auto px-2 w-full justify-center">
+                            {t.nav.map((item, i) => (
+                                <button 
+                                    key={i} 
+                                    onClick={() => setTab(i)}
+                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${tab === i ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                                >
+                                    {item}
+                                </button>
+                            ))}
+                        </div>
+                    </nav>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
