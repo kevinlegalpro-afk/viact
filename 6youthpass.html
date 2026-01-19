@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youthpass Self-Reflection Tool</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- HTML2PDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts: Roboto & Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f3f4f6;
+        }
+        h1, h2, h3, .brand-font {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        /* Youthpass inspired colors */
+        .yp-pink { color: #ec008c; }
+        .bg-yp-pink { background-color: #ec008c; }
+        .yp-orange { color: #f7941d; }
+        .bg-yp-orange { background-color: #f7941d; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* PDF Print Specifics */
+        .print-only { display: none; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; }
+            .page-break { page-break-before: always; }
+        }
+
+        .editable-area:focus {
+            outline: 2px solid #ec008c;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // --- DATA & TRANSLATIONS ---
+
+        const COMPETENCES = [
+            {
+                id: 'multilingual',
+                icon: 'Languages',
+                title: { fr: 'Compétence multilingue', en: 'Multilingual competence' },
+                desc: { 
+                    fr: 'Capacité à utiliser différentes langues de manière appropriée et efficace pour la communication.',
+                    en: 'Ability to use different languages appropriately and effectively for communication.'
+                },
+                prompt: {
+                    fr: 'Quelles langues avez-vous utilisées ? Avez-vous appris de nouveaux mots ou expressions ? Comment avez-vous communiqué avec les autres ?',
+                    en: 'Which languages did you use? Did you learn new words or expressions? How did you communicate with others?'
+                }
+            },
+            {
+                id: 'personal',
+                icon: 'UserCog',
+                title: { fr: 'Compétence personnelle, sociale et apprendre à apprendre', en: 'Personal, social and learning to learn competence' },
+                desc: { 
+                    fr: 'Capacité à gérer son propre apprentissage, à gérer le temps et l\'information, et à travailler avec les autres.',
+                    en: 'Ability to reflect upon oneself, manage time and information, work with others, and manage one\'s own learning.'
+                },
+                prompt: {
+                    fr: 'Qu\'avez-vous appris sur vous-même ? Comment avez-vous géré votre temps ? Avez-vous travaillé en équipe ?',
+                    en: 'What did you learn about yourself? How did you manage your time? Did you work in a team?'
+                }
+            },
+            {
+                id: 'citizenship',
+                icon: 'Users',
+                title: { fr: 'Compétence citoyenne', en: 'Citizenship competence' },
+                desc: { 
+                    fr: 'Capacité à agir en tant que citoyens responsables et à participer pleinement à la vie civique et sociale.',
+                    en: 'Ability to act as responsible citizens and to fully participate in civic and social life.'
+                },
+                prompt: {
+                    fr: 'Avez-vous découvert de nouvelles cultures ou réalités sociales ? Avez-vous participé à des décisions de groupe ?',
+                    en: 'Did you discover new cultures or social realities? Did you take part in group decision-making?'
+                }
+            },
+            {
+                id: 'entrepreneurship',
+                icon: 'Lightbulb',
+                title: { fr: 'Compétence entrepreneuriale', en: 'Entrepreneurship competence' },
+                desc: { 
+                    fr: 'Capacité à transformer des idées et des opportunités en action.',
+                    en: 'Capacity to act upon opportunities and ideas, and to transform them into values for others.'
+                },
+                prompt: {
+                    fr: 'Avez-vous pris des initiatives ? Avez-vous résolu des problèmes ? Avez-vous planifié une activité ?',
+                    en: 'Did you take initiatives? Did you solve problems? Did you plan an activity?'
+                }
+            },
+            {
+                id: 'cultural',
+                icon: 'Palette',
+                title: { fr: 'Compétence de sensibilisation et d\'expression culturelles', en: 'Cultural awareness and expression competence' },
+                desc: { 
+                    fr: 'Compréhension et respect de la manière dont les idées et le sens sont exprimés de manière créative.',
+                    en: 'Understanding and respect for how ideas and meaning are creatively expressed and communicated.'
+                },
+                prompt: {
+                    fr: 'Avez-vous utilisé des méthodes créatives (art, musique, vidéo) ? Avez-vous découvert d\'autres traditions culturelles ?',
+                    en: 'Did you use creative methods (art, music, video)? Did you learn about other cultural traditions?'
+                }
+            },
+            {
+                id: 'digital',
+                icon: 'Laptop',
+                title: { fr: 'Compétence numérique', en: 'Digital competence' },
+                desc: { 
+                    fr: 'Utilisation confiante, critique et responsable des technologies numériques.',
+                    en: 'Confident, critical and responsible use of, and engagement with, digital technologies.'
+                },
+                prompt: {
+                    fr: 'Quels outils numériques avez-vous utilisés ? Avez-vous créé du contenu numérique ?',
+                    en: 'Which digital tools did you use? Did you create digital content?'
+                }
+            },
+            {
+                id: 'stem',
+                icon: 'Calculator',
+                title: { fr: 'Compétence mathématique, science, technologie', en: 'Mathematical, science, technology & engineering' },
+                desc: { 
+                    fr: 'Capacité à développer et appliquer la pensée mathématique et scientifique.',
+                    en: 'Ability to develop and apply mathematical thinking and scientific inquiry.'
+                },
+                prompt: {
+                    fr: 'Avez-vous dû calculer un budget, mesurer des distances, ou comprendre des phénomènes logiques ?',
+                    en: 'Did you have to calculate a budget, measure distances, or understand logical phenomena?'
+                }
+            },
+            {
+                id: 'literacy',
+                icon: 'BookOpen',
+                title: { fr: 'Compétence en lecture et écriture', en: 'Literacy competence' },
+                desc: { 
+                    fr: 'Capacité à identifier, comprendre, exprimer, créer et interpréter des concepts, sentiments, faits et opinions.',
+                    en: 'Ability to identify, understand, express, create, and interpret concepts, feelings, facts and opinions.'
+                },
+                prompt: {
+                    fr: 'Avez-vous lu des documents importants ? Avez-vous écrit des rapports ou tenu un journal ?',
+                    en: 'Did you read important documents? Did you write reports or keep a journal?'
+                }
+            }
+        ];
+
+        const UI = {
+            title: { fr: "Outil d'Auto-Réflexion", en: "Self-Reflection Tool" },
+            subtitle: { fr: "Inspiré par Youthpass", en: "Inspired by Youthpass" },
+            save: { fr: "Sauvegarder (Fichier)", en: "Save to File" },
+            load: { fr: "Ouvrir (Fichier)", en: "Load File" },
+            reset: { fr: "Réinitialiser", en: "Reset" },
+            preview: { fr: "Aperçu & PDF", en: "Preview & PDF" },
+            edit: { fr: "Éditer", en: "Edit Mode" },
+            downloadPDF: { fr: "Télécharger le PDF", en: "Download PDF" },
+            generalInfo: { fr: "Informations Générales", en: "General Information" },
+            name: { fr: "Prénom & Nom", en: "First & Last Name" },
+            project: { fr: "Nom du Projet", en: "Project Name" },
+            dates: { fr: "Dates du Projet", en: "Project Dates" },
+            location: { fr: "Lieu", en: "Location" },
+            introText: {
+                fr: "Utilisez cet outil pour réfléchir à ce que vous avez appris. Décrivez vos expériences pour chaque compétence.",
+                en: "Use this tool to reflect on what you have learnt. Describe your experiences for each competence."
+            },
+            generatedOn: { fr: "Généré le", en: "Generated on" },
+            signature: { fr: "Signature du participant", en: "Participant's Signature" }
+        };
+
+        // --- ICONS COMPONENT (FIXED FOR REACT) ---
+        // This component isolates the DOM manipulation of Lucide from React to prevent reconciliation errors.
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const spanRef = useRef(null);
+
+            useEffect(() => {
+                if (!window.lucide || !spanRef.current) return;
+
+                // 1. Convert PascalCase to kebab-case for the attribute
+                const kebabName = name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+                
+                // 2. Manually set the HTML to a clean <i> tag. 
+                // We do this every time name/size/class changes.
+                // This ensures we have a fresh target for Lucide to replace.
+                spanRef.current.innerHTML = `<i data-lucide="${kebabName}" width="${size}" height="${size}" class="${className}"></i>`;
+
+                // 3. Trigger Lucide to replace the <i> tag with SVG *only* inside this span
+                window.lucide.createIcons({
+                    root: spanRef.current,
+                    nameAttr: 'data-lucide',
+                    attrs: {
+                        class: className,
+                        width: size,
+                        height: size
+                    }
+                });
+            }, [name, size, className]);
+
+            // React manages this span, but treats its content as a black box (no children props).
+            // This prevents React from trying to 'removeChild' the SVG elements that Lucide swaps in.
+            return <span ref={spanRef} style={{ display: 'inline-flex', verticalAlign: 'middle', alignItems: 'center', justifyContent: 'center' }}></span>;
+        };
+
+        // --- COMPONENTS ---
+
+        function App() {
+            const [lang, setLang] = useState('fr'); // 'fr' or 'en'
+            const [activeTab, setActiveTab] = useState('general');
+            const [mode, setMode] = useState('edit'); // 'edit' or 'preview'
+            
+            const [formData, setFormData] = useState({
+                name: '',
+                project: '',
+                dates: '',
+                location: '',
+                competences: Object.fromEntries(COMPETENCES.map(c => [c.id, '']))
+            });
+
+            const handleChange = (field, value) => {
+                setFormData(prev => ({
+                    ...prev,
+                    [field]: value
+                }));
+            };
+
+            const handleCompetenceChange = (id, value) => {
+                setFormData(prev => ({
+                    ...prev,
+                    competences: {
+                        ...prev.competences,
+                        [id]: value
+                    }
+                }));
+            };
+
+            // SAVE to JSON
+            const handleSave = () => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(formData));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", `youthpass_draft_${formData.name || 'user'}.json`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            };
+
+            // LOAD from JSON
+            const handleLoad = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const loadedData = JSON.parse(e.target.result);
+                        setFormData(loadedData);
+                        alert(lang === 'fr' ? "Fichier chargé avec succès !" : "File loaded successfully!");
+                    } catch (error) {
+                        alert(lang === 'fr' ? "Erreur lors du chargement." : "Error loading file.");
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            // GENERATE PDF
+            const handleDownloadPDF = () => {
+                const element = document.getElementById('certificate-view');
+                const opt = {
+                    margin: [10, 10, 10, 10], // mm
+                    filename: `youthpass_${formData.name}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'] }
+                };
+
+                // Temporarily show the certificate view full screen or ensure it's rendered
+                // In our case, it's rendered in the 'preview' mode.
+                if (mode !== 'preview') {
+                    alert(lang === 'fr' ? "Veuillez passer en mode Aperçu d'abord." : "Please switch to Preview mode first.");
+                    return;
+                }
+
+                html2pdf().set(opt).from(element).save();
+            };
+
+            // RESET
+            const handleReset = () => {
+                if(confirm(lang === 'fr' ? "Tout effacer ?" : "Clear everything?")) {
+                    setFormData({
+                        name: '', project: '', dates: '', location: '',
+                        competences: Object.fromEntries(COMPETENCES.map(c => [c.id, '']))
+                    });
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    {/* TOP BAR */}
+                    <header className="bg-white shadow-md z-10 sticky top-0">
+                        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-yp-pink rounded-full flex items-center justify-center text-white font-bold text-xl">Y</div>
+                                <div>
+                                    <h1 className="text-xl font-bold text-gray-800 leading-none">{UI.title[lang]}</h1>
+                                    <span className="text-xs text-yp-orange font-semibold tracking-wider uppercase">{UI.subtitle[lang]}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                {/* Language Toggle */}
+                                <div className="bg-gray-100 rounded-lg p-1 flex">
+                                    <button 
+                                        onClick={() => setLang('fr')}
+                                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${lang === 'fr' ? 'bg-white text-yp-pink shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >FR</button>
+                                    <button 
+                                        onClick={() => setLang('en')}
+                                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${lang === 'en' ? 'bg-white text-yp-pink shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >EN</button>
+                                </div>
+
+                                {/* View Toggle */}
+                                <button 
+                                    onClick={() => setMode(mode === 'edit' ? 'preview' : 'edit')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${mode === 'edit' ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+                                >
+                                    <Icon name={mode === 'edit' ? 'Eye' : 'Edit3'} size={18} />
+                                    {mode === 'edit' ? UI.preview[lang] : UI.edit[lang]}
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* MAIN CONTENT AREA */}
+                    <main className="flex-grow bg-gray-50">
+                        
+                        {/* EDITOR MODE */}
+                        {mode === 'edit' && (
+                            <div className="max-w-7xl mx-auto flex flex-col md:flex-row h-[calc(100vh-80px)]">
+                                {/* Sidebar Navigation */}
+                                <aside className="w-full md:w-80 bg-white border-r border-gray-200 overflow-y-auto custom-scrollbar shadow-sm z-0">
+                                    <div className="p-4 space-y-1">
+                                        <div className="pb-4 border-b border-gray-100 mb-4">
+                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Actions</p>
+                                            <div className="grid grid-cols-2 gap-2 mb-2">
+                                                <button onClick={handleSave} className="flex flex-col items-center justify-center p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 text-xs">
+                                                    <Icon name="Save" size={16} className="mb-1"/> {UI.save[lang]}
+                                                </button>
+                                                <label className="flex flex-col items-center justify-center p-2 bg-green-50 text-green-600 rounded hover:bg-green-100 text-xs cursor-pointer">
+                                                    <Icon name="Upload" size={16} className="mb-1"/> {UI.load[lang]}
+                                                    <input type="file" accept=".json" onChange={handleLoad} className="hidden" />
+                                                </label>
+                                            </div>
+                                            <button onClick={handleReset} className="w-full text-center text-xs text-red-400 hover:text-red-600 py-1">{UI.reset[lang]}</button>
+                                        </div>
+
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Sections</p>
+                                        
+                                        <button 
+                                            onClick={() => setActiveTab('general')}
+                                            className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all ${activeTab === 'general' ? 'bg-yp-pink text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
+                                        >
+                                            <Icon name="Info" size={18} />
+                                            <span className="font-medium text-sm">{UI.generalInfo[lang]}</span>
+                                        </button>
+
+                                        {COMPETENCES.map((comp) => {
+                                            const isFilled = formData.competences[comp.id].length > 10;
+                                            return (
+                                                <button 
+                                                    key={comp.id}
+                                                    onClick={() => setActiveTab(comp.id)}
+                                                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all ${activeTab === comp.id ? 'bg-yp-orange text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
+                                                >
+                                                    <div className={`relative ${activeTab === comp.id ? 'text-white' : 'text-yp-orange'}`}>
+                                                        <Icon name={comp.icon} size={18} />
+                                                        {isFilled && <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></div>}
+                                                    </div>
+                                                    <span className="font-medium text-sm truncate">{comp.title[lang]}</span>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </aside>
+
+                                {/* Editor Content */}
+                                <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                                    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 min-h-[500px]">
+                                        
+                                        {activeTab === 'general' ? (
+                                            <div className="space-y-6 animate-fade-in">
+                                                <div className="flex items-center gap-3 mb-6">
+                                                    <div className="p-3 bg-pink-100 text-yp-pink rounded-xl">
+                                                        <Icon name="User" size={32} />
+                                                    </div>
+                                                    <h2 className="text-2xl font-bold text-gray-800">{UI.generalInfo[lang]}</h2>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div>
+                                                        <label className="block text-sm font-semibold text-gray-700 mb-2">{UI.name[lang]}</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={formData.name}
+                                                            onChange={(e) => handleChange('name', e.target.value)}
+                                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yp-pink focus:border-transparent outline-none transition-all"
+                                                            placeholder="John Doe"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-semibold text-gray-700 mb-2">{UI.dates[lang]}</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={formData.dates}
+                                                            onChange={(e) => handleChange('dates', e.target.value)}
+                                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yp-pink focus:border-transparent outline-none transition-all"
+                                                            placeholder="01/01/2024 - 15/01/2024"
+                                                        />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <label className="block text-sm font-semibold text-gray-700 mb-2">{UI.project[lang]}</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={formData.project}
+                                                            onChange={(e) => handleChange('project', e.target.value)}
+                                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yp-pink focus:border-transparent outline-none transition-all"
+                                                            placeholder="Erasmus+ : Youth Exchange..."
+                                                        />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <label className="block text-sm font-semibold text-gray-700 mb-2">{UI.location[lang]}</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={formData.location}
+                                                            onChange={(e) => handleChange('location', e.target.value)}
+                                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yp-pink focus:border-transparent outline-none transition-all"
+                                                            placeholder="Paris, France"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="bg-blue-50 p-4 rounded-lg mt-8 flex gap-3 text-blue-800 text-sm">
+                                                    <Icon name="Info" size={20} className="shrink-0" />
+                                                    <p>{UI.introText[lang]}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            (() => {
+                                                const comp = COMPETENCES.find(c => c.id === activeTab);
+                                                return (
+                                                    <div className="space-y-6 animate-fade-in">
+                                                        <div className="flex items-start gap-4 mb-6">
+                                                            <div className="p-3 bg-orange-100 text-yp-orange rounded-xl shrink-0">
+                                                                <Icon name={comp.icon} size={32} />
+                                                            </div>
+                                                            <div>
+                                                                <h2 className="text-2xl font-bold text-gray-800">{comp.title[lang]}</h2>
+                                                                <p className="text-gray-500 mt-1">{comp.desc[lang]}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="bg-yellow-50 border border-yellow-100 p-4 rounded-lg mb-4 text-sm text-yellow-800">
+                                                            <strong>💡 {lang === 'fr' ? 'Questions guides :' : 'Guiding questions:'}</strong> {comp.prompt[lang]}
+                                                        </div>
+
+                                                        <div>
+                                                            <textarea
+                                                                value={formData.competences[comp.id]}
+                                                                onChange={(e) => handleCompetenceChange(comp.id, e.target.value)}
+                                                                className="w-full h-96 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yp-orange focus:border-transparent outline-none transition-all text-base leading-relaxed resize-none"
+                                                                placeholder={lang === 'fr' ? "Je me suis senti(e)... J'ai appris..." : "I felt... I learned..."}
+                                                            ></textarea>
+                                                            <p className="text-right text-xs text-gray-400 mt-2">
+                                                                {formData.competences[comp.id].length} {lang === 'fr' ? 'caractères' : 'characters'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()
+                                        )}
+
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* PREVIEW / PDF MODE */}
+                        {mode === 'preview' && (
+                            <div className="w-full min-h-screen bg-gray-600 p-4 md:p-8 flex flex-col items-center">
+                                <div className="mb-4 flex gap-4">
+                                    <button 
+                                        onClick={handleDownloadPDF} 
+                                        className="bg-yp-pink hover:bg-pink-700 text-white px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-2 transform hover:scale-105 transition-all"
+                                    >
+                                        <Icon name="Download" size={20} />
+                                        {UI.downloadPDF[lang]}
+                                    </button>
+                                    <button 
+                                        onClick={() => setMode('edit')} 
+                                        className="bg-white hover:bg-gray-100 text-gray-800 px-6 py-3 rounded-full font-bold shadow-lg"
+                                    >
+                                        {lang === 'fr' ? 'Retour à l\'édition' : 'Back to Edit'}
+                                    </button>
+                                </div>
+
+                                {/* THE CERTIFICATE CANVAS */}
+                                <div id="certificate-view" className="bg-white w-[210mm] min-h-[297mm] p-[15mm] shadow-2xl relative">
+                                    {/* Decorative header */}
+                                    <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-yp-pink to-yp-orange"></div>
+                                    <div className="absolute bottom-0 left-0 w-full h-4 bg-gradient-to-r from-yp-orange to-yp-pink"></div>
+
+                                    {/* Header */}
+                                    <div className="flex justify-between items-end border-b-2 border-gray-100 pb-6 mb-8">
+                                        <div>
+                                            <h1 className="text-4xl font-extrabold text-yp-pink tracking-tight">YOUTHPASS</h1>
+                                            <p className="text-gray-500 font-medium tracking-wide text-sm mt-1 uppercase">
+                                                {lang === 'fr' ? 'Certificat de compétences' : 'Competence Certificate'}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-2xl font-bold text-gray-800">{formData.name || 'Participant Name'}</div>
+                                            <div className="text-sm text-gray-500">{formData.project || 'Project Name'}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* General Info Grid */}
+                                    <div className="bg-gray-50 rounded-xl p-6 mb-8 grid grid-cols-2 gap-6 border border-gray-100">
+                                        <div>
+                                            <div className="text-xs uppercase text-gray-400 font-bold tracking-wider mb-1">{UI.dates[lang]}</div>
+                                            <div className="font-semibold text-gray-700">{formData.dates || '-'}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs uppercase text-gray-400 font-bold tracking-wider mb-1">{UI.location[lang]}</div>
+                                            <div className="font-semibold text-gray-700">{formData.location || '-'}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Competences List */}
+                                    <div className="space-y-6">
+                                        {COMPETENCES.map((comp) => {
+                                            const content = formData.competences[comp.id];
+                                            if (!content) return null; // Don't print empty sections
+
+                                            return (
+                                                <div key={comp.id} className="break-inside-avoid mb-6">
+                                                    <div className="flex items-center gap-3 mb-3 border-b border-gray-100 pb-2">
+                                                        <div className="text-yp-orange">
+                                                             <Icon name={comp.icon} size={20} />
+                                                        </div>
+                                                        <h3 className="text-lg font-bold text-gray-800">{comp.title[lang]}</h3>
+                                                    </div>
+                                                    <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line text-justify pl-8">
+                                                        {content}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        
+                                        {/* Fallback if empty */}
+                                        {Object.values(formData.competences).every(v => !v) && (
+                                            <div className="text-center py-20 text-gray-400 italic border-2 border-dashed border-gray-200 rounded-xl">
+                                                {lang === 'fr' ? 'Aucune compétence remplie pour le moment.' : 'No competences filled yet.'}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Footer / Signature Area */}
+                                    <div className="mt-16 pt-8 border-t border-gray-200 break-inside-avoid">
+                                        <div className="flex justify-between items-end">
+                                            <div className="text-xs text-gray-400">
+                                                {UI.generatedOn[lang]}: {new Date().toLocaleDateString()}
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="h-16 w-48 border-b border-gray-300 mb-2"></div>
+                                                <div className="text-xs text-gray-500 uppercase tracking-wider">{UI.signature[lang]}</div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 text-center">
+                                             <p className="text-[10px] text-gray-300">Inspired by the official Youthpass strategy. Not an official EU document.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
