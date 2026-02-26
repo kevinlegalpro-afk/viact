@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voie Lycienne : Édition Famille</title>
+    <!-- Tailwind CSS pour le style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Animation personnalisée pour le tracé de la carte */
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        .animate-dash {
+            animation: dash 20s linear infinite;
+        }
+        
+        /* Animations d'apparition fluides */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans pb-16 text-slate-800">
+
+    <!-- HEADER -->
+    <header class="bg-gradient-to-r from-teal-700 to-emerald-600 text-white p-8 rounded-b-3xl shadow-lg mb-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-extrabold tracking-tight mb-2">Voie Lycienne : Édition Famille</h1>
+            <p class="text-emerald-100 text-lg flex items-center gap-2">
+                <i data-lucide="footprints" class="w-5 h-5"></i>
+                5 Jours • Rythme Détendu • Strictement moins de 15km/jour
+            </p>
+        </div>
+    </header>
+
+    <!-- TABS NAVIGATION -->
+    <div class="max-w-4xl mx-auto px-4 mb-8">
+        <div class="flex flex-col sm:flex-row bg-white rounded-xl shadow-sm border border-slate-200 p-1 gap-1">
+            <button onclick="switchTab('itinerary')" id="btn-itinerary" class="tab-btn flex-1 flex justify-center items-center gap-2 py-3 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">
+                <i data-lucide="calendar" class="w-4 h-4"></i> Itinéraire Détaillé
+            </button>
+            <button onclick="switchTab('map')" id="btn-map" class="tab-btn flex-1 flex justify-center items-center gap-2 py-3 text-sm font-semibold rounded-lg transition-all bg-emerald-50 text-emerald-700 shadow-sm">
+                <i data-lucide="map" class="w-4 h-4"></i> Carte Interactive
+            </button>
+            <button onclick="switchTab('info')" id="btn-info" class="tab-btn flex-1 flex justify-center items-center gap-2 py-3 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">
+                <i data-lucide="info" class="w-4 h-4"></i> Budget & Conseils
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-4xl mx-auto px-4">
+        
+        <!-- SECTION ITINÉRAIRE -->
+        <div id="tab-itinerary" class="tab-content hidden space-y-4">
+            <!-- Rempli par Javascript -->
+        </div>
+
+        <!-- SECTION CARTE -->
+        <div id="tab-map" class="tab-content fade-in">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="map" class="text-emerald-500"></i> Carte Interactive de l'Itinéraire
+                    </h2>
+                    <a href="https://www.google.com/maps/search/Ovacik+Lycian+Way+Start" target="_blank" rel="noreferrer" class="hidden sm:flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg text-sm font-medium transition">
+                        <i data-lucide="navigation" class="w-4 h-4"></i> Google Maps
+                    </a>
+                </div>
+                
+                <div class="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden relative" style="height: 500px;">
+                    
+                    <!-- Overlay Instructions -->
+                    <div id="map-instruction" class="absolute top-4 right-4 bg-slate-800/80 backdrop-blur text-white px-4 py-2 rounded-lg text-sm z-10 animate-pulse transition-opacity duration-300">
+                        Cliquez sur une étape pour voir les logements et sites.
+                    </div>
+
+                    <!-- Dynamic Info Card (Tooltip) -->
+                    <div id="map-tooltip" class="hidden absolute top-4 right-4 bg-white p-4 rounded-xl shadow-xl border border-slate-200 max-w-sm z-10 fade-in">
+                        <!-- Rempli par Javascript -->
+                    </div>
+
+                    <!-- SVG Background Map -->
+                    <svg id="map-svg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute inset-0">
+                        <!-- Grid lines -->
+                        <line x1="20" y1="0" x2="20" y2="100" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="1 2" />
+                        <line x1="0" y1="20" x2="100" y2="20" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="1 2" />
+                        <line x1="40" y1="0" x2="40" y2="100" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="1 2" />
+                        <line x1="0" y1="40" x2="100" y2="40" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="1 2" />
+                        <line x1="60" y1="0" x2="60" y2="100" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="1 2" />
+                        <line x1="0" y1="60" x2="100" y2="60" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="1 2" />
+                        <line x1="80" y1="0" x2="80" y2="100" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="1 2" />
+                        <line x1="0" y1="80" x2="100" y2="80" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="1 2" />
+
+                        <!-- Trail Line Base -->
+                        <polyline id="trail-base" points="" fill="none" stroke="#a7f3d0" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                        <!-- Trail Line Animated -->
+                        <polyline id="trail-animated" points="" fill="none" stroke="#10b981" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 6" class="animate-dash" style="stroke-dashoffset: 100;"/>
+                    </svg>
+
+                    <!-- HTML Overlay Markers -->
+                    <div id="map-markers" class="absolute inset-0 pointer-events-none">
+                        <!-- Rempli par Javascript -->
+                    </div>
+                    
+                    <!-- Avertissement GPS -->
+                    <div class="absolute bottom-4 left-4 right-4 sm:right-auto bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-slate-200 shadow-sm max-w-sm z-0">
+                        <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1 mb-1">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i> Avertissement GPS
+                        </h4>
+                        <p class="text-xs text-slate-600">
+                            Google Maps échoue souvent sur ces sentiers en vous redirigeant vers des routes dangereuses. Téléchargez impérativement des cartes hors-ligne via <strong>Maps.me</strong> ou <strong>Komoot</strong> pour la randonnée.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION INFO & BUDGET -->
+        <div id="tab-info" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Période -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
+                        <i data-lucide="sun" class="text-amber-500"></i> La meilleure période
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-emerald-800">Printemps (Mi-Avr à Mai)</span>
+                                <span class="text-xs font-bold bg-emerald-200 text-emerald-800 px-2 py-1 rounded-full">IDÉAL</span>
+                            </div>
+                            <p class="text-sm text-emerald-700">Sentiers verdoyants, fleurs sauvages et températures parfaites pour marcher (~20-25°C).</p>
+                        </div>
+                        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-emerald-800">Automne (Sept à Oct)</span>
+                                <span class="text-xs font-bold bg-emerald-200 text-emerald-800 px-2 py-1 rounded-full">IDÉAL</span>
+                            </div>
+                            <p class="text-sm text-emerald-700">La mer Méditerranée est très chaude pour les baignades l'après-midi. Températures autour de 22-28°C.</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-xl border border-red-100">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-red-800">Été (Juin à Août)</span>
+                                <span class="text-xs font-bold bg-red-200 text-red-800 px-2 py-1 rounded-full">À ÉVITER</span>
+                            </div>
+                            <p class="text-sm text-red-700">Les températures dépassent régulièrement 35°C. Pas sûr pour les enfants ; risque élevé d'insolation.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budget -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
+                        <i data-lucide="dollar-sign" class="text-blue-500"></i> Budget Familial (Par Jour)
+                    </h3>
+                    <p class="text-sm text-slate-500 mb-6">Basé sur une famille de 4 partageant des chambres dans des pensions de milieu de gamme.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
+                                <span>Logement (Demi-pension)</span>
+                                <span>120 € - 160 €</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-blue-400 h-2 rounded-full w-[65%]"></div>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Inclut le petit-déjeuner et de grands dîners traditionnels</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
+                                <span>Déjeuners & Snacks</span>
+                                <span>30 € - 50 €</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-indigo-400 h-2 rounded-full w-[25%]"></div>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Gözleme (crêpes turques), fruits, eau, fruits secs</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1">
+                                <span>Transports & Extras</span>
+                                <span>15 € - 30 €</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-violet-400 h-2 rounded-full w-[10%]"></div>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Billets de Dolmuş, entrées des ruines antiques</p>
+                        </div>
+                        <div class="pt-4 mt-4 border-t border-slate-100">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-800 text-lg">Moyenne Totale</span>
+                                <span class="font-bold text-blue-600 text-xl">~ 165 € - 240 €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conseils -->
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-6 rounded-2xl shadow-sm text-white">
+                <h3 class="text-xl font-bold flex items-center gap-2 mb-4">
+                    <i data-lucide="mountain" class="text-emerald-400"></i> Conseils de Pro pour randonner avec des enfants
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <h4 class="font-bold text-emerald-300 mb-2">1. Transfert de bagages</h4>
+                        <p class="text-sm text-slate-300">La plupart des pensions proposent de transférer vos bagages à la prochaine étape pour environ 20-30€. Laissez les enfants porter de petits sacs avec juste de l'eau et des snacks.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-emerald-300 mb-2">2. Gestion de l'eau</h4>
+                        <p class="text-sm text-slate-300">Portez toujours au minimum 2 Litres par personne. Achetez de grandes bouteilles d'eau à votre pension avant de partir, car les sources naturelles sur la route peuvent s'assécher.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-emerald-300 mb-2">3. Balises du sentier</h4>
+                        <p class="text-sm text-slate-300">Le sentier est balisé par des rayures rouges et blanches. Transformez la recherche du prochain "drapeau" en un jeu pour garder les enfants motivés.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- LOGIQUE JAVASCRIPT -->
+    <script>
+        // --- DONNÉES ---
+        const locations = [
+            { id: 0, name: "Ovacık", lat: 36.574, lon: 29.144 },
+            { id: 1, name: "Faralya", lat: 36.495, lon: 29.133 },
+            { id: 2, name: "Kabak", lat: 36.460, lon: 29.125 },
+            { id: 3, name: "Alınca", lat: 36.425, lon: 29.140 },
+            { id: 4, name: "Gey", lat: 36.386, lon: 29.151 },
+            { id: 5, name: "Gavurağılı", lat: 36.335, lon: 29.195 },
+        ];
+
+        const itinerary = [
+            {
+                day: 1, start: "Ovacık", end: "Faralya", distance: 13.5, elevation: "+713m / -400m",
+                highlights: ["La porte de départ officielle de la Voie Lycienne", "Panoramas sur le mont Babadag", "Coucher de soleil sur la Vallée des Papillons (Kelebekler Vadisi)"],
+                stay: "Montenegro Motel ou George House (Faralya)", budget: "90 € - 120 € (Demi-pension)",
+                desc: "L'étape la plus longue, mais les sentiers sont larges et bien tracés. Partez tôt (vers 8h) pour éviter le soleil de midi. La descente finale vers Faralya offre certaines des vues méditerranéennes les plus époustouflantes de tout le voyage."
+            },
+            {
+                day: 2, start: "Faralya", end: "Kabak", distance: 8.0, elevation: "+350m / -450m",
+                highlights: ["Sentiers ombragés dans la forêt de pins", "Baignade dans les eaux turquoise de la plage de Kabak", "Ambiance bohème et détendue du village"],
+                stay: "Sea Valley Bungalows ou Olive Garden (Kabak)", budget: "120 € - 160 € (Bungalows avec piscine)",
+                desc: "Une belle et courte journée en famille. Vous marcherez à travers des forêts de pins parfumées et descendrez dans la crique cachée de Kabak. Arrivez pour le déjeuner et passez l'après-midi à vous baigner et vous détendre à la plage."
+            },
+            {
+                day: 3, start: "Kabak", end: "Alınca", distance: 7.5, elevation: "+750m / -50m",
+                highlights: ["Cascades d'Aladere (idéal pour se rafraîchir)", "Sentiers spectaculaires à flanc de falaise", "Vie de village traditionnelle à Alınca"],
+                stay: "Bayram's Place ou Manzara Boutique (Alınca)", budget: "80 € - 110 € (Pension traditionnelle)",
+                desc: "Courte en distance mais avec un fort dénivelé. Allez-y doucement et régulièrement. Vous grimperez hors de la vallée de Kabak jusqu'à Alınca, perchée de façon spectaculaire sur les falaises. Les vues sur les 'Sept Caps' d'ici sont légendaires."
+            },
+            {
+                day: 4, start: "Alınca", end: "Gey", distance: 9.0, elevation: "+200m / -350m",
+                highlights: ["Panoramas côtiers incroyables des Sept Caps", "Anciennes terrasses agricoles", "Hospitalité rurale turque authentique"],
+                stay: "Muhtar's Pension (Gey)", budget: "70 € - 90 € (Pension traditionnelle)",
+                desc: "Une journée magnifique et relativement vallonnée le long des falaises. Le sentier est étroit par endroits mais très gérable. Gey (aussi connu sous le nom de Yediburunlar) est un village agricole très traditionnel."
+            },
+            {
+                day: 5, start: "Gey", end: "Gavurağılı", distance: 10.0, elevation: "+150m / -700m",
+                highlights: ["Descente à travers des oliveraies et pins ombragés", "Criques de galets isolées", "Arrivée festive sur le rivage méditerranéen"],
+                stay: "Gavurağılı Patara Pension (ou transfert vers la plage de Patara)", budget: "80 € - 100 € (Pension)",
+                desc: "Votre dernière journée de marche se caractérise par une longue descente régulière vers le niveau de la mer. Après être arrivé à Gavurağılı, vous pouvez organiser un court transfert vers les immenses dunes de sable de la plage de Patara pour célébrer !"
+            }
+        ];
+
+        let expandedDay = 1;
+        let selectedLocId = null;
+
+        // --- GESTION DES ONGLETS ---
+        function switchTab(tabId) {
+            // Cacher tous les contenus
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('fade-in');
+            });
+            
+            // Réinitialiser les styles des boutons
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.className = 'tab-btn flex-1 flex justify-center items-center gap-2 py-3 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50';
+            });
+
+            // Afficher le contenu ciblé
+            const targetContent = document.getElementById(`tab-${tabId}`);
+            targetContent.classList.remove('hidden');
+            // Petit hack pour relancer l'animation
+            void targetContent.offsetWidth; 
+            targetContent.classList.add('fade-in');
+
+            // Styliser le bouton actif
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.className = 'tab-btn flex-1 flex justify-center items-center gap-2 py-3 text-sm font-semibold rounded-lg transition-all bg-emerald-50 text-emerald-700 shadow-sm';
+        }
+
+        // --- GÉNÉRATION DE L'ITINÉRAIRE ---
+        function toggleDay(dayNum) {
+            expandedDay = expandedDay === dayNum ? null : dayNum;
+            renderItinerary();
+        }
+
+        function renderItinerary() {
+            const container = document.getElementById('tab-itinerary');
+            container.innerHTML = itinerary.map(day => {
+                const isExpanded = expandedDay === day.day;
+                const percentage = Math.min((day.distance / 15) * 100, 100);
+                
+                const highlightsHtml = day.highlights.map(h => `
+                    <li class="text-slate-600 text-sm flex items-start gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+                        ${h}
+                    </li>
+                `).join('');
+
+                return `
+                <div class="bg-white rounded-2xl shadow-sm border transition-all duration-300 ${isExpanded ? 'border-emerald-400 shadow-md ring-1 ring-emerald-100' : 'border-slate-200 hover:border-emerald-300'}">
+                    <div class="p-5 cursor-pointer flex items-center justify-between" onclick="toggleDay(${day.day})">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${isExpanded ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+                                J${day.day}
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                    ${day.start} <i data-lucide="arrow-right" class="w-4 h-4 text-slate-400"></i> ${day.end}
+                                </h3>
+                                <p class="text-slate-500 text-sm">${day.distance} km • Dénivelé: ${day.elevation}</p>
+                            </div>
+                        </div>
+                        <i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}" class="${isExpanded ? 'text-emerald-500' : 'text-slate-400'}"></i>
+                    </div>
+
+                    ${isExpanded ? `
+                    <div class="p-5 pt-0 border-t border-slate-100 mt-2 fade-in">
+                        <p class="text-slate-600 mb-6 leading-relaxed bg-slate-50 p-4 rounded-xl">
+                            ${day.desc}
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i> À voir en chemin
+                                </h4>
+                                <ul class="space-y-2">${highlightsHtml}</ul>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                                        <i data-lucide="home" class="w-5 h-5 text-amber-600"></i> Lieu de séjour
+                                    </h4>
+                                    <p class="text-sm text-slate-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                                        ${day.stay}
+                                    </p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                                        <i data-lucide="dollar-sign" class="w-5 h-5 text-blue-500"></i> Budget Estimé
+                                    </h4>
+                                    <p class="text-sm font-medium text-blue-700 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                        ${day.budget}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Barre de distance -->
+                        <div class="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-sm font-medium text-slate-600 flex items-center gap-1">
+                                    <i data-lucide="map-pin" class="w-4 h-4"></i> Distance
+                                </span>
+                                <span class="font-bold text-emerald-600 text-lg">${day.distance} km</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                                <div class="bg-emerald-500 h-3 rounded-full transition-all duration-1000" style="width: ${percentage}%"></div>
+                            </div>
+                            <div class="text-xs text-slate-400 mt-2 flex justify-between font-medium">
+                                <span>0 km</span>
+                                <span>Limite Sécurité Famille : 15 km</span>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+                `;
+            }).join('');
+            
+            lucide.createIcons(); // Rafraîchir les icônes injectées
+        }
+
+        // --- GÉNÉRATION DE LA CARTE ---
+        function closeTooltip() {
+            selectedLocId = null;
+            document.getElementById('map-tooltip').classList.add('hidden');
+            document.getElementById('map-instruction').style.opacity = '1';
+            renderMapMarkers();
+        }
+
+        function selectLocation(id) {
+            selectedLocId = id;
+            document.getElementById('map-instruction').style.opacity = '0';
+            
+            const loc = locations.find(l => l.id === id);
+            const dayInfo = itinerary.find(d => d.end === loc.name) || itinerary[0];
+            const isStart = loc.id === 0;
+
+            const tooltip = document.getElementById('map-tooltip');
+            
+            const highlightsHtml = dayInfo.highlights.map(h => `<li class="text-xs">${h}</li>`).join('');
+
+            tooltip.innerHTML = `
+                <button onclick="closeTooltip()" class="absolute top-2 right-2 text-slate-400 hover:text-slate-600">✕</button>
+                <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 block">
+                    ${isStart ? "Point de Départ" : `Fin de l'étape ${dayInfo.day}`}
+                </span>
+                <h3 class="text-lg font-bold text-slate-800 mb-3">${loc.name}</h3>
+                <div class="space-y-3">
+                    ${!isStart ? `
+                    <div class="flex gap-2 text-sm text-slate-600 bg-slate-50 p-2 rounded-lg">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-slate-400 shrink-0 mt-0.5"></i>
+                        <span>Arrivée depuis <strong>${dayInfo.start}</strong> (${dayInfo.distance}km)</span>
+                    </div>` : ''}
+                    <div class="flex gap-2 text-sm text-slate-600">
+                        <i data-lucide="home" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i>
+                        <span><strong>Logement :</strong> ${dayInfo.stay}</span>
+                    </div>
+                    <div class="flex gap-2 text-sm text-slate-600">
+                        <i data-lucide="camera" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i>
+                        <div>
+                            <strong>À voir sur ce segment :</strong>
+                            <ul class="mt-1 pl-2 border-l-2 border-blue-200 space-y-1">
+                                ${highlightsHtml}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            tooltip.classList.remove('hidden');
+            lucide.createIcons();
+            renderMapMarkers(); // Mettre à jour le style des marqueurs
+        }
+
+        function renderMap() {
+            const minLon = Math.min(...locations.map(l => l.lon));
+            const maxLon = Math.max(...locations.map(l => l.lon));
+            const minLat = Math.min(...locations.map(l => l.lat));
+            const maxLat = Math.max(...locations.map(l => l.lat));
+
+            const getX = (lon) => ((lon - minLon) / (maxLon - minLon)) * 70 + 15;
+            const getY = (lat) => ((maxLat - lat) / (maxLat - minLat)) * 70 + 15;
+
+            // Tracer la ligne SVG
+            const points = locations.map(l => `${getX(l.lon)},${getY(l.lat)}`).join(' ');
+            document.getElementById('trail-base').setAttribute('points', points);
+            document.getElementById('trail-animated').setAttribute('points', points);
+
+            // Créer les marqueurs (global scope pour l'accès)
+            window.getX = getX;
+            window.getY = getY;
+            
+            renderMapMarkers();
+        }
+
+        function renderMapMarkers() {
+            const container = document.getElementById('map-markers');
+            container.innerHTML = locations.map(loc => {
+                const isSelected = selectedLocId === loc.id;
+                const x = window.getX(loc.lon);
+                const y = window.getY(loc.lat);
+                
+                const btnClass = isSelected 
+                    ? 'bg-amber-400 border-amber-600 scale-125 ring-4 ring-amber-400/20' 
+                    : 'bg-white border-emerald-600 hover:scale-125 hover:bg-emerald-50';
+                
+                const labelClass = isSelected
+                    ? 'bg-amber-50 text-amber-900 border-amber-200 z-20'
+                    : 'bg-white/90 text-slate-700 border-slate-200 group-hover:border-emerald-300';
+
+                return `
+                <div class="absolute pointer-events-auto" style="left: ${x}%; top: ${y}%;">
+                    <div class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group">
+                        <button onclick="selectLocation(${loc.id})" class="w-5 h-5 rounded-full border-[3px] shadow-md transition-all duration-200 z-20 relative ${btnClass}"></button>
+                        <span class="mt-2 px-2 py-1 rounded-md text-xs font-bold shadow-sm transition-colors whitespace-nowrap border ${labelClass}">
+                            ${loc.name}
+                        </span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // --- INITIALISATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons(); // Initialiser les icônes de base
+            renderItinerary();
+            renderMap();
+        });
+
+    </script>
+</body>
+</html>
