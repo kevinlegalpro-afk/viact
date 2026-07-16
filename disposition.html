@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concepteur d'Espace - Le Café Apprenant</title>
+    
+    <!-- Polices -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icônes Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        foret: { blanc: '#F4F5F2', vert: '#294537', ocre: '#C08D38', noir: '#1F2220' }
+                    },
+                    fontFamily: { hanken: ['"Hanken Grotesk"', 'sans-serif'], newsreader: ['"Newsreader"', 'serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --color-blanc: #F4F5F2; --color-vert: #294537; --color-ocre: #C08D38; --color-noir: #1F2220;
+        }
+
+        body {
+            background-color: var(--color-blanc); color: var(--color-noir); fontFamily: 'Hanken Grotesk', sans-serif; overflow: hidden;
+        }
+        h1, h2, h3, .font-serif { font-family: 'Newsreader', serif; }
+
+        /* Grille architecturale du plan */
+        #room-canvas {
+            background-color: #FAFAF8;
+            background-image: 
+                linear-gradient(rgba(41, 69, 55, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(41, 69, 55, 0.1) 1px, transparent 1px),
+                linear-gradient(rgba(41, 69, 55, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(41, 69, 55, 0.05) 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.05);
+            position: relative; touch-action: none;
+        }
+
+        /* Conteneur de meuble sur le plan */
+        .furniture {
+            position: absolute; cursor: grab; touch-action: none; z-index: 10;
+            transform-origin: center center;
+            /* Ombre portée réaliste de base */
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.15));
+            transition: filter 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .furniture:hover { filter: drop-shadow(3px 6px 8px rgba(0,0,0,0.2)) brightness(1.02); }
+
+        .furniture:active {
+            cursor: grabbing; z-index: 50 !important; transition: none;
+            /* Ombre "décollée" pendant le drag */
+            filter: drop-shadow(5px 15px 15px rgba(0,0,0,0.3)) brightness(1.05);
+        }
+
+        /* Styles spécifiques à la palette latérale */
+        #palette .furniture {
+            position: relative; margin: 0 auto; transform-origin: center;
+            filter: none !important; /* Pas d'ombre dans la palette */
+        }
+        #palette .furniture:hover { transform: scale(1.05); }
+
+        /* Zone poubelle */
+        #trash-zone { transition: all 0.2s ease; }
+        #trash-zone.active { background-color: rgba(220, 38, 38, 0.1); border-color: #dc2626; color: #dc2626; }
+
+        /* Styles d'impression */
+        @media print {
+            body { background: white; }
+            #sidebar, #header-controls, .no-print { display: none !important; }
+            #main-container { padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100vh !important; }
+            #room-canvas {
+                width: 100% !important; height: 100% !important; border: 2px solid #1F2220 !important; box-shadow: none !important;
+                background-image: linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px) !important;
+                background-size: 100px 100px, 100px 100px !important;
+            }
+            /* Aplatir les ombres pour l'impression plan */
+            .furniture { filter: none !important; }
+            @page { size: landscape; margin: 1cm; }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col antialiased">
+
+    <!-- En-tête -->
+    <header id="header-controls" class="bg-foret-vert text-foret-blanc px-6 py-4 flex justify-between items-center shadow-md z-20">
+        <div>
+            <h1 class="text-2xl font-semibold tracking-wide">Studio d'Architecture</h1>
+            <p class="text-sm text-foret-blanc/80 font-hanken">Design d'espace d'apprentissage</p>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="clearRoom()" class="flex items-center gap-2 px-4 py-2 bg-transparent border border-foret-blanc hover:bg-foret-blanc hover:text-foret-vert transition-colors rounded font-medium text-sm">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                Vider la pièce
+            </button>
+            <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-foret-ocre text-foret-noir hover:bg-yellow-600 transition-colors rounded font-medium shadow-sm text-sm">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+                Imprimer le plan
+            </button>
+        </div>
+    </header>
+
+    <!-- Conteneur Principal -->
+    <div id="main-container" class="flex flex-1 overflow-hidden">
+        
+        <!-- Palette Latérale -->
+        <aside id="sidebar" class="w-80 bg-foret-blanc border-r border-gray-300 flex flex-col shadow-[4px_0_15px_rgba(0,0,0,0.05)] z-10">
+            <div class="p-5 border-b border-gray-200">
+                <h2 class="text-xl text-foret-vert font-semibold">Catalogue Mobilier</h2>
+                <p class="text-xs text-gray-500 mt-1">Vues en plan architectural. Glissez pour placer, double-cliquez pour pivoter.</p>
+            </div>
+            
+            <!-- Le conteneur de la palette sera généré par Javascript -->
+            <div id="palette" class="flex-1 overflow-y-auto p-5 grid grid-cols-2 gap-6 content-start items-end">
+                <!-- Généré dynamiquement -->
+            </div>
+
+            <!-- Zone de suppression -->
+            <div id="trash-zone" class="p-6 border-t border-gray-300 text-center flex flex-col items-center justify-center gap-2 text-gray-400 bg-gray-50">
+                <i data-lucide="trash-2" class="w-6 h-6"></i>
+                <span class="text-xs">Glissez ici pour supprimer</span>
+            </div>
+        </aside>
+
+        <!-- Zone de Dessin (Plan) -->
+        <main class="flex-1 bg-gray-100 p-8 relative">
+            <div id="room-canvas" class="w-full h-full border-4 border-foret-noir rounded-lg relative overflow-hidden">
+                <!-- Les meubles apparaîtront ici -->
+                <div class="absolute bottom-4 right-4 text-foret-vert/50 font-serif text-2xl font-bold pointer-events-none select-none">
+                    Zone d'Apprentissage
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script logique -->
+    <script>
+        lucide.createIcons();
+
+        // DEFINITION DES MEUBLES (SVG "Quali")
+        // w/h: dimensions réelles sur le plan. scaleInPalette: zoom pour le menu.
+        const furnitureDef = {
+            'f-table-ronde': { 
+                w: 80, h: 80, label: 'Table Ronde', colSpan: 1, scaleInPalette: 0.8,
+                svg: `<svg viewBox="0 0 80 80" class="w-full h-full"><circle cx="40" cy="40" r="38" fill="#F4F5F2" stroke="#1F2220" stroke-width="2"/><circle cx="40" cy="40" r="32" fill="none" stroke="#1F2220" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.4"/></svg>` 
+            },
+            'f-table-rect': { 
+                w: 120, h: 70, label: 'Table Rect.', colSpan: 2, scaleInPalette: 0.7,
+                svg: `<svg viewBox="0 0 120 70" class="w-full h-full"><rect x="2" y="2" width="116" height="66" rx="4" fill="#F4F5F2" stroke="#1F2220" stroke-width="2"/><rect x="8" y="8" width="104" height="54" rx="2" fill="none" stroke="#1F2220" stroke-width="0.5" opacity="0.4"/></svg>` 
+            },
+            'f-chaise': { 
+                w: 45, h: 45, label: 'Chaise', colSpan: 1, scaleInPalette: 0.9,
+                svg: `<svg viewBox="0 0 45 45" class="w-full h-full"><path d="M 5 15 C 5 2, 40 2, 40 15 L 38 22 L 7 22 Z" fill="#294537" stroke="#1F2220" stroke-width="2"/><rect x="8" y="16" width="29" height="24" rx="4" fill="#F4F5F2" stroke="#1F2220" stroke-width="2"/></svg>` 
+            },
+            'f-pouf': { 
+                w: 45, h: 45, label: 'Pouf', colSpan: 1, scaleInPalette: 0.9,
+                svg: `<svg viewBox="0 0 45 45" class="w-full h-full"><circle cx="22.5" cy="22.5" r="20.5" fill="#C08D38" stroke="#1F2220" stroke-width="2"/><circle cx="22.5" cy="22.5" r="12" fill="none" stroke="#1F2220" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/><path d="M 22.5 2 L 22.5 10 M 22.5 43 L 22.5 35 M 2 22.5 L 10 22.5 M 43 22.5 L 35 22.5" stroke="#1F2220" stroke-width="1" opacity="0.5"/></svg>` 
+            },
+            'f-canape': { 
+                w: 140, h: 70, label: 'Canapé Lounge', colSpan: 2, scaleInPalette: 0.65,
+                svg: `<svg viewBox="0 0 140 70" class="w-full h-full"><rect x="2" y="2" width="136" height="66" rx="6" fill="#C08D38" stroke="#1F2220" stroke-width="2"/><rect x="14" y="18" width="35" height="48" rx="4" fill="#dfa84a" stroke="#1F2220" stroke-width="1.5"/><rect x="52.5" y="18" width="35" height="48" rx="4" fill="#dfa84a" stroke="#1F2220" stroke-width="1.5"/><rect x="91" y="18" width="35" height="48" rx="4" fill="#dfa84a" stroke="#1F2220" stroke-width="1.5"/><rect x="2" y="10" width="12" height="56" rx="4" fill="#C08D38" stroke="#1F2220" stroke-width="2"/><rect x="126" y="10" width="12" height="56" rx="4" fill="#C08D38" stroke="#1F2220" stroke-width="2"/></svg>` 
+            },
+            'f-comptoir': { 
+                w: 240, h: 70, label: 'Comptoir / Bar', colSpan: 2, scaleInPalette: 0.45,
+                svg: `<svg viewBox="0 0 240 70" class="w-full h-full"><rect x="2" y="2" width="236" height="66" rx="4" fill="#1F2220" stroke="#294537" stroke-width="2"/><rect x="8" y="8" width="224" height="35" rx="2" fill="#F4F5F2" stroke="#1F2220" stroke-width="1.5"/><rect x="30" y="12" width="45" height="25" rx="3" fill="#C08D38" stroke="#1F2220" stroke-width="1.5"/><circle cx="42" cy="24" r="5" fill="#1F2220"/><circle cx="60" cy="24" r="5" fill="#1F2220"/><rect x="160" y="12" width="50" height="25" rx="4" fill="#e0e0e0" stroke="#1F2220" stroke-width="1.5"/><circle cx="185" cy="24" r="4" fill="#1F2220"/><path d="M 185 12 L 185 18" stroke="#1F2220" stroke-width="2"/></svg>` 
+            },
+            'f-plante': { 
+                w: 60, h: 60, label: 'Plante', colSpan: 1, scaleInPalette: 0.8,
+                svg: `<svg viewBox="0 0 60 60" class="w-full h-full"><circle cx="30" cy="30" r="18" fill="#1F2220" stroke="#F4F5F2" stroke-width="2"/><g stroke="#1F2220" stroke-width="1.5"><path d="M 30 30 Q 15 5 30 0 Q 45 5 30 30" fill="#294537"/><path d="M 30 30 Q 15 5 30 0 Q 45 5 30 30" fill="#294537" transform="rotate(72 30 30)"/><path d="M 30 30 Q 15 5 30 0 Q 45 5 30 30" fill="#294537" transform="rotate(144 30 30)"/><path d="M 30 30 Q 15 5 30 0 Q 45 5 30 30" fill="#294537" transform="rotate(216 30 30)"/><path d="M 30 30 Q 15 5 30 0 Q 45 5 30 30" fill="#294537" transform="rotate(288 30 30)"/></g><circle cx="30" cy="30" r="5" fill="#C08D38" stroke="#1F2220" stroke-width="1.5"/></svg>` 
+            }
+        };
+
+        const canvas = document.getElementById('room-canvas');
+        const palette = document.getElementById('palette');
+        const trashZone = document.getElementById('trash-zone');
+        let activeItem = null;
+        let startX, startY, initialLeft, initialTop;
+        let isDragging = false;
+
+        // Générer la palette dynamiquement
+        function buildPalette() {
+            for (const [type, data] of Object.entries(furnitureDef)) {
+                const itemContainer = document.createElement('div');
+                itemContainer.className = `flex flex-col items-center gap-3 ${data.colSpan === 2 ? 'col-span-2' : ''}`;
+                
+                const visualWrapper = document.createElement('div');
+                visualWrapper.className = 'flex items-center justify-center w-full h-20';
+                
+                const item = document.createElement('div');
+                item.className = `furniture palette-item`;
+                item.dataset.type = type;
+                item.style.width = `${data.w}px`;
+                item.style.height = `${data.h}px`;
+                item.style.transform = `scale(${data.scaleInPalette})`;
+                item.innerHTML = data.svg;
+
+                visualWrapper.appendChild(item);
+
+                const label = document.createElement('span');
+                label.className = 'text-xs font-medium text-foret-noir text-center';
+                label.innerText = data.label;
+
+                itemContainer.appendChild(visualWrapper);
+                itemContainer.appendChild(label);
+                palette.appendChild(itemContainer);
+
+                item.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    createAndDragItem(type, e);
+                });
+            }
+        }
+
+        // Créer un item et démarrer le drag immédiatement
+        function createAndDragItem(type, e) {
+            const data = furnitureDef[type];
+            const clone = document.createElement('div');
+            clone.className = `furniture room-item`;
+            clone.dataset.type = type;
+            clone.dataset.rotation = 0;
+            clone.style.width = `${data.w}px`;
+            clone.style.height = `${data.h}px`;
+            clone.innerHTML = data.svg;
+            
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left - (data.w / 2);
+            let y = e.clientY - rect.top - (data.h / 2);
+            
+            clone.style.left = `${x}px`;
+            clone.style.top = `${y}px`;
+            clone.style.transform = `rotate(0deg)`;
+
+            canvas.appendChild(clone);
+            setupItemInteractions(clone);
+            startDragging(e, clone);
+        }
+
+        function setupItemInteractions(item) {
+            item.addEventListener('pointerdown', (e) => startDragging(e, item));
+            item.addEventListener('dblclick', (e) => rotateItem(item));
+        }
+
+        // Drag & Drop Logique
+        function startDragging(e, item) {
+            e.preventDefault();
+            activeItem = item;
+            isDragging = true;
+
+            document.querySelectorAll('.room-item').forEach(el => el.style.zIndex = 10);
+            activeItem.style.zIndex = 50;
+
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = parseFloat(activeItem.style.left) || 0;
+            initialTop = parseFloat(activeItem.style.top) || 0;
+
+            document.addEventListener('pointermove', onDrag);
+            document.addEventListener('pointerup', stopDragging);
+        }
+
+        function onDrag(e) {
+            if (!isDragging || !activeItem) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            activeItem.style.left = `${initialLeft + dx}px`;
+            activeItem.style.top = `${initialTop + dy}px`;
+
+            const trashRect = trashZone.getBoundingClientRect();
+            const isOverTrash = e.clientX >= trashRect.left && e.clientX <= trashRect.right &&
+                                e.clientY >= trashRect.top && e.clientY <= trashRect.bottom;
+            trashZone.classList.toggle('active', isOverTrash);
+        }
+
+        function stopDragging(e) {
+            if (!isDragging || !activeItem) return;
+            document.removeEventListener('pointermove', onDrag);
+            document.removeEventListener('pointerup', stopDragging);
+            isDragging = false;
+
+            const trashRect = trashZone.getBoundingClientRect();
+            if (e.clientX >= trashRect.left && e.clientX <= trashRect.right &&
+                e.clientY >= trashRect.top && e.clientY <= trashRect.bottom) {
+                activeItem.remove();
+            } else {
+                const canvasRect = canvas.getBoundingClientRect();
+                let curL = parseFloat(activeItem.style.left);
+                let curT = parseFloat(activeItem.style.top);
+                if (curL < -20) activeItem.style.left = '0px';
+                if (curT < -20) activeItem.style.top = '0px';
+                if (curL > canvasRect.width - 20) activeItem.style.left = `${canvasRect.width - 50}px`;
+                if (curT > canvasRect.height - 20) activeItem.style.top = `${canvasRect.height - 50}px`;
+            }
+            trashZone.classList.remove('active');
+            activeItem = null;
+        }
+
+        function rotateItem(item) {
+            let currentRotation = parseInt(item.dataset.rotation) || 0;
+            currentRotation += 45;
+            item.dataset.rotation = currentRotation;
+            item.style.transform = `rotate(${currentRotation}deg)`;
+        }
+
+        function clearRoom() {
+            canvas.querySelectorAll('.room-item').forEach(item => item.remove());
+        }
+
+        function placeItem(type, x, y, rotation = 0) {
+            const data = furnitureDef[type];
+            if(!data) return;
+            const item = document.createElement('div');
+            item.className = `furniture room-item`;
+            item.dataset.type = type;
+            item.style.width = `${data.w}px`;
+            item.style.height = `${data.h}px`;
+            item.style.left = `${x}px`;
+            item.style.top = `${y}px`;
+            item.dataset.rotation = rotation;
+            item.style.transform = `rotate(${rotation}deg)`;
+            item.innerHTML = data.svg;
+            canvas.appendChild(item);
+            setupItemInteractions(item);
+        }
+
+        function initializeDefaultLayout() {
+            // --- Coin Salon & Détente (Haut Gauche) ---
+            placeItem('f-canape', 40, 40, 0); // Canapé haut
+            placeItem('f-canape', 40, 190, 180); // Canapé bas face au premier
+            placeItem('f-table-rect', 50, 115, 0); // Table basse centrale
+            placeItem('f-pouf', 180, 110, 0);
+            placeItem('f-pouf', 180, 160, 0);
+            placeItem('f-plante', 20, 20, 0);
+
+            // --- Comptoir / Bar (Haut Droite) ---
+            placeItem('f-comptoir', 450, 40, 0);
+            // Tabourets (chaises) face au bar
+            placeItem('f-chaise', 470, 115, 180);
+            placeItem('f-chaise', 530, 115, 180);
+            placeItem('f-chaise', 590, 115, 180);
+            placeItem('f-chaise', 650, 115, 180);
+            placeItem('f-plante', 700, 40, 0);
+
+            // --- Espace Coworking / Grande tablée (Centre) ---
+            placeItem('f-table-rect', 280, 250, 0); // Table gauche
+            placeItem('f-table-rect', 400, 250, 0); // Table droite collée
+            // Chaises en haut
+            placeItem('f-chaise', 290, 200, 0);
+            placeItem('f-chaise', 350, 200, 0);
+            placeItem('f-chaise', 420, 200, 0);
+            placeItem('f-chaise', 480, 200, 0);
+            // Chaises en bas
+            placeItem('f-chaise', 290, 325, 180);
+            placeItem('f-chaise', 350, 325, 180);
+            placeItem('f-chaise', 420, 325, 180);
+            placeItem('f-chaise', 480, 325, 180);
+
+            // --- Petites tables intimes (Bas Gauche) ---
+            placeItem('f-table-ronde', 60, 380, 0);
+            placeItem('f-chaise', 15, 395, 90);
+            placeItem('f-chaise', 145, 395, 270);
+            
+            placeItem('f-table-ronde', 60, 480, 0);
+            placeItem('f-chaise', 15, 495, 90);
+            placeItem('f-chaise', 145, 495, 270);
+
+            // --- Zone Réunion / Projet (Bas Droite) ---
+            placeItem('f-table-rect', 500, 450, 0);
+            placeItem('f-chaise', 510, 400, 0);
+            placeItem('f-chaise', 570, 400, 0);
+            placeItem('f-chaise', 510, 525, 180);
+            placeItem('f-chaise', 570, 525, 180);
+            placeItem('f-plante', 650, 450, 0);
+            placeItem('f-plante', 420, 450, 0);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            buildPalette();
+            initializeDefaultLayout();
+        });
+    </script>
+</body>
+</html>
+
