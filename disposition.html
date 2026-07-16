@@ -35,7 +35,7 @@
         }
 
         body {
-            background-color: var(--color-blanc); color: var(--color-noir); fontFamily: 'Hanken Grotesk', sans-serif; overflow: hidden;
+            background-color: var(--color-blanc); color: var(--color-noir); font-family: 'Hanken Grotesk', sans-serif; overflow: hidden;
         }
         h1, h2, h3, .font-serif { font-family: 'Newsreader', serif; }
 
@@ -50,47 +50,52 @@
             background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.05);
             position: relative; touch-action: none;
+            transition: transform 0.2s ease-out;
         }
 
         /* Conteneur de meuble sur le plan */
         .furniture {
             position: absolute; cursor: grab; touch-action: none; z-index: 10;
             transform-origin: center center;
-            /* Ombre portée réaliste de base */
             filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.15));
-            transition: filter 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: filter 0.2s ease;
         }
 
         .furniture:hover { filter: drop-shadow(3px 6px 8px rgba(0,0,0,0.2)) brightness(1.02); }
 
         .furniture:active {
             cursor: grabbing; z-index: 50 !important; transition: none;
-            /* Ombre "décollée" pendant le drag */
             filter: drop-shadow(5px 15px 15px rgba(0,0,0,0.3)) brightness(1.05);
         }
 
-        /* Styles spécifiques à la palette latérale */
+        /* Styles de la palette latérale */
         #palette .furniture {
             position: relative; margin: 0 auto; transform-origin: center;
-            filter: none !important; /* Pas d'ombre dans la palette */
+            filter: none !important;
         }
         #palette .furniture:hover { transform: scale(1.05); }
 
         /* Zone poubelle */
         #trash-zone { transition: all 0.2s ease; }
-        #trash-zone.active { background-color: rgba(220, 38, 38, 0.1); border-color: #dc2626; color: #dc2626; }
+        #trash-zone.active { background-color: rgba(220, 38, 38, 0.1); border-color: #dc2626; color: #dc2626; transform: scale(1.05) translateX(-50%); }
+
+        /* Masquer la scrollbar */
+        #scroll-container::-webkit-scrollbar { display: none; }
+        #scroll-container { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Styles d'impression */
         @media print {
             body { background: white; }
-            #sidebar, #header-controls, .no-print { display: none !important; }
+            #sidebar-wrapper, #header-controls, .no-print { display: none !important; }
             #main-container { padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100vh !important; }
+            #scroll-container { overflow: visible !important; position: static !important; }
             #room-canvas {
                 width: 100% !important; height: 100% !important; border: 2px solid #1F2220 !important; box-shadow: none !important;
                 background-image: linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px) !important;
                 background-size: 100px 100px, 100px 100px !important;
+                transform: scale(0.6) !important;
+                transform-origin: top left !important;
             }
-            /* Aplatir les ombres pour l'impression plan */
             .furniture { filter: none !important; }
             @page { size: landscape; margin: 1cm; }
         }
@@ -99,7 +104,7 @@
 <body class="h-screen w-screen flex flex-col antialiased">
 
     <!-- En-tête -->
-    <header id="header-controls" class="bg-foret-vert text-foret-blanc px-6 py-4 flex justify-between items-center shadow-md z-20">
+    <header id="header-controls" class="bg-foret-vert text-foret-blanc px-6 py-4 flex justify-between items-center shadow-md z-40 relative">
         <div>
             <h1 class="text-2xl font-semibold tracking-wide">Studio d'Architecture</h1>
             <p class="text-sm text-foret-blanc/80 font-hanken">Design d'espace d'apprentissage</p>
@@ -117,33 +122,55 @@
     </header>
 
     <!-- Conteneur Principal -->
-    <div id="main-container" class="flex flex-1 overflow-hidden">
+    <div id="main-container" class="flex flex-1 overflow-hidden relative">
         
-        <!-- Palette Latérale -->
-        <aside id="sidebar" class="w-80 bg-foret-blanc border-r border-gray-300 flex flex-col shadow-[4px_0_15px_rgba(0,0,0,0.05)] z-10">
-            <div class="p-5 border-b border-gray-200">
-                <h2 class="text-xl text-foret-vert font-semibold">Catalogue Mobilier</h2>
-                <p class="text-xs text-gray-500 mt-1">Vues en plan architectural. Glissez pour placer, double-cliquez pour pivoter.</p>
-            </div>
-            
-            <!-- Le conteneur de la palette sera généré par Javascript -->
-            <div id="palette" class="flex-1 overflow-y-auto p-5 grid grid-cols-2 gap-6 content-start items-end">
-                <!-- Généré dynamiquement -->
-            </div>
+        <!-- Palette Latérale (Pliable) -->
+        <div id="sidebar-wrapper" class="absolute top-0 bottom-0 left-0 z-30 flex transition-transform duration-300 -translate-x-80">
+            <aside id="sidebar" class="w-80 h-full bg-foret-blanc border-r border-gray-300 flex flex-col shadow-[4px_0_15px_rgba(0,0,0,0.1)]">
+                <div class="p-5 border-b border-gray-200">
+                    <h2 class="text-xl text-foret-vert font-semibold">Catalogue Mobilier</h2>
+                    <p class="text-xs text-gray-500 mt-1">Glissez pour placer, double-cliquez pour pivoter.</p>
+                </div>
+                <div id="palette" class="flex-1 overflow-y-auto p-5 grid grid-cols-2 gap-6 content-start items-end">
+                    <!-- Généré dynamiquement -->
+                </div>
+            </aside>
+            <button onclick="toggleSidebar()" id="sidebar-toggle" class="bg-foret-vert text-foret-blanc h-14 w-8 rounded-r-md flex items-center justify-center shadow-[4px_0_10px_rgba(0,0,0,0.1)] mt-6 hover:bg-[#1a2f25] transition-colors border-y border-r border-[#1a2f25]">
+                <i data-lucide="chevron-right" id="sidebar-icon"></i>
+            </button>
+        </div>
 
-            <!-- Zone de suppression -->
-            <div id="trash-zone" class="p-6 border-t border-gray-300 text-center flex flex-col items-center justify-center gap-2 text-gray-400 bg-gray-50">
-                <i data-lucide="trash-2" class="w-6 h-6"></i>
-                <span class="text-xs">Glissez ici pour supprimer</span>
-            </div>
-        </aside>
+        <!-- Zone de suppression flottante -->
+        <div id="trash-zone" class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/95 text-gray-400 px-6 py-4 rounded-xl shadow-lg border-2 border-transparent backdrop-blur-sm z-20 no-print">
+            <i data-lucide="trash-2" class="w-6 h-6"></i>
+            <span class="text-sm font-semibold tracking-wide">Glissez l'élément ici pour le supprimer</span>
+        </div>
 
-        <!-- Zone de Dessin (Plan) -->
-        <main class="flex-1 bg-gray-100 p-8 relative">
-            <div id="room-canvas" class="w-full h-full border-4 border-foret-noir rounded-lg relative overflow-hidden">
-                <!-- Les meubles apparaîtront ici -->
-                <div class="absolute bottom-4 right-4 text-foret-vert/50 font-serif text-2xl font-bold pointer-events-none select-none">
-                    Zone d'Apprentissage
+        <!-- Contrôles de Zoom et Navigation -->
+        <div class="absolute top-6 right-6 flex flex-col gap-2 z-20 bg-white/90 p-2 rounded-xl shadow-lg backdrop-blur-sm border border-gray-200 no-print">
+            <button onclick="setZoom(0.1)" class="p-2 hover:bg-gray-100 rounded text-foret-vert" title="Zoomer"><i data-lucide="zoom-in" class="w-5 h-5"></i></button>
+            <div class="w-full h-px bg-gray-200"></div>
+            <button onclick="setZoom(-0.1)" class="p-2 hover:bg-gray-100 rounded text-foret-vert" title="Dézoomer"><i data-lucide="zoom-out" class="w-5 h-5"></i></button>
+        </div>
+
+        <div class="absolute bottom-6 right-6 flex flex-col items-center gap-1 z-20 bg-white/90 p-3 rounded-xl shadow-lg backdrop-blur-sm border border-gray-200 no-print">
+            <button onclick="pan(0, -200)" class="p-2 hover:bg-gray-100 rounded text-foret-vert"><i data-lucide="chevron-up" class="w-6 h-6"></i></button>
+            <div class="flex gap-1">
+                <button onclick="pan(-200, 0)" class="p-2 hover:bg-gray-100 rounded text-foret-vert"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                <div class="w-10 h-10 flex items-center justify-center text-xs text-gray-400 font-bold" title="Centre">PLAN</div>
+                <button onclick="pan(200, 0)" class="p-2 hover:bg-gray-100 rounded text-foret-vert"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+            </div>
+            <button onclick="pan(0, 200)" class="p-2 hover:bg-gray-100 rounded text-foret-vert"><i data-lucide="chevron-down" class="w-6 h-6"></i></button>
+        </div>
+
+        <!-- Zone de Dessin (Viewport) -->
+        <main class="flex-1 bg-gray-200 relative overflow-hidden">
+            <div id="scroll-container" class="w-full h-full overflow-hidden absolute inset-0 scroll-smooth">
+                <!-- Canvas recadré (1200x850) pour être plus adapté -->
+                <div id="room-canvas" style="width: 1200px; height: 850px; transform-origin: top left; transform: scale(1);" class="border-4 border-foret-noir">
+                    <div class="absolute bottom-6 right-6 text-foret-vert/20 font-serif text-3xl font-bold pointer-events-none select-none">
+                        Espace Café Apprenant
+                    </div>
                 </div>
             </div>
         </main>
@@ -151,10 +178,38 @@
 
     <!-- Script logique -->
     <script>
-        lucide.createIcons();
+        // Gestion Panneau latéral
+        let isSidebarOpen = false;
+        function toggleSidebar() {
+            const wrapper = document.getElementById('sidebar-wrapper');
+            const icon = document.getElementById('sidebar-icon');
+            if (isSidebarOpen) {
+                wrapper.classList.add('-translate-x-80');
+                icon.setAttribute('data-lucide', 'chevron-right');
+                isSidebarOpen = false;
+            } else {
+                wrapper.classList.remove('-translate-x-80');
+                icon.setAttribute('data-lucide', 'chevron-left');
+                isSidebarOpen = true;
+            }
+            lucide.createIcons();
+        }
 
-        // DEFINITION DES MEUBLES (SVG "Quali")
-        // w/h: dimensions réelles sur le plan. scaleInPalette: zoom pour le menu.
+        // Gestion Zoom et Navigation (Pan)
+        let currentZoom = 1;
+        const scrollContainer = document.getElementById('scroll-container');
+        const canvas = document.getElementById('room-canvas');
+
+        function setZoom(delta) {
+            currentZoom = Math.max(0.4, Math.min(1.5, currentZoom + delta));
+            canvas.style.transform = `scale(${currentZoom})`;
+        }
+
+        function pan(dx, dy) {
+            scrollContainer.scrollBy({ left: dx, top: dy, behavior: 'smooth' });
+        }
+
+        // DEFINITION DES MEUBLES (SVGs)
         const furnitureDef = {
             'f-table-ronde': { 
                 w: 80, h: 80, label: 'Table Ronde', colSpan: 1, scaleInPalette: 0.8,
@@ -186,14 +241,12 @@
             }
         };
 
-        const canvas = document.getElementById('room-canvas');
         const palette = document.getElementById('palette');
         const trashZone = document.getElementById('trash-zone');
         let activeItem = null;
         let startX, startY, initialLeft, initialTop;
         let isDragging = false;
 
-        // Générer la palette dynamiquement
         function buildPalette() {
             for (const [type, data] of Object.entries(furnitureDef)) {
                 const itemContainer = document.createElement('div');
@@ -227,7 +280,6 @@
             }
         }
 
-        // Créer un item et démarrer le drag immédiatement
         function createAndDragItem(type, e) {
             const data = furnitureDef[type];
             const clone = document.createElement('div');
@@ -239,12 +291,11 @@
             clone.innerHTML = data.svg;
             
             const rect = canvas.getBoundingClientRect();
-            let x = e.clientX - rect.left - (data.w / 2);
-            let y = e.clientY - rect.top - (data.h / 2);
+            let x = (e.clientX - rect.left) / currentZoom - (data.w / 2);
+            let y = (e.clientY - rect.top) / currentZoom - (data.h / 2);
             
             clone.style.left = `${x}px`;
             clone.style.top = `${y}px`;
-            clone.style.transform = `rotate(0deg)`;
 
             canvas.appendChild(clone);
             setupItemInteractions(clone);
@@ -256,10 +307,11 @@
             item.addEventListener('dblclick', (e) => rotateItem(item));
         }
 
-        // Drag & Drop Logique
-        function startDragging(e, item) {
+        function startDragging(e) {
             e.preventDefault();
-            activeItem = item;
+            activeItem = e.target.closest('.room-item') || e.currentTarget;
+            if(!activeItem) return;
+            
             isDragging = true;
 
             document.querySelectorAll('.room-item').forEach(el => el.style.zIndex = 10);
@@ -276,15 +328,23 @@
 
         function onDrag(e) {
             if (!isDragging || !activeItem) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
+            const dx = (e.clientX - startX) / currentZoom;
+            const dy = (e.clientY - startY) / currentZoom;
             activeItem.style.left = `${initialLeft + dx}px`;
             activeItem.style.top = `${initialTop + dy}px`;
 
             const trashRect = trashZone.getBoundingClientRect();
             const isOverTrash = e.clientX >= trashRect.left && e.clientX <= trashRect.right &&
                                 e.clientY >= trashRect.top && e.clientY <= trashRect.bottom;
-            trashZone.classList.toggle('active', isOverTrash);
+            
+            if (isOverTrash) {
+                trashZone.classList.add('active');
+                trashZone.innerHTML = `<i data-lucide="trash-2" class="w-6 h-6"></i><span class="text-sm font-semibold tracking-wide">Relâchez pour supprimer</span>`;
+            } else {
+                trashZone.classList.remove('active');
+                trashZone.innerHTML = `<i data-lucide="trash-2" class="w-6 h-6"></i><span class="text-sm font-semibold tracking-wide">Glissez l'élément ici pour le supprimer</span>`;
+            }
+            lucide.createIcons();
         }
 
         function stopDragging(e) {
@@ -297,16 +357,12 @@
             if (e.clientX >= trashRect.left && e.clientX <= trashRect.right &&
                 e.clientY >= trashRect.top && e.clientY <= trashRect.bottom) {
                 activeItem.remove();
-            } else {
-                const canvasRect = canvas.getBoundingClientRect();
-                let curL = parseFloat(activeItem.style.left);
-                let curT = parseFloat(activeItem.style.top);
-                if (curL < -20) activeItem.style.left = '0px';
-                if (curT < -20) activeItem.style.top = '0px';
-                if (curL > canvasRect.width - 20) activeItem.style.left = `${canvasRect.width - 50}px`;
-                if (curT > canvasRect.height - 20) activeItem.style.top = `${canvasRect.height - 50}px`;
             }
+            
             trashZone.classList.remove('active');
+            trashZone.innerHTML = `<i data-lucide="trash-2" class="w-6 h-6"></i><span class="text-sm font-semibold tracking-wide">Glissez l'élément ici pour le supprimer</span>`;
+            lucide.createIcons();
+            
             activeItem = null;
         }
 
@@ -314,7 +370,12 @@
             let currentRotation = parseInt(item.dataset.rotation) || 0;
             currentRotation += 45;
             item.dataset.rotation = currentRotation;
-            item.style.transform = `rotate(${currentRotation}deg)`;
+            
+            const svg = item.querySelector('svg');
+            if (svg) {
+                svg.style.transform = `rotate(${currentRotation}deg)`;
+                svg.style.transition = `transform 0.2s ease`;
+            }
         }
 
         function clearRoom() {
@@ -332,68 +393,91 @@
             item.style.left = `${x}px`;
             item.style.top = `${y}px`;
             item.dataset.rotation = rotation;
-            item.style.transform = `rotate(${rotation}deg)`;
             item.innerHTML = data.svg;
+            
+            const svg = item.querySelector('svg');
+            if (svg) svg.style.transform = `rotate(${rotation}deg)`;
+
             canvas.appendChild(item);
             setupItemInteractions(item);
         }
 
         function initializeDefaultLayout() {
-            // --- Coin Salon & Détente (Haut Gauche) ---
-            placeItem('f-canape', 40, 40, 0); // Canapé haut
-            placeItem('f-canape', 40, 190, 180); // Canapé bas face au premier
-            placeItem('f-table-rect', 50, 115, 0); // Table basse centrale
-            placeItem('f-pouf', 180, 110, 0);
-            placeItem('f-pouf', 180, 160, 0);
-            placeItem('f-plante', 20, 20, 0);
+            // Décalage beaucoup plus faible pour ramener les meubles vers le haut-gauche
+            const ox = 80; 
+            const oy = 60;
 
-            // --- Comptoir / Bar (Haut Droite) ---
-            placeItem('f-comptoir', 450, 40, 0);
-            // Tabourets (chaises) face au bar
-            placeItem('f-chaise', 470, 115, 180);
-            placeItem('f-chaise', 530, 115, 180);
-            placeItem('f-chaise', 590, 115, 180);
-            placeItem('f-chaise', 650, 115, 180);
-            placeItem('f-plante', 700, 40, 0);
+            // Coin Salon
+            placeItem('f-canape', 40 + ox, 40 + oy, 0); 
+            placeItem('f-canape', 40 + ox, 190 + oy, 180); 
+            placeItem('f-table-rect', 50 + ox, 115 + oy, 0); 
+            placeItem('f-pouf', 180 + ox, 110 + oy, 0);
+            placeItem('f-pouf', 180 + ox, 160 + oy, 0);
+            placeItem('f-plante', 20 + ox, 20 + oy, 0);
 
-            // --- Espace Coworking / Grande tablée (Centre) ---
-            placeItem('f-table-rect', 280, 250, 0); // Table gauche
-            placeItem('f-table-rect', 400, 250, 0); // Table droite collée
-            // Chaises en haut
-            placeItem('f-chaise', 290, 200, 0);
-            placeItem('f-chaise', 350, 200, 0);
-            placeItem('f-chaise', 420, 200, 0);
-            placeItem('f-chaise', 480, 200, 0);
-            // Chaises en bas
-            placeItem('f-chaise', 290, 325, 180);
-            placeItem('f-chaise', 350, 325, 180);
-            placeItem('f-chaise', 420, 325, 180);
-            placeItem('f-chaise', 480, 325, 180);
+            // Bar
+            placeItem('f-comptoir', 450 + ox, 40 + oy, 0);
+            placeItem('f-chaise', 470 + ox, 115 + oy, 180);
+            placeItem('f-chaise', 530 + ox, 115 + oy, 180);
+            placeItem('f-chaise', 590 + ox, 115 + oy, 180);
+            placeItem('f-chaise', 650 + ox, 115 + oy, 180);
+            placeItem('f-plante', 700 + ox, 40 + oy, 0);
 
-            // --- Petites tables intimes (Bas Gauche) ---
-            placeItem('f-table-ronde', 60, 380, 0);
-            placeItem('f-chaise', 15, 395, 90);
-            placeItem('f-chaise', 145, 395, 270);
-            
-            placeItem('f-table-ronde', 60, 480, 0);
-            placeItem('f-chaise', 15, 495, 90);
-            placeItem('f-chaise', 145, 495, 270);
+            // Coworking
+            placeItem('f-table-rect', 280 + ox, 250 + oy, 0); 
+            placeItem('f-table-rect', 400 + ox, 250 + oy, 0); 
+            placeItem('f-chaise', 290 + ox, 200 + oy, 0);
+            placeItem('f-chaise', 350 + ox, 200 + oy, 0);
+            placeItem('f-chaise', 420 + ox, 200 + oy, 0);
+            placeItem('f-chaise', 480 + ox, 200 + oy, 0);
+            placeItem('f-chaise', 290 + ox, 325 + oy, 180);
+            placeItem('f-chaise', 350 + ox, 325 + oy, 180);
+            placeItem('f-chaise', 420 + ox, 325 + oy, 180);
+            placeItem('f-chaise', 480 + ox, 325 + oy, 180);
 
-            // --- Zone Réunion / Projet (Bas Droite) ---
-            placeItem('f-table-rect', 500, 450, 0);
-            placeItem('f-chaise', 510, 400, 0);
-            placeItem('f-chaise', 570, 400, 0);
-            placeItem('f-chaise', 510, 525, 180);
-            placeItem('f-chaise', 570, 525, 180);
-            placeItem('f-plante', 650, 450, 0);
-            placeItem('f-plante', 420, 450, 0);
+            // Tables intimes
+            placeItem('f-table-ronde', 60 + ox, 380 + oy, 0);
+            placeItem('f-chaise', 15 + ox, 395 + oy, 90);
+            placeItem('f-chaise', 145 + ox, 395 + oy, 270);
+            placeItem('f-table-ronde', 60 + ox, 480 + oy, 0);
+            placeItem('f-chaise', 15 + ox, 495 + oy, 90);
+            placeItem('f-chaise', 145 + ox, 495 + oy, 270);
+
+            // Zone Réunion
+            placeItem('f-table-rect', 500 + ox, 450 + oy, 0);
+            placeItem('f-chaise', 510 + ox, 400 + oy, 0);
+            placeItem('f-chaise', 570 + ox, 400 + oy, 0);
+            placeItem('f-chaise', 510 + ox, 525 + oy, 180);
+            placeItem('f-chaise', 570 + ox, 525 + oy, 180);
+            placeItem('f-plante', 650 + ox, 450 + oy, 0);
+            placeItem('f-plante', 420 + ox, 450 + oy, 0);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             buildPalette();
             initializeDefaultLayout();
+            
+            // Auto-ajustement du zoom pour s'assurer que tout rentre sur l'écran
+            setTimeout(() => {
+                const container = document.getElementById('scroll-container');
+                // Dimensions idéales pour englober la configuration initiale (+marges)
+                const requiredWidth = 950; 
+                const requiredHeight = 700;
+                
+                // Calcul du ratio disponible
+                const scaleX = container.clientWidth / requiredWidth;
+                const scaleY = container.clientHeight / requiredHeight;
+                
+                // Appliquer le zoom adéquat (sans jamais dépasser x1)
+                currentZoom = Math.max(0.4, Math.min(1.0, Math.min(scaleX, scaleY) * 0.95));
+                canvas.style.transform = `scale(${currentZoom})`;
+                
+                // Toujours se remettre en haut à gauche
+                container.scrollTo({ left: 0, top: 0, behavior: 'instant' });
+                
+                lucide.createIcons();
+            }, 50); // Léger délai pour s'assurer que le navigateur a mesuré l'écran
         });
     </script>
 </body>
 </html>
-
