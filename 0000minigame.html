@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salle 204 - travailler sa posture de formateur</title>
+<style>
+:root{
+  --nuit:#0c1618;
+  --nuit2:#121f22;
+  --sol:#33474a;
+  --sol2:#3a5053;
+  --mur:#1b2b2e;
+  --bois:#8a6236;
+  --bois2:#9b703e;
+  --papier:#fbf7ec;
+  --papier2:#efe7d5;
+  --encre:#1e2a2c;
+  --rouge:#c9433f;
+  --bleu:#2f6fa8;
+  --vert:#3f8f6a;
+  --ocre:#d99b34;
+  --clair:#e7ecea;
+  --gris:#93a6a5;
+  --mono: ui-monospace, "SF Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --main: "Bradley Hand", "Segoe Print", "Comic Sans MS", var(--mono);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1100px 700px at 50% -10%, #1b3033 0%, transparent 60%),
+    var(--nuit);
+  color:var(--clair);
+  font-family:var(--mono);
+  min-height:100vh;
+  padding:18px 14px 40px;
+}
+.wrap{max-width:1080px;margin:0 auto}
+
+/* ---------- entete ---------- */
+.bandeau{
+  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  border-bottom:2px solid var(--mur);padding-bottom:10px;margin-bottom:18px;
+}
+.bandeau h1{
+  font-size:clamp(20px,3.4vw,30px);margin:0;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+}
+.bandeau h1 span{color:var(--ocre)}
+.bandeau p{margin:0;color:var(--gris);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ---------- ecrans ---------- */
+.ecran{display:none}
+.ecran.actif{display:block;animation:apparait .35s ease}
+@keyframes apparait{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- intro ---------- */
+.brief{
+  background:var(--papier);color:var(--encre);
+  padding:26px 26px 22px;border-radius:2px;
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
+  max-width:640px;
+  position:relative;
+}
+.brief:before{
+  content:"";position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+  width:120px;height:22px;background:rgba(217,155,52,.55);
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
+}
+.brief h2{font-family:var(--serif);font-size:26px;margin:6px 0 14px;letter-spacing:.01em}
+.brief p{font-family:var(--serif);font-size:16px;line-height:1.62;margin:0 0 12px}
+.brief ul{font-family:var(--serif);font-size:15px;line-height:1.6;padding-left:18px;margin:0 0 16px}
+.brief li{margin-bottom:5px}
+.tampon{
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--rouge);border:1.5px solid var(--rouge);display:inline-block;padding:4px 8px;
+  transform:rotate(-2deg);
+}
+.btn{
+  font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  background:var(--encre);color:var(--papier);border:0;padding:14px 22px;cursor:pointer;
+  border-radius:2px;transition:transform .12s ease, background .2s ease;
+}
+.btn:hover{background:var(--rouge);transform:translateY(-1px)}
+.btn:focus-visible{outline:3px solid var(--ocre);outline-offset:2px}
+.btn.clair{background:var(--papier);color:var(--encre);border:2px solid var(--encre)}
+.btn.clair:hover{background:var(--ocre);color:var(--encre)}
+
+/* ---------- jeu ---------- */
+.plateau{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+@media(max-width:880px){.plateau{grid-template-columns:1fr}}
+
+.jauges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.jauge{background:var(--nuit2);border:1px solid var(--mur);padding:9px 10px;border-radius:2px}
+.jauge b{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gris);margin-bottom:7px}
+.barre{display:flex;gap:3px}
+.seg{flex:1;height:9px;background:#22343700;border:1px solid #2c4145;border-radius:1px}
+.seg.on{border-color:transparent}
+.j-cadre .seg.on{background:var(--bleu)}
+.j-lien .seg.on{background:var(--vert)}
+.j-energie .seg.on{background:var(--ocre)}
+
+.scene{position:relative;background:var(--mur);padding:10px;border-radius:2px;border:1px solid #24393c}
+#carte{
+  display:grid;gap:0;
+  grid-template-columns:repeat(13,1fr);
+  aspect-ratio:13/10;
+  user-select:none;
+}
+.case{position:relative;display:flex;align-items:center;justify-content:center;font-size:clamp(13px,2.6vw,25px);line-height:1}
+.case.sol{background:var(--sol)}
+.case.sol.alt{background:var(--sol2)}
+.case.mur{background:var(--mur);box-shadow:inset 0 -3px 0 rgba(0,0,0,.35)}
+.case.table{background:var(--bois);box-shadow:inset 0 3px 0 var(--bois2), inset 0 -3px 0 rgba(0,0,0,.3)}
+.case.cible{cursor:pointer}
+.case.cible:hover:after{content:"";position:absolute;inset:2px;border:2px dashed rgba(217,155,52,.85)}
+.pion{filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
+.hero{animation:pas .5s ease}
+@keyframes pas{from{transform:translateY(-4px) scale(.94)}to{transform:none}}
+.pnj.fini{opacity:.45}
+.badge{
+  position:absolute;top:2px;right:2px;width:11px;height:11px;border-radius:50%;
+  background:var(--vert);border:2px solid var(--mur);
+}
+.proche:after{content:"";position:absolute;inset:1px;border:2px solid var(--ocre);animation:clign 1.1s infinite}
+@keyframes clign{50%{border-color:transparent}}
+
+.info{
+  margin-top:10px;font-size:11px;letter-spacing:.09em;color:var(--gris);
+  min-height:18px;text-transform:uppercase;
+}
+.info em{color:var(--ocre);font-style:normal}
+
+/* ---------- panneau droit ---------- */
+.panneau{background:var(--nuit2);border:1px solid var(--mur);padding:16px;border-radius:2px}
+.panneau h3{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gris);margin:0 0 12px}
+.liste{list-style:none;margin:0;padding:0}
+.liste li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #1f3134}
+.liste li:first-child{border-top:0}
+.liste .av{font-size:19px;line-height:1.1}
+.liste .nom{font-size:13px;font-weight:700}
+.liste .rl{font-size:10px;color:var(--gris);letter-spacing:.08em;text-transform:uppercase}
+.liste li.ok .nom{color:var(--vert);text-decoration:line-through}
+.liste li.ok .av{opacity:.5}
+
+.pad{display:none;margin-top:14px;justify-content:center;gap:6px}
+.pad div{display:flex;gap:6px}
+.pad button{
+  width:54px;height:46px;background:var(--nuit2);border:1px solid #2c4145;color:var(--clair);
+  font-size:17px;border-radius:3px;cursor:pointer;
+}
+.pad button:active{background:var(--bleu)}
+@media(hover:none){.pad{display:flex;flex-direction:column;align-items:center}}
+
+/* ---------- dialogue ---------- */
+.voile{
+  position:fixed;inset:0;z-index:50;background:rgba(8,16,18,.9);
+  display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;
+}
+.voile.cache{display:none}
+.boite{
+  background:var(--papier);color:var(--encre);width:100%;max-width:620px;
+  border-radius:2px;box-shadow:0 14px 40px rgba(0,0,0,.6);
+  max-height:92vh;overflow-y:auto;
+  animation:monte .22s ease;
+}
+@keyframes monte{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.tete{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--encre);color:var(--papier)}
+.tete .av{font-size:24px}
+.tete .nom{font-size:14px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.tete .rl{font-size:10px;color:var(--ocre);letter-spacing:.14em;text-transform:uppercase}
+.corps{padding:18px 18px 6px}
+.replique{font-family:var(--serif);font-size:17px;line-height:1.6;margin:0 0 6px}
+.didasc{font-family:var(--mono);font-size:11px;color:#6d7d7c;letter-spacing:.05em;margin:0 0 14px}
+.choix{list-style:none;margin:0;padding:0 18px 18px}
+.choix li{margin-bottom:8px}
+.choix button{
+  width:100%;text-align:left;font-family:var(--serif);font-size:15.5px;line-height:1.45;
+  background:var(--papier2);border:1px solid #d5c9b0;border-left:5px solid var(--encre);
+  padding:11px 13px;cursor:pointer;color:var(--encre);border-radius:2px;transition:.14s;
+}
+.choix button:hover{border-left-color:var(--rouge);background:#fff;transform:translateX(3px)}
+.choix button:focus-visible{outline:3px solid var(--ocre);outline-offset:1px}
+
+.retour{padding:0 18px 18px}
+.deltas{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 14px}
+.chip{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:2px;color:#fff}
+.chip.plus{background:var(--vert)}
+.chip.moins{background:var(--rouge)}
+.chip.zero{background:#9aa3a2}
+.note{
+  background:#fffdf6;border:1px solid #e2d8c0;padding:14px 16px;transform:rotate(-.5deg);
+  box-shadow:2px 3px 0 rgba(30,42,44,.09);margin-bottom:14px;
+}
+.note b{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--rouge);display:block;margin-bottom:7px}
+.note p{font-family:var(--main);font-size:17px;line-height:1.5;margin:0;color:#243133}
+
+/* ---------- fin ---------- */
+.bilan{background:var(--papier);color:var(--encre);padding:28px;border-radius:2px;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.bilan h2{font-family:var(--serif);font-size:28px;margin:0 0 4px}
+.rang{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;background:var(--encre);color:var(--papier);padding:6px 12px;margin-bottom:18px}
+.score{font-family:var(--serif);font-size:15px;line-height:1.6;margin:0 0 18px}
+.notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:22px}
+.jaugefin{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 20px}
+.jaugefin div{border:1px solid #d5c9b0;padding:9px 11px}
+.jaugefin b{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#6d7d7c}
+.jaugefin span{font-family:var(--serif);font-size:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bandeau">
+    <h1>Salle <span>204</span></h1>
+    <p>Travailler sa posture de formateur</p>
+  </div>
+
+  <!-- INTRO -->
+  <section id="ecran-intro" class="ecran actif">
+    <div class="brief">
+      <span class="tampon">Jour 1 / 8h42</span>
+      <h2>Vous animez aujourd'hui.</h2>
+      <p>Quatorze personnes, deux jours, un sujet qu'elles n'ont pas choisi. Le café est tiède et le vidéoprojecteur met huit minutes à démarrer.</p>
+      <p>Rien de tout ça ne se joue dans votre diaporama. Ça se joue dans la façon dont vous allez répondre aux six personnes qui vous attendent dans la salle.</p>
+      <ul>
+        <li>Déplacez vous avec les flèches, ZQSD ou en cliquant sur le sol.</li>
+        <li>Approchez un personnage et appuyez sur E pour lui parler.</li>
+        <li>Chaque réponse fait bouger trois jauges : cadre, lien, énergie.</li>
+        <li>Six échanges, puis le débrief de fin de journée.</li>
+      </ul>
+      <button class="btn" id="go">Entrer en salle</button>
+    </div>
+  </section>
+
+  <!-- JEU -->
+  <section id="ecran-jeu" class="ecran">
+    <div class="jauges">
+      <div class="jauge j-cadre"><b>Cadre</b><div class="barre" id="b-cadre"></div></div>
+      <div class="jauge j-lien"><b>Lien</b><div class="barre" id="b-lien"></div></div>
+      <div class="jauge j-energie"><b>Énergie du groupe</b><div class="barre" id="b-energie"></div></div>
+    </div>
+
+    <div class="plateau">
+      <div>
+        <div class="scene">
+          <div id="carte"></div>
+          <div class="voile cache" id="voile">
+            <div class="boite" id="boite"></div>
+          </div>
+        </div>
+        <div class="info" id="info"></div>
+        <div class="pad">
+          <div><button data-dir="0,-1">▲</button></div>
+          <div>
+            <button data-dir="-1,0">◀</button>
+            <button data-dir="parler">E</button>
+            <button data-dir="1,0">▶</button>
+          </div>
+          <div><button data-dir="0,1">▼</button></div>
+        </div>
+      </div>
+
+      <aside class="panneau">
+        <h3>Qui reste à voir</h3>
+        <ul class="liste" id="liste"></ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- FIN -->
+  <section id="ecran-fin" class="ecran"></section>
+</div>
+
+<script>
+"use strict";
+
+/* ============ CARTE ============ */
+const MAP = [
+  "#############",
+  "#...........#",
+  "#.TT...TT...#",
+  "#.TT...TT...#",
+  "#...........#",
+  "#.TT...TT...#",
+  "#.TT...TT...#",
+  "#...........#",
+  "#...........#",
+  "#############"
+];
+const W = MAP[0].length;
+const H = MAP.length;
+
+function bloque(x, y){
+  if(x < 0 || y < 0 || x >= W || y >= H) return true;
+  const c = MAP[y][x];
+  return c === "#" || c === "T";
+}
+
+/* ============ PERSONNAGES ============ */
+const PNJ = [
+  {
+    id:"karim", nom:"Karim", role:"L'obligé", av:"🙍‍♂️", x:2, y:4,
+    beats:{
+      start:{
+        didasc:"Bras croisés, dernier rang, veste encore sur le dos.",
+        texte:"Je vous préviens tout de suite, je n'ai rien demandé. C'est mon chef qui m'a inscrit. J'ai un chantier qui tourne sans moi pendant ce temps là.",
+        choix:[
+          {t:"« Je comprends, on va essayer de faire vite alors. »", d:[-2,1,-1], go:"b2",
+           k:"Acheter la paix en bradant le contenu, c'est dire au groupe entier que la formation ne vaut pas le temps qu'elle prend."},
+          {t:"« Merci de le dire tout de suite. Qu'est ce qui vous serait utile pour que ces deux jours ne soient pas du temps perdu ? »", d:[2,3,2], go:"b2",
+           k:"Accueillir la résistance sans la discuter, puis la transformer en demande. Le refus devient un point d'accroche."},
+          {t:"« La formation est obligatoire, on va faire avec. »", d:[1,-2,-1], go:"b2",
+           k:"Le cadre tient, mais la porte est fermée. Karim restera assis et absent pendant deux jours."}
+        ]
+      },
+      b2:{
+        didasc:"Il décroise les bras de quelques centimètres.",
+        texte:"Franchement ? Que ça serve à quelque chose sur le terrain. Le reste, les modèles, les schémas, ça ne m'intéresse pas.",
+        choix:[
+          {t:"« Notez le sur un post it, on l'affiche au mur. En fin de journée on regarde ensemble si on y a répondu. »", d:[2,2,2], go:null,
+           k:"Rendre l'attente visible et vérifiable. Un besoin affiché engage le formateur autant que le participant."},
+          {t:"« Vous verrez, tout est utile. »", d:[0,-1,-1], go:null,
+           k:"La promesse creuse ne coûte rien à dire et rapporte zéro crédit. Elle sera vérifiée avant midi."},
+          {t:"« On verra bien. »", d:[-1,-1,-1], go:null,
+           k:"Ne rien faire d'une demande explicite, c'est apprendre au groupe que parler ne sert à rien ici."}
+        ]
+      }
+    }
+  },
+  {
+    id:"sophie", nom:"Sophie", role:"L'experte", av:"🙋‍♀️", x:8, y:4,
+    beats:{
+      start:{
+        didasc:"Elle vous coupe au milieu d'une phrase, devant tout le monde.",
+        texte:"Alors, ce que vous venez de dire sur la reformulation, ce n'est pas tout à fait exact. J'ai suivi un cursus de trois ans là dessus.",
+        choix:[
+          {t:"« Vous avez sûrement raison, je me suis mal exprimé, pardon. »", d:[-2,1,-1], go:"b2",
+           k:"S'excuser trop vite fait vaciller le cadre. Le groupe se demande aussitôt qui pilote la salle."},
+          {t:"« Ce n'est pas ce que disent les travaux sur le sujet. On reste sur ma définition. »", d:[1,-2,-2], go:"b2",
+           k:"Le bras de fer public, même gagné, coûte plus cher qu'il ne rapporte. Vous y perdez le reste du groupe."},
+          {t:"« Il y a plusieurs écoles là dessus. Donnez nous la vôtre en une minute, on regarde ensemble ce que ça change en pratique. »", d:[3,2,2], go:"b2",
+           k:"Basse sur le savoir, haute sur le cadre. Vous ne défendez pas votre ego, vous gardez la main sur le déroulé."}
+        ]
+      },
+      b2:{
+        didasc:"Elle referme son classeur, un peu trop fort.",
+        texte:"De toute façon je crois que je vais m'ennuyer aujourd'hui. Je connais déjà les trois quarts du programme.",
+        choix:[
+          {t:"« Vous acceptez d'être ma binôme sur l'exercice de l'après midi, pour épauler ceux qui débutent ? »", d:[3,3,2], go:null,
+           k:"Donner un rôle à l'expert. Ce qui gêne debout devient une ressource quand ça a une place assise."},
+          {t:"« Sortez votre ordinateur si vous voulez, je ne vous en voudrai pas. »", d:[-2,0,-2], go:null,
+           k:"L'autoriser à décrocher, c'est l'exclure poliment. Et le groupe enregistre que décrocher est une option."},
+          {t:"« Personne ne s'ennuie dans mes formations. »", d:[-1,-2,-1], go:null,
+           k:"Répondre à une inquiétude par une vantardise ferme la conversation au lieu de l'ouvrir."}
+        ]
+      }
+    }
+  },
+  {
+    id:"lucas", nom:"Lucas", role:"Le silencieux", av:"🧑‍🦱", x:11, y:6,
+    beats:{
+      start:{
+        didasc:"Dernier rang, capuche, téléphone sous la table depuis vingt minutes.",
+        texte:"...",
+        choix:[
+          {t:"« Lucas, le téléphone, merci. » (devant tout le monde)", d:[1,-3,-1], go:"b2",
+           k:"Recadrer en public gagne trois secondes d'autorité et perd la personne pour la journée."},
+          {t:"Pendant l'exercice, vous vous approchez et vous demandez à voix basse : « Ça va ? Le rythme te convient ? »", d:[2,3,1], go:"b2",
+           k:"Réguler en individuel, valoriser en collectif. La règle marche presque toujours dans ce sens là."},
+          {t:"Vous ne dites rien, ce n'est pas si grave.", d:[-2,0,-1], go:"b2",
+           k:"Ne rien voir est aussi un message. Le groupe apprend que le cadre est décoratif."}
+        ]
+      },
+      b2:{
+        didasc:"Il enlève un écouteur.",
+        texte:"En vrai je comprends rien depuis ce matin. Et j'ose pas demander devant les autres, ils ont tous dix ans de métier.",
+        choix:[
+          {t:"« Tu aurais dû le dire plus tôt, on a perdu deux heures. »", d:[-1,-3,-1], go:null,
+           k:"Culpabiliser quelqu'un qui vient d'oser parler garantit qu'il ne parlera plus."},
+          {t:"« Merci de me le dire. On reprend deux minutes ensemble, et je vais ralentir pour tout le monde. Tu n'es sûrement pas le seul. »", d:[3,3,2], go:null,
+           k:"Transformer une difficulté individuelle en régulation collective, sans désigner la personne."},
+          {t:"« Regarde sur ton voisin, il a compris, lui. »", d:[-2,-2,-1], go:null,
+           k:"Renvoyer au voisin, c'est renvoyer la personne à sa honte. Rien n'est appris là dedans."}
+        ]
+      }
+    }
+  },
+  {
+    id:"nathalie", nom:"Nathalie", role:"La bavarde", av:"👩‍💼", x:5, y:2,
+    beats:{
+      start:{
+        didasc:"Quatrième anecdote sur son ancienne entreprise. Il est 10h20.",
+        texte:"Ah mais ça me rappelle exactement ce qu'on vivait chez mon ancien employeur, je vous raconte, c'était vraiment incroyable, on avait un directeur qui...",
+        choix:[
+          {t:"Vous la coupez net. « Bon. On avance. »", d:[1,-2,0], go:"b2",
+           k:"Couper sec règle le symptôme et abîme la relation. Nathalie se taira, et les autres aussi."},
+          {t:"« J'note votre exemple au tableau, il illustre bien le point. On en garde un par personne pour que chacun ait sa place. »", d:[3,2,2], go:"b2",
+           k:"Réguler sans humilier : rendre la règle visible, et valable pour tout le monde, pas seulement pour elle."},
+          {t:"Vous la laissez finir en regardant discrètement l'horloge.", d:[-2,0,-2], go:"b2",
+           k:"Le groupe voit toujours l'horloge que vous regardez. Ne pas trancher, c'est trancher contre les autres."}
+        ]
+      },
+      b2:{
+        didasc:"Elle baisse un peu la voix.",
+        texte:"Ah pardon, je parle trop, c'est ce qu'on me dit tout le temps au boulot.",
+        choix:[
+          {t:"« Non non, pas du tout, continuez. »", d:[-1,1,-1], go:null,
+           k:"Le mensonge poli soulage sur le moment et vous prive de l'accord que vous alliez pouvoir passer."},
+          {t:"« Vous apportez de la matière et c'est précieux. Je vous demande juste de me laisser distribuer la parole. On est d'accord ? »", d:[3,3,1], go:null,
+           k:"Nommer la qualité, poser la limite, demander l'accord. Trois temps, une seule phrase."},
+          {t:"« Un peu, oui. »", d:[0,-3,-1], go:null,
+           k:"La franchise sans égard n'est pas de la clarté, c'est un coup. Elle ne rouvrira plus la bouche."}
+        ]
+      }
+    }
+  },
+  {
+    id:"claire", nom:"Claire", role:"La commanditaire", av:"👩‍🦰", x:11, y:1,
+    beats:{
+      start:{
+        didasc:"Pause de 11h, dans le couloir, gobelet à la main.",
+        texte:"Alors, ils sont comment ? Vous me direz qui décroche, hein. J'ai besoin de savoir qui joue le jeu et qui fait de la figuration.",
+        choix:[
+          {t:"« Il y en a deux ou trois qui ne font aucun effort, je vous ferai la liste. »", d:[-3,-3,-1], go:"b2",
+           k:"Un seul mot qui revient en salle et plus personne ne prend le risque de dire qu'il ne comprend pas."},
+          {t:"« Je vous ferai un retour sur le groupe et sur les besoins que je repère. Sur les personnes, ce qui se dit en salle reste en salle. »", d:[3,3,1], go:"b2",
+           k:"La confidentialité n'est pas une politesse, c'est la condition matérielle pour que les gens osent."},
+          {t:"« Je ne peux rien vous dire. »", d:[1,-1,0], go:"b2",
+           k:"Le principe est bon, la manière laisse la commanditaire sans réponse. Expliquer coûte dix secondes."}
+        ]
+      },
+      b2:{
+        didasc:"Elle regarde son téléphone tout en vous parlant.",
+        texte:"Ce qui compte surtout, c'est qu'ils appliquent la nouvelle procédure dès lundi matin. C'est pour ça qu'on a payé.",
+        choix:[
+          {t:"« Aucun souci, ce sera fait. »", d:[-2,0,-1], go:null,
+           k:"Promettre un résultat qui ne dépend pas de vous, c'est préparer la déception de tout le monde."},
+          {t:"« En deux jours ils sauront le faire en salle. Pour lundi, il faudra que les managers relaient. On se cale un point à trois semaines ? »", d:[3,2,1], go:null,
+           k:"Recadrer la commande : distinguer ce que la formation produit et ce que seul le terrain peut produire."},
+          {t:"« Ce n'est pas mon problème, moi je forme. »", d:[0,-3,0], go:null,
+           k:"Se couper du contexte, c'est se priver de tout appui après la formation."}
+        ]
+      }
+    }
+  },
+  {
+    id:"groupe", nom:"Le groupe", role:"14h05", av:"👥", x:6, y:7,
+    beats:{
+      start:{
+        didasc:"Retour de déjeuner. Trois personnes bâillent, deux regardent par la fenêtre.",
+        texte:"Silence poli. Personne ne répond à votre question. Le café n'a rien réglé.",
+        choix:[
+          {t:"« Je vois que c'est mou, on va accélérer pour finir plus tôt. »", d:[-1,0,-1], go:"b2",
+           k:"Accélérer sur un groupe fatigué, c'est parler à des gens qui n'écoutent plus. Vous finirez seul."},
+          {t:"« On se lève. Trois minutes debout, vous allez chercher chez un collègue une chose retenue ce matin. »", d:[2,2,3], go:"b2",
+           k:"L'énergie se régule par le corps et le changement de format, jamais par la volonté ou le reproche."},
+          {t:"Vous continuez le diaporama comme prévu.", d:[0,-1,-3], go:"b2",
+           k:"Le programme n'est pas le contrat. Ce que les gens repartent avec, ça oui."}
+        ]
+      },
+      b2:{
+        didasc:"Une main se lève au deuxième rang. La question est très précise. Vous ne connaissez pas la réponse.",
+        texte:"« Et dans le cas d'un contrat en alternance signé avant la réforme, ça donne quoi exactement ? »",
+        choix:[
+          {t:"Vous improvisez une réponse plausible.", d:[-3,-2,-1], go:null,
+           k:"Le jour où le groupe découvre un bluff, tout le reste de ce que vous avez dit devient suspect."},
+          {t:"« Je ne sais pas. Je note la question et je vous apporte la réponse demain matin. »", d:[3,3,1], go:null,
+           k:"Le « je ne sais pas » assumé, suivi d'un engagement daté, renforce la crédibilité au lieu de l'entamer."},
+          {t:"« Quelqu'un dans la salle a déjà rencontré ce cas ? »", d:[2,2,2], go:null,
+           k:"Renvoyer au groupe est un bon réflexe, à condition d'assumer ensuite si personne n'a la réponse."}
+        ]
+      }
+    }
+  }
+];
+
+/* ============ ETAT ============ */
+let etat = {};
+function reinit(){
+  etat = {
+    px:6, py:8,
+    stats:{cadre:50, lien:50, energie:50},
+    points:0,
+    faits:{},
+    carnet:[],
+    pnj:null, beat:null, marche:null, occupe:false
+  };
+}
+
+const MAXI = PNJ.reduce((tot, p) => tot + Object.keys(p.beats).reduce((s, k) => {
+  return s + Math.max.apply(null, p.beats[k].choix.map(c => c.d[0] + c.d[1] + c.d[2]));
+}, 0), 0);
+
+/* ============ OUTILS ============ */
+const $ = s => document.querySelector(s);
+function pnjSur(x, y){ return PNJ.find(p => p.x === x && p.y === y); }
+function colle(x, y){ return Math.abs(x - etat.px) + Math.abs(y - etat.py) === 1; }
+function pnjProche(){ return PNJ.find(p => colle(p.x, p.y)); }
+
+/* ============ RENDU ============ */
+function dessine(){
+  const carte = $("#carte");
+  const frag = document.createDocumentFragment();
+  const voisin = pnjProche();
+  for(let y = 0; y < H; y++){
+    for(let x = 0; x < W; x++){
+      const c = MAP[y][x];
+      const d = document.createElement("div");
+      d.className = "case " + (c === "#" ? "mur" : c === "T" ? "table" : "sol");
+      if(c === "." && (x + y) % 2 === 0) d.classList.add("alt");
+      d.dataset.x = x;
+      d.dataset.y = y;
+      const p = pnjSur(x, y);
+      if(etat.px === x && etat.py === y){
+        d.innerHTML = '<span class="pion hero">🧑‍🏫</span>';
+      } else if(p){
+        d.innerHTML = '<span class="pion pnj' + (etat.faits[p.id] ? " fini" : "") + '">' + p.av + "</span>";
+        if(etat.faits[p.id]) d.innerHTML += '<span class="badge"></span>';
+        d.classList.add("cible");
+        if(voisin && voisin.id === p.id && !etat.faits[p.id]) d.classList.add("proche");
+        d.setAttribute("title", p.nom);
+      } else if(c === "."){
+        d.classList.add("cible");
+      }
+      frag.appendChild(d);
+    }
+  }
+  carte.innerHTML = "";
+  carte.appendChild(frag);
+
+  const info = $("#info");
+  if(voisin && !etat.faits[voisin.id]) info.innerHTML = "Parler à <em>" + voisin.nom + "</em> : touche E";
+  else if(voisin) info.innerHTML = "Échange déjà fait avec " + voisin.nom;
+  else info.textContent = "Flèches ou ZQSD pour marcher, clic pour se déplacer";
+}
+
+function jauges(){
+  [["cadre","#b-cadre"],["lien","#b-lien"],["energie","#b-energie"]].forEach(function(pair){
+    const v = etat.stats[pair[0]];
+    const n = Math.round(v / 10);
+    let html = "";
+    for(let i = 0; i < 10; i++) html += '<span class="seg' + (i < n ? " on" : "") + '"></span>';
+    $(pair[1]).innerHTML = html;
+  });
+}
+
+function quetes(){
+  $("#liste").innerHTML = PNJ.map(function(p){
+    return '<li class="' + (etat.faits[p.id] ? "ok" : "") + '">' +
+      '<span class="av">' + p.av + '</span>' +
+      '<span><span class="nom">' + p.nom + '</span><br><span class="rl">' + p.role + '</span></span>' +
+      '</li>';
+  }).join("");
+}
+
+/* ============ DEPLACEMENT ============ */
+function bouge(dx, dy){
+  if(etat.occupe) return;
+  const nx = etat.px + dx, ny = etat.py + dy;
+  if(bloque(nx, ny) || pnjSur(nx, ny)) return;
+  etat.px = nx;
+  etat.py = ny;
+  dessine();
+}
+
+function chemin(sx, sy, tx, ty){
+  const cle = (x, y) => y * W + x;
+  const vus = new Set([cle(sx, sy)]);
+  const prec = new Map();
+  const file = [[sx, sy]];
+  while(file.length){
+    const p = file.shift();
+    if(p[0] === tx && p[1] === ty) break;
+    const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+    for(let i = 0; i < dirs.length; i++){
+      const nx = p[0] + dirs[i][0], ny = p[1] + dirs[i][1];
+      if(bloque(nx, ny) || pnjSur(nx, ny)) continue;
+      const k = cle(nx, ny);
+      if(vus.has(k)) continue;
+      vus.add(k);
+      prec.set(k, [p[0], p[1]]);
+      file.push([nx, ny]);
+    }
+  }
+  if(!vus.has(cle(tx, ty))) return null;
+  const route = [];
+  let cur = [tx, ty];
+  while(!(cur[0] === sx && cur[1] === sy)){
+    route.push(cur);
+    cur = prec.get(cle(cur[0], cur[1]));
+    if(!cur) return null;
+  }
+  return route.reverse();
+}
+
+function marcheVers(tx, ty, apres){
+  const route = chemin(etat.px, etat.py, tx, ty);
+  if(!route) return;
+  clearInterval(etat.marche);
+  etat.occupe = true;
+  let i = 0;
+  etat.marche = setInterval(function(){
+    if(i >= route.length){
+      clearInterval(etat.marche);
+      etat.occupe = false;
+      dessine();
+      if(apres) apres();
+      return;
+    }
+    etat.px = route[i][0];
+    etat.py = route[i][1];
+    i++;
+    dessine();
+  }, 105);
+}
+
+function versPnj(p){
+  if(colle(p.x, p.y)){ parle(p); return; }
+  const opts = [[p.x+1,p.y],[p.x-1,p.y],[p.x,p.y+1],[p.x,p.y-1]]
+    .filter(c => !bloque(c[0], c[1]) && !pnjSur(c[0], c[1]));
+  if(!opts.length) return;
+  opts.sort((a, b) => (Math.abs(a[0]-etat.px)+Math.abs(a[1]-etat.py)) - (Math.abs(b[0]-etat.px)+Math.abs(b[1]-etat.py)));
+  marcheVers(opts[0][0], opts[0][1], function(){ parle(p); });
+}
+
+/* ============ DIALOGUE ============ */
+function parle(p){
+  if(etat.faits[p.id]){ rappel(p); return; }
+  etat.pnj = p;
+  etat.beat = "start";
+  etat.occupe = true;
+  $("#voile").classList.remove("cache");
+  affiche();
+}
+
+function tete(p){
+  return '<div class="tete"><span class="av">' + p.av + '</span><span>' +
+    '<span class="nom">' + p.nom + '</span><br><span class="rl">' + p.role + '</span></span></div>';
+}
+
+function affiche(){
+  const p = etat.pnj;
+  const b = p.beats[etat.beat];
+  let html = tete(p) + '<div class="corps"><p class="didasc">' + b.didasc + '</p>' +
+    '<p class="replique">' + b.texte + '</p></div><ul class="choix">';
+  b.choix.forEach(function(c, i){
+    html += '<li><button data-choix="' + i + '">' + c.t + "</button></li>";
+  });
+  html += "</ul>";
+  $("#boite").innerHTML = html;
+  const b1 = $("#boite button");
+  if(b1) b1.focus();
+}
+
+function nomAxe(i){ return ["Cadre","Lien","Énergie"][i]; }
+
+function choisir(i){
+  const p = etat.pnj;
+  const c = p.beats[etat.beat].choix[i];
+  const axes = ["cadre","lien","energie"];
+  c.d.forEach(function(v, k){
+    etat.stats[axes[k]] = Math.max(0, Math.min(100, etat.stats[axes[k]] + v * 5));
+  });
+  etat.points += c.d[0] + c.d[1] + c.d[2];
+  etat.carnet.push({nom:p.nom, av:p.av, k:c.k});
+  jauges();
+
+  let chips = "";
+  c.d.forEach(function(v, k){
+    const cl = v > 0 ? "plus" : v < 0 ? "moins" : "zero";
+    chips += '<span class="chip ' + cl + '">' + nomAxe(k) + " " + (v > 0 ? "+" : "") + v + "</span>";
+  });
+
+  const suite = c.go ? "Continuer" : "Fin de l'échange";
+  $("#boite").innerHTML = tete(p) +
+    '<div class="corps"><p class="didasc">Votre réponse</p><p class="replique">' + c.t + "</p></div>" +
+    '<div class="retour"><div class="deltas">' + chips + "</div>" +
+    '<div class="note"><b>Clé de posture</b><p>' + c.k + "</p></div>" +
+    '<button class="btn" id="suite">' + suite + "</button></div>";
+  $("#suite").focus();
+  $("#suite").onclick = function(){
+    if(c.go){ etat.beat = c.go; affiche(); }
+    else { termine(p); }
+  };
+}
+
+function termine(p){
+  etat.faits[p.id] = true;
+  fermer();
+  quetes();
+  dessine();
+  if(Object.keys(etat.faits).length === PNJ.length) setTimeout(bilan, 500);
+}
+
+function rappel(p){
+  etat.pnj = p;
+  etat.occupe = true;
+  $("#voile").classList.remove("cache");
+  const notes = etat.carnet.filter(n => n.nom === p.nom);
+  $("#boite").innerHTML = tete(p) +
+    '<div class="corps"><p class="didasc">Échange déjà mené</p></div>' +
+    '<div class="retour">' + notes.map(n => '<div class="note"><b>Clé de posture</b><p>' + n.k + "</p></div>").join("") +
+    '<button class="btn" id="suite">Retourner en salle</button></div>';
+  $("#suite").focus();
+  $("#suite").onclick = fermer;
+}
+
+function fermer(){
+  $("#voile").classList.add("cache");
+  $("#boite").innerHTML = "";
+  etat.pnj = null;
+  etat.occupe = false;
+}
+
+/* ============ BILAN ============ */
+function bilan(){
+  const pct = Math.max(0, Math.round(etat.points / MAXI * 100));
+  let rang, mot;
+  if(pct >= 85){
+    rang = "Posture juste";
+    mot = "Vous avez tenu le cadre sans écraser personne, et gardé le lien sans brader le contenu. C'est exactement l'endroit où se tient un formateur : ferme sur le processus, souple sur les personnes.";
+  } else if(pct >= 65){
+    rang = "Formateur solide";
+    mot = "Vos réflexes sont bons dans l'ensemble. Il reste deux ou trois moments où vous avez choisi le confort immédiat plutôt que la régulation. Ce sont ceux là qui coûtent l'après midi du deuxième jour.";
+  } else if(pct >= 40){
+    rang = "Posture en construction";
+    mot = "Vous alternez entre l'autorité qui se crispe et la gentillesse qui lâche. Les deux viennent du même endroit : la peur de perdre le groupe. Le cadre est ce qui rassure, pas ce qui punit.";
+  } else {
+    rang = "Journée difficile";
+    mot = "Le groupe a compris que le cadre était négociable et que dire les choses ne servait à rien. Reprenez la journée, en observant à chaque fois qui vous cherchez à protéger : eux, ou vous.";
+  }
+
+  const jf = [["Cadre","cadre"],["Lien","lien"],["Énergie","energie"]].map(function(a){
+    return "<div><b>" + a[0] + "</b><span>" + etat.stats[a[1]] + "</span></div>";
+  }).join("");
+
+  const notes = etat.carnet.map(function(n){
+    return '<div class="note"><b>' + n.av + " " + n.nom + "</b><p>" + n.k + "</p></div>";
+  }).join("");
+
+  $("#ecran-fin").innerHTML =
+    '<div class="bilan"><h2>17h40, la salle est vide.</h2>' +
+    '<span class="rang">' + rang + " · " + pct + " %</span>" +
+    '<p class="score">' + mot + "</p>" +
+    '<div class="jaugefin">' + jf + "</div>" +
+    "<h3 style=\"font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6d7d7c;margin:0 0 12px\">Le paperboard de la journée</h3>" +
+    '<div class="notes">' + notes + "</div>" +
+    '<button class="btn" id="rejouer">Refaire la journée</button></div>';
+
+  montre("#ecran-fin");
+  $("#rejouer").onclick = demarrer;
+}
+
+/* ============ NAVIGATION ============ */
+function montre(sel){
+  document.querySelectorAll(".ecran").forEach(e => e.classList.remove("actif"));
+  $(sel).classList.add("actif");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function demarrer(){
+  clearInterval(etat.marche);
+  reinit();
+  fermer();
+  jauges();
+  quetes();
+  dessine();
+  montre("#ecran-jeu");
+}
+
+/* ============ EVENEMENTS ============ */
+$("#go").onclick = demarrer;
+
+$("#carte").addEventListener("click", function(e){
+  const c = e.target.closest(".case");
+  if(!c || etat.pnj) return;
+  const x = parseInt(c.dataset.x, 10), y = parseInt(c.dataset.y, 10);
+  const p = pnjSur(x, y);
+  if(p){ versPnj(p); return; }
+  if(bloque(x, y)) return;
+  marcheVers(x, y, null);
+});
+
+$("#boite").addEventListener("click", function(e){
+  const b = e.target.closest("[data-choix]");
+  if(b) choisir(parseInt(b.dataset.choix, 10));
+});
+
+document.addEventListener("keydown", function(e){
+  if(!$("#ecran-jeu").classList.contains("actif")) return;
+  const k = e.key.toLowerCase();
+  if(etat.pnj){
+    if(k === "escape" && $("#suite")) $("#suite").click();
+    return;
+  }
+  const pas = {arrowup:[0,-1], arrowdown:[0,1], arrowleft:[-1,0], arrowright:[1,0],
+               z:[0,-1], s:[0,1], q:[-1,0], d:[1,0], w:[0,-1], a:[-1,0]};
+  if(pas[k]){
+    e.preventDefault();
+    clearInterval(etat.marche);
+    etat.occupe = false;
+    bouge(pas[k][0], pas[k][1]);
+  } else if(k === "e" || k === "enter" || k === " "){
+    e.preventDefault();
+    const p = pnjProche();
+    if(p) parle(p);
+  }
+});
+
+document.querySelector(".pad").addEventListener("click", function(e){
+  const b = e.target.closest("button");
+  if(!b || etat.pnj) return;
+  const v = b.dataset.dir;
+  if(v === "parler"){
+    const p = pnjProche();
+    if(p) parle(p);
+    return;
+  }
+  const xy = v.split(",");
+  clearInterval(etat.marche);
+  etat.occupe = false;
+  bouge(parseInt(xy[0], 10), parseInt(xy[1], 10));
+});
+
+reinit();
+jauges();
+</script>
+</body>
+</html>
